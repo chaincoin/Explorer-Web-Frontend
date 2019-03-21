@@ -1,0 +1,345 @@
+
+<script src="http://peterolson.github.com/BigInteger.js/BigInteger.min.js"></script>
+<script src="/areas/Mining/scripts/helper.js"></script>
+<script src="/areas/Mining/scripts/op.js"></script>
+
+<script src="/areas/Mining/scripts/aes.js"></script>
+<script src="/areas/Mining/scripts/blake.js"></script>
+<script src="/areas/Mining/scripts/bmw.js"></script>
+<script src="/areas/Mining/scripts/cubehash.js"></script>
+<script src="/areas/Mining/scripts/echo.js"></script>
+<script src="/areas/Mining/scripts/groestl.js"></script>
+
+<script src="/areas/Mining/scripts/jh.js"></script>
+<script src="/areas/Mining/scripts/keccak.js"></script>
+<script src="/areas/Mining/scripts/luffa.js"></script>
+
+<script src="/areas/Mining/scripts/shavite.js"></script>
+<script src="/areas/Mining/scripts/simd.js"></script>
+<script src="/areas/Mining/scripts/skein.js"></script>
+
+
+<div class="MinerDetails" >
+    <div class="panel panel-default">
+
+        <div class="panel-heading">CHC Miner
+        </div>
+
+        <div class="panel-body">
+            
+
+            <div>
+                Hash rate: <span class="hash-rate">Stopped</span>
+            </div>
+
+            <div>
+                Mining Strength
+                <input class="mining-strength" data-slider-id='mining-strength-slider' type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1" data-slider-value="5"/>
+                
+            </div>
+            
+
+            
+            <button type="button" class="btn btn-default start-button">Start</button> 
+            <button type="button" class="btn btn-default stop-button">Stop</button> 
+        </div>
+    </div>
+
+
+</div>
+<script>
+     //block details 
+    $(function () {
+        
+
+        $(".MinerDetails").on("showArea", function (event, blockId) {
+           
+            debugger;
+            if ($.urlParam("mineStrength ") != null && $.urlParam("mineStrength ") != "")
+            {
+                var mineStrengthStr = $.urlParam("mineStrength ");
+                var mineStrength = parseInt(mineStrengthStr);
+
+                if (isNaN(mineStrength) == false && mineStrength > 0 && mineStrength <= 100)
+                {
+                    miningStrength.val(mineStrength);
+                }
+                
+            }
+
+            if ($.urlParam("mine").toLowerCase() == "true")
+            {
+                startButtonEl.click();
+            }
+
+
+        });
+
+        $("body").on("blockCount",function()
+        {
+            workload = null;
+            if (mining) GetWorkload();
+        });
+
+
+        var minerDetailsEl = $(".MinerDetails");
+
+
+
+        var hashRateEl = minerDetailsEl.find(".hash-rate");
+        var miningStrength = minerDetailsEl.find(".mining-strength");
+        var startButtonEl = minerDetailsEl.find(".start-button");
+        var stopButtonEl = minerDetailsEl.find(".stop-button");
+
+
+        startButtonEl.click(function(){
+            miningStrength.slider("disable");
+            calMiningSetting();
+
+            hashRateEl.text("0");
+            mining = true;
+            GetWorkload();
+        });
+
+        stopButtonEl.click(function(){
+            miningStrength.slider("enable");
+            hashRateEl.text("Stopped");
+            mining = false;
+            workload = null;
+            if (miningTimer != null) {
+                clearTimeout(miningTimer);
+                miningTimer = null;
+            }
+        });
+        
+
+
+
+
+        var mining = false;
+        var miningTimer = null;
+
+
+        var workload = null;
+        var workloadStartTime = 0;
+        var blockHeaderBuffer = new Uint8Array(80);
+        var nonce = 0;
+        var target = null;
+        var nonceRange = null;
+        
+        var hashRate = 0;
+        
+
+
+        var max_miningLoop = 200;
+        var max_mineTime = 500;
+        var min_mineShortSleep = 100;
+        var min_mineLongSleep = 500;
+
+
+        var miningLoop = 10;
+        var mineTime = 50;
+        var mineShortSleep = 100;
+        var mineLongSleep = 500;
+
+        function calMiningSetting(){
+<<<<<<< working copy
+
+=======
+            //debugger;
+>>>>>>> merge rev
+            var percentage = parseInt(miningStrength.val());
+
+            miningLoop  = Math.floor(max_miningLoop * (percentage / 100));
+            mineTime = Math.floor(max_mineTime * (percentage / 100));
+            mineShortSleep = Math.floor(min_mineShortSleep * (1 - (percentage / 100)));
+            mineLongSleep = Math.floor(min_mineLongSleep * (1 - (percentage / 100)));
+        }
+
+        function GetWorkload(){
+            
+
+
+            var request = {
+                op:"getMiningHeader"
+            }
+
+            sendRequest(request).then(function (data) {
+
+                try{if (bigInt == null) return; }catch(ex){return;}
+                
+                nonce = 0;
+                workload = data;
+                    
+                hex2bin(workload.blockHeaderHex, blockHeaderBuffer);
+                target = new bigInt(workload.target,16);
+                nonceRange = new bigInt(workload.nonceRange,16);
+                workloadStartTime = new Date().getTime();
+
+                if (miningTimer == null) setTimeout(Mine,0);
+            }).catch(function(){
+                setTimeout(GetWorkload,mineLongSleep);
+            })
+        };
+
+
+        function Mine(){
+            miningTimer = null;
+            try{
+                if (bigInt == null) throw "bigInt null"; 
+            }
+            catch(ex)
+            {
+                miningTimer = setTimeout(Mine, mineLongSleep); return;
+            }
+            
+            
+            var startMineLoop = new Date().getTime();
+        
+            while(new Date().getTime() - startMineLoop < mineTime)
+            {
+                for(var i = 0; i < miningLoop; i++)
+                {
+                
+                    int32ToBinLe(nonce,blockHeaderBuffer, 76);
+                    var blockHeaderHashBuffer = ComputeC11Hash(blockHeaderBuffer);
+                    var blockHeaderHashBigInt = bigInt.fromArray(blockHeaderHashBuffer,256);
+                    
+                    
+                    if (blockHeaderHashBigInt.lt(target))
+                    {
+                        //console.log("Found block - " + bin2hex(blockHeaderHashBuffer));
+                        var request = {
+                            op: "submitBlock",
+                            nonce: nonce,
+                            extraNonce: workload.extraNonce,
+                            time: workload.time
+                        }
+                        sendRequest(request);
+                        workload = null;
+
+                        return;
+                    }
+                    else
+                    {
+                        nonce = nonce + 1;
+                    }
+                    
+                    if (nonceRange.lt(nonce))
+                    {
+                        GetWorkload(); 
+                        return;
+                    }
+                }
+            }
+
+<<<<<<< working copy
+
+=======
+            //console.log(new Date().getTime() - startMineLoop);
+>>>>>>> merge rev
+
+            var duration = (new Date().getTime() - workloadStartTime) / 1000;		
+            hashRate = nonce / duration;
+            hashRateEl.text(hashRate);
+
+            if (duration > 30) GetWorkload(); 
+            else miningTimer = setTimeout(Mine, mineShortSleep);
+        };
+
+
+        function hex2bin(hex, buffer) {
+            if (buffer == null) buffer = new Uint8Array(hex.length / 2);
+
+            for (var i = 0; i < hex.length - 1; i += 2) {
+                buffer[i / 2] = parseInt(hex.substr(i, 2), 16)
+            }
+
+            return buffer;
+        }
+
+    
+        function bin2hex(bin) {
+            var result = "";
+
+            for (var i = 0; i < bin.length; i++) {
+
+                var hex = bin[i].toString(16);
+                if (hex.length < 2) hex = "0" + hex;
+
+                result = result + hex;
+            }
+
+            return result;
+        }
+    
+        var _keccak = function(str,format, output) {
+            var msg = str;
+            if (format === 2) {
+            msg = h.int32Buffer2Bytes(str);
+            }
+            if (output === 1) {
+            return keccak.keccak_512['array'](msg);
+            } else if (output === 2) {
+            return h.bytes2Int32Buffer(keccak.keccak_512['array'](msg));
+            } else {
+            return keccak.keccak_512['hex'](msg);
+            }
+        }
+    
+    
+        function ComputeC11Hash(input) {
+        
+            var a = blake(input,1,1);
+            a = bmw(a,1,1);
+            a = groestl(a,1,1);
+            a = jh(a,1,1);
+            a = _keccak(a,1,1);
+            a = skein(a,1,1);
+            a = luffa(a,1,1);
+            a = cubehash(a,1,1);
+            a = shavite(a,1,1);
+            a = simd(a,1,1);
+            a = echo(a,1,1);
+            a = a.slice(0,32);
+            
+            //return bin2hex(a).match(/.{1,2}/g).reverse().join("");
+            return a.reverse();
+        }
+                    
+        function int32ToBinLe(value, buffer, offset)
+        {
+            if (buffer == null){
+                buffer = new Uint8Array(4);
+                offset = 0;
+            }
+            
+            buffer[offset + 0] = intGetbyte(value,0);
+            buffer[offset + 1] = intGetbyte(value,1);
+            buffer[offset + 2] = intGetbyte(value,2);
+            buffer[offset + 3] = intGetbyte(value,3);
+            return buffer;
+        }
+
+        function intGetbyte(value, pos)
+        {
+            return (value >> (8*pos)) & 0xff;
+        }     
+        
+        
+
+        miningStrength.slider({
+            formatter: function(value) {
+                return 'Current value: ' + value;
+            }
+        });
+
+        calMiningSetting();
+
+    });
+</script>
+
+
+<style>
+    
+</style>

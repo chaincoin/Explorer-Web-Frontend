@@ -1,0 +1,300 @@
+<div class="MasternodeWinnersListTable" >
+
+    <div class="card">
+        <div class="card-header">
+            Masternode Winners List
+        </div>
+        <div class="card-body">
+            <div class="MasternodeWinnersListTable-content">
+
+                <div>
+                    <div class="form-group">
+                        <label for="MasternodeWinnersListSearch">Search:</label>
+                        <input type="text" class="form-control" id="MasternodeWinnersListSearch">
+                    </div>
+                </div>
+
+                <div class="center">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item pagination-start">
+                                <a class="page-link" href="#">&lt;&lt;</a>
+                            </li>
+                            <li class="page-item pagination-previous">
+                                <a class="page-link" href="#">&lt;</a>
+                            </li>
+                            <li class="page-item pagination-next">
+                                <a class="page-link" href="#">&gt;</a>
+                            </li>
+                            <li class="page-item pagination-end">
+                                <a class="page-link" href="#">&gt;&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <div class="row header">
+                    <div class="col-lg-3 block-col">
+                        Block
+                    </div>
+
+                    <div class="col-lg-9 address-col">
+                        Address
+                    </div>
+
+                </div>
+
+                <div class="rows">
+
+                </div>
+
+
+                <div class="center">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item pagination-start">
+                                <a class="page-link" href="#">&lt;&lt;</a>
+                            </li>
+                            <li class="page-item pagination-previous">
+                                <a class="page-link" href="#">&lt;</a>
+                            </li>
+                            <li class="page-item pagination-next">
+                                <a class="page-link" href="#">&gt;</a>
+                            </li>
+                            <li class="page-item pagination-end">
+                                <a class="page-link" href="#">&gt;&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="loader-container">
+                <div class="loader">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+</div>
+
+<script>
+    $(function () {
+
+        var loaded = false;
+
+
+
+        $(".MasternodeWinnersListTable").on("showArea", function () {
+            
+            LoadMasternodeList(0);
+        });
+
+
+
+
+
+        var winnersListEl = $(".MasternodeWinnersListTable");
+        var winnersListSearchEl = winnersListEl.find("#MasternodeWinnersListSearch");
+        var rowUiTemplate = winnersListEl.find(".header").clone().removeClass("header");
+        var rowsUi = winnersListEl.find(".rows");
+
+
+
+        var currentPage = 0;
+        var winnersListRowsPerPage = 20;
+
+        winnersListSearchEl.keyup(function(){
+
+            rowsUi.children().removeClass("row-visible");
+            rowsUi.children(":containsi('" + winnersListSearchEl.val() + "')").addClass("row-visible");
+            showPage(0);
+        });
+
+        var winnersListPaginationEl = winnersListEl.find(".pagination");
+        var winnersListPaginationStartEl = winnersListPaginationEl.find(".pagination-start");
+        winnersListPaginationStartEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            showPage(0);
+            return false;
+        });
+
+        var winnersListPaginationPreviousEl = winnersListPaginationEl.find(".pagination-previous");
+        winnersListPaginationPreviousEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            showPage(currentPage - 1);
+            return false;
+        });
+
+        var winnersListPaginationNextEl = winnersListPaginationEl.find(".pagination-next");
+        winnersListPaginationNextEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            showPage(currentPage + 1);
+            return false;
+        });
+
+
+        
+
+        var winnersListPaginationEndEl = winnersListPaginationEl.find(".pagination-end");
+        winnersListPaginationEndEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            showPage(Math.ceil(rowsUi.children(".row-visible").length / winnersListRowsPerPage) - 1);
+            return false;
+        });
+
+
+
+
+        var processPaginationControls = function(){
+
+
+            if (currentPage == 0){
+                winnersListPaginationStartEl.children().addClass("paginationDisabled");
+                winnersListPaginationPreviousEl.children().addClass("paginationDisabled");
+            }
+            else
+            {
+                winnersListPaginationStartEl.children().removeClass("paginationDisabled");
+                winnersListPaginationPreviousEl.children().removeClass("paginationDisabled");
+            }
+
+            if (currentPage >= Math.ceil(rowsUi.children(".row-visible").length / winnersListRowsPerPage) - 1){
+                winnersListPaginationNextEl.children().addClass("paginationDisabled");
+                winnersListPaginationEndEl.children().addClass("paginationDisabled");
+            }
+            else
+            {
+                winnersListPaginationNextEl.children().removeClass("paginationDisabled");
+                winnersListPaginationEndEl.children().removeClass("paginationDisabled");
+            }
+
+
+
+   
+        }
+
+        var showPage = function(page){
+            var mastenodeRowsEl = rowsUi.children(".row-visible");
+            rowsUi.children().hide();
+
+
+            var startPos = page * winnersListRowsPerPage;
+
+            for(var i = 0; i < winnersListRowsPerPage && startPos + i <  mastenodeRowsEl.length; i++)
+            {
+                $(mastenodeRowsEl[startPos + i]).show();
+            }
+
+            currentPage = page;
+            
+            processPaginationControls();
+        }
+
+
+        var LoadMasternodeList = function () {
+
+
+
+            rowsUi.empty();
+            winnersListEl.addClass("loading");
+
+
+            var request = {
+                op:"getMasternodeWinners",
+                extended:true
+            }
+
+            sendRequest(request).then(function(winnersList){
+                var winners = [];
+
+                for (var key in winnersList) {
+                    winners.push({
+                        block:key,
+                        address:winnersList[key]
+                    });
+                }
+
+
+                rowsUi.empty();
+                for (var i = 0; i < winners.length; i++) {
+                    var winner = winners[i];
+                    var rowUi = rowUiTemplate.clone().appendTo(rowsUi);
+
+                    rowUi.addClass("row-striped");
+
+                    rowUi.find(".block-col").text(winner.block);
+
+
+                    var address = winner.address;
+                    if (address.indexOf(":") > -1) address = address.substring(0,address.indexOf(":"));
+
+
+                    var addressColEl =  rowUi.find(".address-col");
+                    if (address != "Unknown")
+                    {
+                        addressColEl.text("");
+
+                        var anchorEl = $('<a href="#Explorer/Address/' + address + '" />');
+                        anchorEl.text(address);
+                        addressColEl.append(anchorEl);
+                    }
+                    else
+                    {
+                        addressColEl.text("Unknown");
+                    }
+                    
+                }  
+
+                rowsUi.children().addClass("row-visible");
+                
+                showPage(0);
+
+            }).always(function () {
+                winnersListEl.removeClass("loading");
+            });
+        };
+
+    });
+</script>
+
+
+<style>
+
+    
+
+
+    .MasternodeWinnersListTable .panel-body {
+        position: relative;
+    }
+
+    .MasternodeWinnersListTable.loading .MasternodeWinnersListTable-content {
+        position: relative;
+        opacity: 0.2;
+    }
+
+    .MasternodeWinnersListTable .loader-container {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+        display: none;
+
+    }
+
+    .MasternodeWinnersListTable.loading .loader-container {
+        display: block;
+    }
+
+
+
+
+</style>

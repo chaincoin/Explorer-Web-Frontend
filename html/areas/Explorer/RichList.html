@@ -1,0 +1,282 @@
+<div class="RichListTable" >
+
+    <div class="card">
+        <div class="card-header">
+            Rich List
+        </div>
+        <div class="card-body">
+            <div class="RichListTable-content">
+                <div class="center">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item pagination-start">
+                                <a class="page-link" href="#">&lt;&lt;</a>
+                            </li>
+                            <li class="page-item pagination-previous">
+                                <a class="page-link" href="#">&lt;</a>
+                            </li>
+                            <li class="page-item pagination-next">
+                                <a class="page-link" href="#">&gt;</a>
+                            </li>
+                            <li class="page-item pagination-end">
+                                <a class="page-link" href="#">&gt;&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <div class="row header">
+                    <div class="col-lg-4 address-col">
+                        Addess
+                    </div>
+
+                    <div class="col-lg-4 last-activity-col">
+                        Last Activity
+                    </div>
+
+                    <div class="col-lg-4 balance-col">
+                        Balance (CHC)
+                    </div>
+
+
+                </div>
+
+                <div class="rows">
+
+                </div>
+
+
+                <div class="center">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item pagination-start">
+                                <a class="page-link" href="#">&lt;&lt;</a>
+                            </li>
+                            <li class="page-item pagination-previous">
+                                <a class="page-link" href="#">&lt;</a>
+                            </li>
+                            <li class="page-item pagination-next">
+                                <a class="page-link" href="#">&gt;</a>
+                            </li>
+                            <li class="page-item pagination-end">
+                                <a class="page-link" href="#">&gt;&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="loader-container">
+                <div class="loader">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+</div>
+
+<script>
+    $(function () {
+
+        var loaded = false;
+
+
+
+        $(".RichListTable").on("showArea", function () {
+            
+            LoadRichListCount().then(function(){
+                LoadRichList(0);
+            });
+        });
+
+
+
+
+
+        var richListEl = $(".RichListTable");
+        var rowUiTemplate = richListEl.find(".header").clone().removeClass("header");
+        var rowsUi = richListEl.find(".rows");
+
+
+
+        var currentPos = 0;
+        var _richListCount = 0;
+        var richListRowsPerPage = 20;
+
+        var richListPaginationEl = $(".RichListTable .pagination");
+        var richListPaginationStartEl = richListPaginationEl.find(".pagination-start");
+        richListPaginationStartEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            LoadRichList(0);
+            return false;
+        });
+
+        var richListPaginationPreviousEl = richListPaginationEl.find(".pagination-previous");
+        richListPaginationPreviousEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            LoadRichList(currentPos - richListRowsPerPage);
+            return false;
+        });
+
+        var richListPaginationNextEl = richListPaginationEl.find(".pagination-next");
+        richListPaginationNextEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            LoadRichList(currentPos + richListRowsPerPage);
+            return false;
+        });
+
+
+        
+
+        var richListPaginationEndEl = richListPaginationEl.find(".pagination-end");
+        richListPaginationEndEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+            LoadRichList(_richListCount - richListRowsPerPage);
+            return false;
+        });
+
+        var paginationSkipControls = [];
+        var paginationSkip = 1;
+        while(richListPaginationEl.find(".pagination-skip-" + paginationSkip).length != 0)
+        {
+            paginationSkipControls.push(richListPaginationEl.find(".pagination-skip-" + paginationSkip));
+            paginationSkip++;
+        }
+
+
+        var processPaginationControls = function(){
+
+            if (currentPos == 0){
+                richListPaginationStartEl.children().addClass("paginationDisabled");
+                richListPaginationPreviousEl.children().addClass("paginationDisabled");
+            }
+            else
+            {
+                richListPaginationStartEl.children().removeClass("paginationDisabled");
+                richListPaginationPreviousEl.children().removeClass("paginationDisabled");
+            }
+
+
+
+            if (currentPos >= _richListCount - richListRowsPerPage){
+                richListPaginationNextEl.children().addClass("paginationDisabled");
+                richListPaginationEndEl.children().addClass("paginationDisabled");
+            }
+            else
+            {
+                richListPaginationNextEl.children().removeClass("paginationDisabled");
+                richListPaginationEndEl.children().removeClass("paginationDisabled");
+            }
+
+
+
+   
+        }
+
+
+        var LoadRichListCount = function(){
+            var request = {
+                op:"getRichListCount"
+            }
+
+            return sendRequest(request).then(function(richListCount){
+                _richListCount = richListCount;
+                
+            });
+        }
+
+
+        var LoadRichList = function (pos) {
+
+
+
+
+            richListEl.addClass("loading");
+
+
+            var request = {
+                op:"getRichList",
+                pos: pos,
+                pageSize: richListRowsPerPage,
+                extended:true
+            }
+
+            sendRequest(request).then(function(addresses){
+
+                rowsUi.empty();
+                for (var i = 0; i < addresses.length; i++) {
+                    var rowUi = rowUiTemplate.clone().appendTo(rowsUi);
+
+                    rowUi.addClass("row-striped");
+
+                    var anchorEl = $('<a href="#Explorer/Address/' + addresses[i].address + '" />');
+
+                    rowUi.find(".address-col").text("");
+                    var addressAnchorEl = anchorEl.clone().appendTo(rowUi.find(".address-col"));
+
+                    if (addresses[i].name == null || addresses[i].name == "") addressAnchorEl.text(addresses[i].address);
+                    else addressAnchorEl.text(addresses[i].name + "(" + addresses[i].address + ")");
+                    
+
+                    
+                    var timestamp = new Date((addresses[i].lastActivity * 1000));
+                    rowUi.find(".last-activity-col").text(timestamp.toLocaleTimeString() + " " + timestamp.toLocaleDateString());
+                  
+
+                    rowUi.find(".balance-col").text(addresses[i].balance);
+
+
+                    
+                    
+                }  
+
+                currentPos = pos;
+                processPaginationControls();
+
+            }).always(function () {
+                richListEl.removeClass("loading");
+            });
+        };
+
+    });
+</script>
+
+
+<style>
+
+    
+
+
+    .RichListTable .panel-body {
+        position: relative;
+    }
+
+    .RichListTable.loading .RichListTable-content {
+        position: relative;
+        opacity: 0.2;
+    }
+
+    .RichListTable .loader-container {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+        display: none;
+
+    }
+
+    .RichListTable.loading .loader-container {
+        display: block;
+    }
+
+
+
+
+</style>

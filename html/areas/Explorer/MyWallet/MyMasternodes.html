@@ -1,0 +1,214 @@
+<div class="my-masternodes-area" >
+
+    <div class="card my-masternodes-card">
+        <div class="card-header">
+            My Masternodes
+        </div>
+        <div class="card-body">
+
+            <button type="button" class="btn btn-primary add-my-masternode">Add Masternode</button>
+
+
+            <div class="my-masternode-table-content">
+                <div class="center">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item pagination-start">
+                                <a class="page-link" href="#">&lt;&lt;</a>
+                            </li>
+                            <li class="page-item pagination-previous">
+                                <a class="page-link" href="#">&lt;</a>
+                            </li>
+                            <li class="page-item pagination-next">
+                                <a class="page-link" href="#">&gt;</a>
+                            </li>
+                            <li class="page-item pagination-end">
+                                <a class="page-link" href="#">&gt;&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                
+                <div class="row header">
+                    <div class="col-sm-1 status-icon-col">
+                        <span class="status-icon"></span>
+                    </div>
+                    <div class="col-lg-2 name-col">
+                        Name
+                    </div>
+                    <div class="col-lg-2 status-col">
+                        status
+                    </div>
+                    <div class="col-lg-2 controls-col">
+                        <button type="button" class="btn btn-danger my-masternode-action-delete">Delete</button>
+                    </div>
+                </div>
+
+                <div class="rows">
+
+                </div>
+
+
+                <div class="center">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item pagination-start">
+                                <a class="page-link" href="#">&lt;&lt;</a>
+                            </li>
+                            <li class="page-item pagination-previous">
+                                <a class="page-link" href="#">&lt;</a>
+                            </li>
+
+                            <li class="page-item pagination-next">
+                                <a class="page-link" href="#">&gt;</a>
+                            </li>
+                            <li class="page-item pagination-end">
+                                <a class="page-link" href="#">&gt;&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="loader-container">
+                <div class="loader">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+<script>
+$(function(){
+
+    var myMasternodesAreaEl = $(".my-masternodes-area");
+
+
+    myMasternodesAreaEl.on("showArea", function () {
+        loadMyMasternodes();
+    });
+
+
+    var myMasternodesCardEl = myMasternodesAreaEl.find(".my-masternodes-card");
+    var myMasternodesRowTemplateEl = myMasternodesCardEl.find(".header").clone().removeClass("header").addClass("row-striped");
+    var myMasternodesRowsEl = myMasternodesCardEl.find(".rows");
+
+    var addMyMasternodeEl = myMasternodesCardEl.find(".add-my-masternode");
+    addMyMasternodeEl.click(function(){
+        var name = prompt("Please enter a name for the masternode");
+        if (name == null) return;
+
+        var output = prompt("Please enter the masternode output");
+        if (output == null) return;
+
+        sendWalletWorkerRequest({
+            op:"createMasternode",
+            name:name,
+            output: output
+        });
+    });
+    
+
+
+    var loadMyMasternodes = function(){
+
+        var myMasternodesPromise = sendWalletWorkerRequest({
+            op:"listMasternodes"
+        });
+
+
+        
+        var masternodeListPromise = sendRequest({
+                op:"getMasternodeList",
+                extended:true
+        });
+
+        Promise.all([myMasternodesPromise, masternodeListPromise]).then(function(values) {
+
+            debugger;
+            var myMasternodes = values[0].data;
+            var masternodeList = values[1];
+
+            for(var i = 0; i < myMasternodes.length; i++)
+            {
+                let myMasternode = myMasternodes[i];
+                let masternode = masternodeList[myMasternode.output];
+
+                let myMasternodesRowEl = myMasternodesRowTemplateEl.clone();
+
+                var statusIconEl = myMasternodesRowEl.find(".status-icon");
+                if (masternode != null && (masternode.status == "ENABLED" || masternode.status == "PRE_ENABLED")) statusIconEl.addClass("fa fa-check");
+                else statusIconEl.addClass("fa fa-times");
+                
+                myMasternodesRowEl.find(".name-col").text(myMasternode.name);
+
+                if (masternode != null)
+                {
+                    myMasternodesRowEl.find(".status-col").text(masternode.status);
+                }
+
+                myMasternodesRowEl.find(".my-masternode-action-delete").click(function(){
+                    sendWalletWorkerRequest({
+                        op:"deleteMasternode",
+                        output:myMasternode.output
+                    }).then(function(){
+                        myMasternodesRowEl.remove();
+                    });
+                });
+
+                myMasternodesRowsEl.append(myMasternodesRowEl);
+
+            }
+        
+        });
+
+    }
+
+});
+</script>
+
+
+
+<style>
+
+
+    .my-masternodes-card .my-masternodes-table-content {
+        position: relative;
+        opacity: 0.2;
+    }
+
+    .my-masternodes-card .loader-container {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+        display: none;
+
+    }
+
+    .my-masternodes-card.loading .loader-container {
+        display: block;
+    }
+
+    .my-masternodes-card .header .controls-col{
+        visibility: hidden;
+    }
+
+    .my-masternodes-card .status-icon-col .status-icon{
+        font-size: 25px;
+    }
+    
+    .my-masternodes-card .status-icon-col .status-icon.fa-check{
+        color:lawngreen;
+    }
+
+    .my-masternodes-card .status-icon-col .status-icon.fa-times{
+        color:red;
+    }
+
+</style>    

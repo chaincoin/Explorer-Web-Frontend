@@ -1,0 +1,552 @@
+
+<div class="my-addresses-area" >
+
+    <div class="card addresses-card">
+        <div class="card-header">
+            Addresses
+        </div>
+        <div class="card-body">
+
+            <button type="button" class="btn btn-primary create-address">New Address</button>
+            <button type="button" class="btn btn-primary import-address">Import Address</button>
+            <button type="button" class="btn btn-primary watch-address">Watch Address</button>
+
+            <div class="addresses-table-content">
+                <div class="center">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item pagination-start">
+                                <a class="page-link" href="#">&lt;&lt;</a>
+                            </li>
+                            <li class="page-item pagination-previous">
+                                <a class="page-link" href="#">&lt;</a>
+                            </li>
+                            <li class="page-item pagination-next">
+                                <a class="page-link" href="#">&gt;</a>
+                            </li>
+                            <li class="page-item pagination-end">
+                                <a class="page-link" href="#">&gt;&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                
+                <div class="row header">
+                    <div class="col-lg-2 name-col">
+                        Name
+                    </div>
+                    <div class="col-lg-4 address-col">
+                        Address
+                    </div>
+                    <div class="col-lg-2 balance-col">
+                        Balance
+                    </div>
+                    <div class="col-lg-2 controls-col">
+                        <button type="button" class="btn btn-danger address-action-delete">Delete</button>
+                        <button type="button" class="btn btn-warning address-action-wif">WIF</button>
+                    </div>
+                </div>
+
+                <div class="rows">
+
+                </div>
+
+
+                <div class="center">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item pagination-start">
+                                <a class="page-link" href="#">&lt;&lt;</a>
+                            </li>
+                            <li class="page-item pagination-previous">
+                                <a class="page-link" href="#">&lt;</a>
+                            </li>
+
+                            <li class="page-item pagination-next">
+                                <a class="page-link" href="#">&gt;</a>
+                            </li>
+                            <li class="page-item pagination-end">
+                                <a class="page-link" href="#">&gt;&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="loader-container">
+                <div class="loader">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="card send-transaction-card">
+        <div class="card-header">
+            Send
+        </div>
+        <div class="card-body">
+
+            <button type="button" class="coinControlButton">Coin Control</button>
+            <div class="coin-control">
+                
+            </div>
+
+
+            <div class="transactionRecipient transactionRecipientTemplate">
+                <input class="sendTo" />
+                <input class="sendAmount"/>
+            </div>
+
+            <button type="button" class="btn btn-primary addRecipient">Add Recipient</button>
+            <div class="transactionRecipients">
+                
+
+            </div>
+            
+            <button type="button" class="btn btn-primary sendButton">Send</button>
+            <button type="button" class="btn btn-primary clearButton">Clear</button>
+                
+        </div>
+    </div>
+    
+
+</div>
+
+<script>
+
+var Chaincoin = {
+  messagePrefix: 'DarkCoin Signed Message:\n',
+  bip32: {
+	public: 0x02FE52F8,
+	private: 0x02FE52CC
+  },
+  pubKeyHash: 0x1C,
+  scriptHash: 0x04,
+  wif: 0x80
+}
+
+    try{
+        var walletWorker = new Worker('/scripts/walletWorker.js?13');
+       // walletWorker.start();
+
+
+        walletWorker.onmessage = function(e) {
+            var message = e.data;
+            var pendingWalletWorkerRequest = pendingWalletWorkerRequests["r" + message.id];
+            if (pendingWalletWorkerRequest != null)
+            {
+                if (message.success)pendingWalletWorkerRequest.promise.resolve(message);
+                else pendingWalletWorkerRequest.promise.reject(message);
+                clearTimeout(pendingWalletWorkerRequest.timer);
+                eval("delete pendingWalletWorkerRequests.r" + message.id);
+            }
+        }
+    }
+    catch(ex)
+    {
+        var s = ex;
+    }
+
+    var walletWorkerRequestId = 0;
+    var pendingWalletWorkerRequests = {}
+    function sendWalletWorkerRequest(request)
+    {
+        request.id = walletWorkerRequestId;
+
+        var promise = jQuery.Deferred(); 
+
+        var pendingWalletWorkerRequest = {
+            request: request,
+            promise:promise,
+            timer: setTimeout(function(){
+                promise.reject();
+            },30000)
+        };
+        
+
+        walletWorker.postMessage(request);
+
+
+        pendingWalletWorkerRequests["r" + walletWorkerRequestId] = pendingWalletWorkerRequest;
+        walletWorkerRequestId++;
+        return promise;
+    }
+    
+
+    $(function () {
+
+        var walletAreaEl = $(".my-addresses-area");
+
+
+        walletAreaEl.on("showArea", function () {
+            debugger;
+            loadAddresses().then(displayAddresses);
+
+        });
+
+
+
+
+        var addressList = [];
+
+
+        
+        var addressesCardEl = walletAreaEl.find(".addresses-card");
+        var addressesRowTemplateEl = addressesCardEl.find(".header").clone().removeClass("header").addClass("row-striped");
+        var addressesRowsEl = addressesCardEl.find(".rows");
+
+
+        var createAddressButtonEl = addressesCardEl.find(".create-address");
+        createAddressButtonEl.click(function(){
+
+            var name = prompt("Please enter a name for the address");
+            if (name == null) return;
+
+            var keyPair = bitcoin.ECPair.makeRandom({ network: Chaincoin });
+	        var WIF = keyPair.toWIF();
+            var address = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: Chaincoin }).address;
+            
+
+            
+            sendWalletWorkerRequest({
+                op:"createAddress",
+                name:name,
+                address: address,
+                WIF:WIF
+            }).then(loadAddresses).then(displayAddresses);
+
+        });
+
+        var importAddressButtonEl = addressesCardEl.find(".import-address");
+        importAddressButtonEl.click(function(){
+
+            var WIF = prompt("Please enter WIF");
+            if (WIF == null || WIF == "") return;
+
+            var name = prompt("Please enter a name for the address");
+            if (name == null) return;
+
+            var keyPair = bitcoin.ECPair.fromWIF(WIF, Chaincoin);
+            var address = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: Chaincoin }).address;
+            
+
+            
+            sendWalletWorkerRequest({
+                op:"createAddress",
+                name:name,
+                address: address,
+                WIF:WIF
+            }).then(loadAddresses).then(displayAddresses);
+
+        });
+
+        var watchAddressButtonEl = addressesCardEl.find(".watch-address");
+        watchAddressButtonEl.click(function(){
+            var name = prompt("Please enter a name for the address");
+            if (name == null) return;
+
+            sendWalletWorkerRequest({
+                op:"createAddress",
+                name:name,
+                address: address,
+                WIF:null
+            }).then(loadAddresses).then(displayAddresses);
+        });
+        
+        
+        
+
+
+        var sign = function(address, hex){
+          
+
+        }
+
+        var loadAddresses = function(){
+            return sendWalletWorkerRequest({
+                op:"listAddresses"
+            }).then(function(response){
+                addressList = response.data;
+            });
+        }
+
+
+        var displayAddresses = function(){
+            addressesRowsEl.empty();
+
+            for(var i = 0; i < addressList.length; i++)
+            {
+                let address = addressList[i];
+                let addressRowEl = addressesRowTemplateEl.clone();
+
+                addressRowEl.find(".name-col").text(address.name);
+
+                var addressColEl =  addressRowEl.find(".address-col");
+                addressColEl.text("");
+                $('<a href="#Explorer/Address/' + address.address + '" />').text(address.address).appendTo(addressColEl);
+
+
+                addressRowEl.find(".address-action-delete").click(function(){
+
+                    if (confirm("Are you sure? the address cant be recovered") == false) return;
+                    
+
+                    sendWalletWorkerRequest({
+                        op:"deleteAddress",
+                        address: address.address
+                    }).then(loadAddresses).then(displayAddresses);
+                });
+
+                if (address.WIF == null || address.WIF == "")
+                {
+                    addressRowEl.find(".address-action-wif").attr("disabled", "disabled");
+                }
+                else
+                {
+                    addressRowEl.find(".address-action-wif").click(function(){
+                        alert(address.WIF);
+                    });
+                }
+                
+                addressRowEl.find(".balance-col").text("");
+
+                addressRowEl.appendTo(addressesRowsEl);
+
+
+                var request = {
+                    op:"getAddress",
+                    address: address.address
+                }
+                
+                sendRequest(request).then(function(data){
+                    addressRowEl.find(".balance-col").text(data.balance + " chc");
+                });
+
+                
+            }
+
+        }
+
+
+
+
+        var fallbackfee = 0.0001;
+
+
+        var sendTransactionCardEl = walletAreaEl.find(".send-transaction-card");
+        var coinControlButtonEl = sendTransactionCardEl.find(".coinControlButton");
+        var coinControlEl = sendTransactionCardEl.find(".coin-control");
+
+
+        var transactionRecipientTemplateEl = sendTransactionCardEl.find(".transactionRecipientTemplate").clone().removeClass("transactionRecipientTemplate");
+        var transactionRecipientsEl = sendTransactionCardEl.find(".transactionRecipients");
+
+        var addRecipientEl  = sendTransactionCardEl.find(".addRecipient");
+        var sendButtonEl = sendTransactionCardEl.find(".sendButton");
+        var clearButtonEl = sendTransactionCardEl.find(".clearButton");
+       
+       
+        
+
+        var vouts = null;
+        var recipients = [];
+     
+        coinControlButtonEl.click(function(){
+
+            coinControlEl.empty();
+            vouts = [];
+
+            let addressesUlEl = $("<ul></ul>");
+
+            for(var i = 0; i < addressList.length; i++)
+            {
+                let address = addressList[i];
+
+                let addressLiEl = $('<li><span class="caret">' + address.address + '</span></li>');
+                let addressNestedUl = $('<ul class="nested"></ul>');
+
+                addressLiEl.append(addressNestedUl);
+                addressesUlEl.append(addressLiEl);
+
+
+                let request = {
+                    op:"getAddressUnspent",
+                    address: address.address
+                }
+            
+                sendRequest(request).then(function(unsepntList){
+
+                    for(var i = 0; i < unsepntList.length; i++)
+                    {
+                        let unspent = unsepntList[i];
+
+                        let unspentOutputEl = $('<li><input type="checkbox"/>' + unspent.value + '</li>');                        
+
+                        unspentOutputEl.find("input").click(function(){
+debugger;
+                            if (addVoutEl.is(":checked"))vouts.push(unspent);
+                            else
+                            {
+                                var index = vouts.indexOf(unspent);
+                                if (index != -1) vouts.splice(unspent,1);
+                            }
+                            
+                        });
+
+                        addressNestedUl.append(unspentOutputEl);
+                    }
+
+                });
+            }
+            
+            coinControlEl.append(addressesUlEl);
+        });
+
+
+        addRecipientEl.click(function(){
+
+            var recipient = {
+                address: "",
+                amount: "0"
+            };
+            var transactionRecipientEl = transactionRecipientTemplateEl.clone();
+
+            var sendToEl = transactionRecipientEl.find(".sendTo");
+            var sendAmountEl = transactionRecipientEl.find(".sendAmount");
+            
+            sendToEl.change(function(){
+                recipient.address = sendToEl.val();
+            });
+
+            sendAmountEl.change(function(){
+                recipient.amount = sendAmountEl.val();
+            });
+
+            transactionRecipientEl.appendTo(transactionRecipientsEl);
+            recipients.push(recipient);
+            
+        });
+
+
+        sendButtonEl.click(function(){
+
+            var txb = new bitcoin.TransactionBuilder(Chaincoin);
+            txb.setVersion(1);
+
+            var totalValue = 0;
+
+            for(var i = 0; i < vouts.length; i++)
+            {
+                txb.addInput(vouts[i].txid, vouts[i].vout); 
+
+                totalValue = totalValue + vouts[i].value;
+            }
+
+
+            
+
+            for(var i = 0; i < recipients.length; i++)
+            {
+                var amount = parseFloat(recipients[i].amount);
+                txb.addOutput(recipients[i].address, amount * 100000000);
+            }
+            
+
+            for(var i = 0; i < vouts.length; i++)
+            {
+                var address = findAddress(vouts[i].address);
+
+                var keyPair = bitcoin.ECPair.fromWIF(address.WIF, Chaincoin);
+                txb.sign(i, keyPair);
+            }
+            
+
+           
+
+            
+            
+            var transaction = txb.build();
+            var hex = transaction.toHex();
+
+
+            var sendTranscationRequest = {
+                op:"sendRawTransaction",
+                hex: hex,
+                allowHighFees: true
+            }
+            
+debugger;
+            sendRequest(sendTranscationRequest).then(function(){
+                alert("transaction sent");
+            });
+
+        });
+
+
+        clearButtonEl.click(function(){
+            recipients = [];
+            transactionRecipientsEl.empty();
+            addRecipientEl.click();
+        });
+
+
+        //add the first RecipientEl
+        addRecipientEl.click();
+
+
+
+        var findAddress = function(address){
+            for(var i = 0; i < addressList.length; i++)
+            {
+                if (addressList[i].address == address) return addressList[i];
+            }
+            return null;
+        }
+
+    });
+
+
+</script>
+
+
+<style>
+
+
+    .addresses-card.loading .addresses-table-content {
+        position: relative;
+        opacity: 0.2;
+    }
+
+    .addresses-card .loader-container {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+        display: none;
+
+    }
+
+    .addresses-card.loading .loader-container {
+        display: block;
+    }
+
+
+
+    .addresses-card .header .controls-col{
+        visibility: hidden;
+    }
+
+
+    .send-transaction-card{
+        display: none;
+    }
+
+    .send-transaction-card .transactionRecipientTemplate{
+        display: none;
+    }
+
+</style>

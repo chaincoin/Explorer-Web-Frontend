@@ -1,0 +1,93 @@
+<div class="BountyTable">
+
+
+    <div class="card BountyList">
+        <div class="card-header">
+            CHC Bounties
+        </div>
+        <div class="card-body">
+            <div class="row header">
+
+                <div class="col-lg-3 bounty-col">
+                    Bounty
+                </div>
+
+                <div class="col-lg-3 created-col">
+                    Created
+                </div>
+
+                <div class="col-lg-2 amount-col">
+                    Amount (CHC)
+                </div>
+
+                <div class="col-lg-4 notes-col">
+                    Notes
+                </div>
+            </div>
+
+            <div class="rows">
+    
+              
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+</div>
+
+<script>
+    $(function(){
+
+        var bountyTableEl = $(".BountyTable");
+        var bountyList = bountyTableEl.find(".BountyList");
+
+        var bountyRowTemplateEl = bountyList.find(".header").clone().removeClass("header");
+        var bountyRowsEl = bountyList.find(".rows");
+
+        var bounties = [{
+            name: "Whitepaper",
+            created: 1539358186,
+            address: "CV55x9mMa8tFDkTD3ykzn569G99znMqSHX",
+            notes:"For more information either join Chaincoin discord https://discord.gg/VTjrPr2 or email me at mcna@chaincoin.org"
+        }];
+
+        for (var i = 0; i < bounties.length; i++) {
+            let bounty = bounties[i];
+            let bountyRowEl = bountyRowTemplateEl.clone().appendTo(bountyRowsEl);
+            
+
+            bountyRowEl.find(".bounty-col").text(bounty.name);
+
+            let created = new Date(bounty.created * 1000);
+            bountyRowEl.find(".created-col").text(created.toLocaleTimeString() + " " + created.toLocaleDateString());
+
+            
+            if (bounty.address != null)
+            {
+                bountyRowEl.find(".amount-col").text("loading");
+
+                let loadBountyValue = function(){
+                    let request = {
+                        op:"getAddress",
+                        address: bounty.address
+                    }; 
+                    sendRequest(request).then(function(address){
+                        bountyRowEl.find(".amount-col").text(address.balance + " chc"); 
+                    });
+                };
+
+                $("body").on("blockCount",loadBountyValue);
+                loadBountyValue();
+                
+
+            }
+            else bountyRowEl.find(".amount-col").text(bounty.value);
+
+            bountyRowEl.find(".notes-col").text(bounty.notes);
+        }
+
+    });
+</script>

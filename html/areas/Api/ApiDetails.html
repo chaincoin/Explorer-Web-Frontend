@@ -1,0 +1,57 @@
+<div class="ApiDetails center" >
+
+    <h1>Api details coming soon</h1>
+    <!--details about api
+
+
+
+    Real-Time
+        getdifficulty - Current difficulty target as a decimal number
+        getblockcount - Current block height in the longest chain
+        latesthash - Hash of the latest block
+        bcperblock - Current block reward in BTC
+        totalbc - Total Bitcoins in circulation (delayed by up to 1 hour])
+        probability - Probability of finding a valid block each hash attempt
+        hashestowin - Average number of hash attempts needed to solve a block
+        nextretarget - Block height of the next difficulty retarget
+        avgtxsize - Average transaction size for the past 1000 blocks. Change the number of blocks by passing an integer as the second argument e.g. avgtxsize/2000
+        avgtxvalue - Average transaction value (1000 Default)
+        interval - average time between blocks in seconds
+        eta - estimated time until the next block (in seconds)
+        avgtxnumber - Average number of transactions per block (100 Default)
+
+    Address Lookups
+        To filter by x number of confirmations include the confirmations parameter
+
+        e.g. /q/addressbalance/1EzwoHtiXB4iFwedPr49iywjZn2nnekhoj?confirmations=6
+        to only include transactions with 6 or more confirmations. This is extremely important if you are processing valuable transactions.
+        getreceivedbyaddress/Address - Get the total number of bitcoins received by an address (in satoshi). Multiple addresses separated by | Do not use to process payments without the confirmations parameter
+        Add the parameters start_time and end_time to restrict received by to a specific time period. Provided times should be a unix timestamp in milliseconds. Multiple addresses separated by |
+
+        getsentbyaddress/Address - Get the total number of bitcoins send by an address (in satoshi). Multiple addresses separated by | Do not use to process payments without the confirmations parameter
+        addressbalance/Address - Get the balance of an address (in satoshi). Multiple addresses separated by | Do not use to process payments without the confirmations parameter
+        addressfirstseen/Address - Timestamp of the block an address was first confirmed in.
+
+    Transaction Lookups
+        txtotalbtcoutput/TxHash - Get total output value of a transaction (in satoshi)
+        txtotalbtcinput/TxHash - Get total input value of a transaction (in satoshi)
+        txfee/TxHash - Get fee included in a transaction (in satoshi)
+        txresult/TxHash/Address - Calculate the result of a transaction sent or received to Address. Multiple addresses separated by |
+        
+    Tools
+        addresstohash/Address - Converts a bitcoin address to a hash 160
+        hashtoaddress/Hash - Converts a hash 160 to a bitcoin address
+        hashpubkey/Pubkey - Converts a public key to a hash 160
+        addrpubkey/Pubkey - Converts a public key to an Address
+        pubkeyaddr/Address - Converts an address to public key (if available)
+        
+    Misc
+        unconfirmedcount - Number of pending unconfirmed transactions
+        24hrprice - 24 hour weighted price from the largest exchanges
+        marketcap - USD market cap (based on 24 hour weighted price)
+        24hrtransactioncount - Number of transactions in the past 24 hours
+        24hrbtcsent - Number of btc sent in the last 24 hours (in satoshi)
+        hashrate - Estimated network hash rate in gigahash
+        rejected - Lookup the reason why the provided tx or block hash was rejected (if any)
+    -->
+</div>

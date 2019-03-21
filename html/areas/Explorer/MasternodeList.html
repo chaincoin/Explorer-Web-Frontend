@@ -1,0 +1,354 @@
+<div class="MasternodeListTable" >
+
+
+    <div class="card">
+        <div class="card-header">
+            Masternode List
+        </div>
+        <div class="card-body">
+            <div class="MasternodeListTable-content">
+
+                <div>
+                    <div class="form-group">
+                        <label for="MasternodeListSearch">Search:</label>
+                        <input type="text" class="form-control" id="MasternodeListSearch">
+                    </div>
+                </div>
+
+                <div class="center">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item pagination-start">
+                                <a class="page-link" href="#">&lt;&lt;</a>
+                            </li>
+                            <li class="page-item pagination-previous">
+                                <a class="page-link" href="#">&lt;</a>
+                            </li>
+                            <li class="page-item pagination-next">
+                                <a class="page-link" href="#">&gt;</a>
+                            </li>
+                            <li class="page-item pagination-end">
+                                <a class="page-link" href="#">&gt;&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <div class="row header">
+
+                    <div class="col-sm-1 status-icon-col">
+                        <span class="status-icon"></span>
+                    </div>
+
+                    <div class="col-sm-11">
+                        <div class="row">
+                            <div class="col-lg-12 col-sm-12 output-col">
+                                Output
+                            </div>
+                            <div class="col-lg-4 col-sm-6 payee-col">
+                                Payee
+                            </div>
+        
+                            <div class="col-lg-4 col-sm-6 address-col">
+                                Address
+                            </div>
+        
+                            <div class="col-lg-4 col-sm-4 last-seen-col">
+                                Last Seen
+                            </div>
+        
+                            <div class="col-lg-4 col-sm-4 last-paid-col">
+                                Last Paid
+                            </div>
+        
+                            <div class="col-lg-4 col-sm-4 status-col">
+                                Status
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rows">
+
+                </div>
+
+
+                <div class="center">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item pagination-start">
+                                <a class="page-link" href="#">&lt;&lt;</a>
+                            </li>
+                            <li class="page-item pagination-previous">
+                                <a class="page-link" href="#">&lt;</a>
+                            </li>
+                            <li class="page-item pagination-next">
+                                <a class="page-link" href="#">&gt;</a>
+                            </li>
+                            <li class="page-item pagination-end">
+                                <a class="page-link" href="#">&gt;&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="loader-container">
+                <div class="loader">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+</div>
+
+<script>
+    $(function () {
+
+        var loaded = false;
+
+
+
+        $(".MasternodeListTable").on("showArea", function () {
+            debugger;
+            LoadMasternodeList(0);
+        });
+
+
+
+
+
+        var masternodeListEl = $(".MasternodeListTable");
+        var masternodeListSearchEl = $("#MasternodeListSearch");
+        var rowUiTemplate = masternodeListEl.find(".header").clone().removeClass("header");
+        var rowsUi = masternodeListEl.find(".rows");
+
+
+
+        var currentPage = 0;
+        var masternodeListRowsPerPage = 20;
+
+        masternodeListSearchEl.keyup(function(){
+
+            rowsUi.children().removeClass("row-visible");
+            rowsUi.children(":containsi('" + masternodeListSearchEl.val() + "')").addClass("row-visible");
+            showPage(0);
+        });
+
+        var masternodeListPaginationEl = $(".MasternodeListTable .pagination");
+        var masternodeListPaginationStartEl = masternodeListPaginationEl.find(".pagination-start");
+        masternodeListPaginationStartEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            showPage(0);
+            return false;
+        });
+
+        var masternodeListPaginationPreviousEl = masternodeListPaginationEl.find(".pagination-previous");
+        masternodeListPaginationPreviousEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            showPage(currentPage - 1);
+            return false;
+        });
+
+        var masternodeListPaginationNextEl = masternodeListPaginationEl.find(".pagination-next");
+        masternodeListPaginationNextEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            showPage(currentPage + 1);
+            return false;
+        });
+
+
+        
+
+        var masternodeListPaginationEndEl = masternodeListPaginationEl.find(".pagination-end");
+        masternodeListPaginationEndEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            showPage(Math.ceil(rowsUi.children(".row-visible").length / masternodeListRowsPerPage) - 1);
+            return false;
+        });
+
+
+
+
+        var processPaginationControls = function(){
+
+
+            if (currentPage == 0){
+                masternodeListPaginationStartEl.children().addClass("paginationDisabled");
+                masternodeListPaginationPreviousEl.children().addClass("paginationDisabled");
+            }
+            else
+            {
+                masternodeListPaginationStartEl.children().removeClass("paginationDisabled");
+                masternodeListPaginationPreviousEl.children().removeClass("paginationDisabled");
+            }
+
+            if (currentPage >= Math.ceil(rowsUi.children(".row-visible").length / masternodeListRowsPerPage) - 1){
+                masternodeListPaginationNextEl.children().addClass("paginationDisabled");
+                masternodeListPaginationEndEl.children().addClass("paginationDisabled");
+            }
+            else
+            {
+                masternodeListPaginationNextEl.children().removeClass("paginationDisabled");
+                masternodeListPaginationEndEl.children().removeClass("paginationDisabled");
+            }
+
+
+
+   
+        }
+
+        var showPage = function(page){
+            var mastenodeRowsEl = rowsUi.children(".row-visible");
+            rowsUi.children().hide();
+
+
+            var startPos = page * masternodeListRowsPerPage;
+
+            for(var i = 0; i < masternodeListRowsPerPage && startPos + i <  mastenodeRowsEl.length; i++)
+            {
+                $(mastenodeRowsEl[startPos + i]).show();
+            }
+
+            currentPage = page;
+            
+            processPaginationControls();
+        }
+
+
+        var LoadMasternodeList = function () {
+
+
+
+            rowsUi.empty();
+            masternodeListEl.addClass("loading");
+
+
+            var request = {
+                op:"getMasternodeList",
+                extended:true
+            }
+
+            sendRequest(request).then(function(masternodeList){
+                /*var masternodes = [];
+
+                for (var key in masternodeList) {
+                    masternodes.push(masternodeList[key]);
+                }
+
+                masternodes.sort(function(a,b){
+                    return a.activeseconds < b.activeseconds;
+                });*/
+
+                rowsUi.empty();
+                for (var key in masternodeList) {
+                    var masternode = masternodeList[key];
+                    var rowUi = rowUiTemplate.clone().appendTo(rowsUi);
+
+                    rowUi.addClass("row-striped");
+
+                    var statusIconEl = rowUi.find(".status-icon");
+                    if (masternode.status == "ENABLED" || masternode.status == "PRE_ENABLED") statusIconEl.addClass("fa fa-check");
+                    else statusIconEl.addClass("fa fa-times");
+
+
+                    var outputColEl =  rowUi.find(".output-col");
+                    outputColEl.text("");
+
+                    var ouputAnchorEl = $('<a href="#Explorer/MasternodeList/' + key + '" />');
+                    ouputAnchorEl.text(masternode.name != null && masternode.name != "" ? masternode.name + "(" + key + ")" : key);
+                    outputColEl.append(ouputAnchorEl);
+
+
+                    var payeeColEl =  rowUi.find(".payee-col");
+                    payeeColEl.text("");
+
+                    var anchorEl = $('<a href="#Explorer/Address/' + masternode.payee + '" />');
+                    anchorEl.text(masternode.payee);
+                    payeeColEl.append(anchorEl);
+
+
+
+                    rowUi.find(".address-col").text(masternode.address);
+                    
+                    var lastseenTimestamp = new Date((masternode.lastseen * 1000));
+                    rowUi.find(".last-seen-col").text(lastseenTimestamp.toLocaleTimeString() + " " + lastseenTimestamp.toLocaleDateString());
+                  
+                    if (masternode.lastpaidtime != 0)
+                    {
+                        var lastpaidTimestamp = new Date((masternode.lastpaidtime * 1000));
+                        rowUi.find(".last-paid-col").text(lastpaidTimestamp.toLocaleTimeString() + " " + lastpaidTimestamp.toLocaleDateString());
+                    }
+                    else{
+                        rowUi.find(".last-paid-col").text("Never paid");
+                    }
+                  
+
+                    rowUi.find(".status-col").text(masternode.status);
+
+                }  
+
+                rowsUi.children().addClass("row-visible");
+                
+                showPage(0);
+
+            }).always(function () {
+                masternodeListEl.removeClass("loading");
+            });
+        };
+
+    });
+</script>
+
+
+<style>
+
+    
+
+
+    .MasternodeListTable .panel-body {
+        position: relative;
+    }
+
+    .MasternodeListTable.loading .MasternodeListTable-content {
+        position: relative;
+        opacity: 0.2;
+    }
+
+    .MasternodeListTable .loader-container {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+        display: none;
+
+    }
+
+    .MasternodeListTable.loading .loader-container {
+        display: block;
+    }
+
+
+    .MasternodeListTable .status-icon-col .status-icon{
+        font-size: 50px;
+    }
+    
+
+
+    .MasternodeListTable .status-icon-col .status-icon.fa-check{
+        color:lawngreen;
+    }
+
+    .MasternodeListTable .status-icon-col .status-icon.fa-times{
+        color:red;
+    }
+
+</style>

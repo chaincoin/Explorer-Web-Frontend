@@ -1,0 +1,264 @@
+<div class="PeerListTable" >
+
+    <div class="card">
+        <div class="card-header">
+            Peer List
+        </div>
+        <div class="card-body">
+            <div class="PeerListTable-content">
+                <div class="center">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item pagination-start">
+                                <a class="page-link" href="#">&lt;&lt;</a>
+                            </li>
+                            <li class="page-item pagination-previous">
+                                <a class="page-link" href="#">&lt;</a>
+                            </li>
+                            <li class="page-item pagination-next">
+                                <a class="page-link" href="#">&gt;</a>
+                            </li>
+                            <li class="page-item pagination-end">
+                                <a class="page-link" href="#">&gt;&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <div class="row header">
+                    <div class="col-lg-4 address-col">
+                        Address
+                    </div>
+
+                    <div class="col-lg-4 connection-time-col">
+                        Connection Time
+                    </div>
+
+                    <div class="col-lg-4 version-col">
+                        Version
+                    </div>
+
+                </div>
+
+                <div class="rows">
+
+                </div>
+
+
+                <div class="center">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item pagination-start">
+                                <a class="page-link" href="#">&lt;&lt;</a>
+                            </li>
+                            <li class="page-item pagination-previous">
+                                <a class="page-link" href="#">&lt;</a>
+                            </li>
+                            <li class="page-item pagination-next">
+                                <a class="page-link" href="#">&gt;</a>
+                            </li>
+                            <li class="page-item pagination-end">
+                                <a class="page-link" href="#">&gt;&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="loader-container">
+                <div class="loader">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<script>
+    $(function () {
+
+        var loaded = false;
+
+
+
+        $(".PeerListTable").on("showArea", function () {
+            
+            LoadPeerList(0);
+        });
+
+
+
+
+
+        var peerListEl = $(".PeerListTable");
+        var rowUiTemplate = peerListEl.find(".header").clone().removeClass("header");
+        var rowsUi = peerListEl.find(".rows");
+
+
+
+        var currentPage = 0;
+        var peerListRowsPerPage = 20;
+
+        var peerListPaginationEl = $(".PeerListTable .pagination");
+        var peerListPaginationStartEl = peerListPaginationEl.find(".pagination-start");
+        peerListPaginationStartEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            showPage(0);
+            return false;
+        });
+
+        var peerListPaginationPreviousEl = peerListPaginationEl.find(".pagination-previous");
+        peerListPaginationPreviousEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            showPage(currentPage - 1);
+            return false;
+        });
+
+        var peerListPaginationNextEl = peerListPaginationEl.find(".pagination-next");
+        peerListPaginationNextEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            showPage(currentPage + 1);
+            return false;
+        });
+
+
+        
+
+        var peerListPaginationEndEl = peerListPaginationEl.find(".pagination-end");
+        peerListPaginationEndEl.click(function () {
+            if ($(this).children().hasClass("paginationDisabled")) return false;
+
+            showPage(Math.ceil(rowsUi.children().length / peerListRowsPerPage) - 1);
+            
+            return false;
+        });
+
+
+
+
+        var processPaginationControls = function(){
+
+            if (currentPage == 0){
+                peerListPaginationStartEl.children().addClass("paginationDisabled");
+                peerListPaginationPreviousEl.children().addClass("paginationDisabled");
+            }
+            else
+            {
+                peerListPaginationStartEl.children().removeClass("paginationDisabled");
+                peerListPaginationPreviousEl.children().removeClass("paginationDisabled");
+            }
+
+            if (currentPage >= Math.ceil(rowsUi.children().length / peerListRowsPerPage) - 1){
+                peerListPaginationNextEl.children().addClass("paginationDisabled");
+                peerListPaginationEndEl.children().addClass("paginationDisabled");
+            }
+            else
+            {
+                peerListPaginationNextEl.children().removeClass("paginationDisabled");
+                peerListPaginationEndEl.children().removeClass("paginationDisabled");
+            }
+
+
+
+   
+        }
+
+        var showPage = function(page){
+            var peerRowsEl = rowsUi.children();
+            peerRowsEl.hide();
+
+
+            var startPos = page * peerListRowsPerPage;
+
+            for(var i = 0; i < peerListRowsPerPage && startPos + i <  peerRowsEl.length; i++)
+            {
+                $(peerRowsEl[startPos + i]).show();
+            }
+
+            currentPage = page;
+            
+            processPaginationControls();
+        }
+
+
+        var LoadPeerList = function () {
+
+
+
+            rowsUi.empty();
+            peerListEl.addClass("loading");
+
+
+            var request = {
+                op:"getPeerInfo",
+                extended:true
+            }
+
+            sendRequest(request).then(function(peerList){
+
+                rowsUi.empty();
+                for (var i = 0; i < peerList.length; i++) {
+                    var peer = peerList[i];
+                    var rowUi = rowUiTemplate.clone().appendTo(rowsUi);
+
+                    rowUi.addClass("row-striped");
+
+
+                    rowUi.find(".address-col").text(peer.addr);
+                    var connectionTimestamp = new Date(peer.conntime * 1000);
+                    rowUi.find(".connection-time-col").text(connectionTimestamp.toLocaleTimeString() + " " + connectionTimestamp.toLocaleDateString());
+                  
+
+
+                    rowUi.find(".version-col").text(peer.version);
+
+                }  
+
+                showPage(0);
+
+            }).always(function () {
+                peerListEl.removeClass("loading");
+            });
+        };
+
+    });
+</script>
+
+
+<style>
+
+    
+
+
+    .PeerListTable .panel-body {
+        position: relative;
+    }
+
+    .PeerListTable.loading .PeerListTable-content {
+        position: relative;
+        opacity: 0.2;
+    }
+
+    .PeerListTable .loader-container {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+        display: none;
+
+    }
+
+    .PeerListTable.loading .loader-container {
+        display: block;
+    }
+
+
+
+
+</style>

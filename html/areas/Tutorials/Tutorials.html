@@ -1,0 +1,66 @@
+<div class="TutorialsPage center">
+
+
+
+
+    <div class="card TutorialsCard">
+        <div class="card-header">
+            
+        </div>
+        <div class="card-body">
+
+        </div>
+    </div>
+
+
+    <div class="tutorials-list">
+
+    </div>
+    
+</div>
+
+
+<script>
+    $(function(){
+
+
+        var tutorialsList = [
+            {
+                header:"Chaincoin MN 0.16.3 - <a href=\"https://www.docker.com/\">Docker</a>",
+                body:"I have become a big fan of docker and its containerisation,<br>so I'm now going to public document my images and how to use<br>This is my first tutorial on how to install MN using Docker"
+            }
+        ];
+
+
+        
+        var tutorialsPageEl = $(".TutorialsPage");
+        var newsTutorialTemplateEl = newsPageEl.find(".TutorialsCard");
+        var newsTutorialList = newsPageEl.find(".tutorials-list");
+
+
+        for(var i = 0; i < tutorialsList.length; i++)
+        {
+            var tutorial = tutorialsList[i];
+            var newsTutorialEl = newsTutorialTemplateEl.clone();
+            newsTutorialEl.find(".card-header").html(tutorial.header);
+            newsTutorialEl.find(".card-body").html(tutorial.body);
+
+            newsTutorialEl.appendTo(newsTutorialList);
+        }
+
+
+    });
+
+</script>
+
+<style>
+.TutorialsCard
+{   
+    display: none;
+}
+
+.tutorials-list .TutorialsCard{
+    display: block;
+}
+
+</style>

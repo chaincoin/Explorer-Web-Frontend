@@ -1,0 +1,222 @@
+<div class="TransactionDetails" >
+
+    <div class="card">
+        <div class="card-header">
+            CHC txid:
+            <span class="transactionid"></span>
+
+            <a class="transaction-json-link">
+                <span class="fa fa-info-circle"></span>
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-2">
+                    <div>
+                        Confirmations
+                    </div>
+                    <div class="block-confirmations">
+
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div>
+                        Block Hash
+                    </div>
+                    <div class="block-hash">
+
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <div>
+                        Timestamp
+                    </div>
+                    <div class="block-timestamp">
+
+                    </div>
+                </div>
+
+                
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <div class="row">
+
+        <div class="col-lg-6">
+
+
+            <div class="card TransactionInputAddressList">
+                <div class="card-header">
+                    Input Addresses
+                </div>
+                <div class="card-body">
+                    <div class="row header">
+                        <div class="col-sm-9 transaction-input-address">
+                            Address
+                        </div>
+                        <div class="col-sm-3 transaction-input-amount">
+                            Amount (CHC)
+                        </div>
+                    </div>
+
+                    <div class="rows">
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-lg-6">
+
+
+            <div class="card TransactionRecipientList">
+                <div class="card-header">
+                    Recipient Addresses
+                </div>
+                <div class="card-body">
+                    <div class="row header">
+                        <div class="col-sm-9 transaction-recipient-address">
+                            Address
+                        </div>
+                        <div class="col-sm-3 transaction-recipient-amount">
+                            Amount (CHC)
+                        </div>
+                    </div>
+
+                    <div class="rows">
+
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        
+    </div>
+
+</div>
+
+<script>
+    $(function () {
+
+        var transactionDetailsEl = $(".TransactionDetails");
+        transactionDetailsEl.on("showArea", function (event, transactionId) {
+            transactionDetailsEl.show();
+            loadTransaction(transactionId);
+        });
+        transactionDetailsEl.on("hideAll", function () {
+            transactionDetailsEl.hide();
+        });
+
+
+        
+        var transactionIdEl = transactionDetailsEl.find(".transactionid");
+        var transactionJsonLinkEl = transactionDetailsEl.find(".transaction-json-link");
+        var blockConfirmationEl = transactionDetailsEl.find(".block-confirmations");
+        var blockHashEl = transactionDetailsEl.find(".block-hash");
+        var timestampHashEl = transactionDetailsEl.find(".block-timestamp");
+
+
+        var inputAddressListEl = transactionDetailsEl.find(".TransactionInputAddressList");
+        var inputAddressListRowsEl = inputAddressListEl.find(".rows");
+        var inputAddressListRowTemplateEl = inputAddressListEl.find(".header").clone().removeClass("header");
+
+        var recipientListEl = transactionDetailsEl.find(".TransactionRecipientList");
+        var recipientListRowsEl = recipientListEl.find(".rows");
+        var recipientListRowTemplateEl = recipientListEl.find(".header").clone().removeClass("header");
+
+        var loadTransaction = function (tranactionId) {
+
+            transactionIdEl.text(tranactionId);
+            transactionJsonLinkEl.attr("href","");
+            blockConfirmationEl.text("");
+            blockHashEl.empty();
+            timestampHashEl.text("");
+
+            inputAddressListRowsEl.empty();
+            recipientListRowsEl.empty();
+
+            
+            var getTransactionRequest = {
+                op:"getTransaction",
+                txid: tranactionId,
+                extended:true
+            }
+
+            sendRequest(getTransactionRequest).then(function (transaction) {
+
+                transactionIdEl.text(transaction.txid);
+                transactionJsonLinkEl.attr("href",chaincoinBlockchainApiUrl + "/getTransaction?txid=" + transaction.txid);
+                blockConfirmationEl.text(transaction.confirmations);
+
+
+                var anchorEl = $('<a href="#Explorer/Block/' + transaction.height + '" >' + transaction.blockhash + '</a>');
+
+                blockHashEl.text("");
+                blockHashEl.append(anchorEl);
+
+
+                var timestamp = new Date(transaction.time * 1000);
+                timestampHashEl.text(timestamp.toLocaleTimeString() + " " + timestamp.toLocaleDateString());
+
+                inputAddressListRowsEl.empty();
+                transaction.vin.forEach(function (vin) {
+
+                    var rowEl = inputAddressListRowTemplateEl.clone().appendTo(inputAddressListRowsEl);
+                    if (vin.coinbase != null){
+                        rowEl.find(".transaction-input-address").text("New Coins");
+                        rowEl.find(".transaction-input-amount").text("");
+                    }
+                    else
+                    {
+                        var address = "";
+                        var value = "";
+                        if (transaction.extended)
+                        {
+                            address = vin.address;
+                            value = vin.value;
+                        }
+
+                        var anchorEl = $('<a href="#Explorer/Address/' + address + '" />');
+                        anchorEl.text(address);
+                        
+                        rowEl.find(".transaction-input-address").text("");
+                        rowEl.find(".transaction-input-address").append(anchorEl);
+                        rowEl.find(".transaction-input-amount").text(value);
+                    }
+
+                });
+
+                
+                transaction.vout.forEach(function (vout) {
+
+                    if (vout.value == 0) return;
+                    var rowEl = recipientListRowTemplateEl.clone().appendTo(recipientListRowsEl);
+
+                    var addressColEl = rowEl.find(".transaction-recipient-address");
+                    addressColEl.text("");
+                    var anchorEl = $('<a href="#Explorer/Address/' + vout.scriptPubKey.addresses[0] + '" />');
+                    anchorEl.text(vout.scriptPubKey.addresses[0]);
+                    addressColEl.append(anchorEl);
+                    
+                    rowEl.find(".transaction-recipient-amount").text(vout.value);
+                });
+            });
+        }
+
+    });
+</script>
+
+<style>
+
+    .transaction-json-link{
+        float: right;
+        font-size: 20px;
+    }
+
+</style>

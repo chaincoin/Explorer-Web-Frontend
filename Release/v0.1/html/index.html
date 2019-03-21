@@ -1,0 +1,378 @@
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+
+    <nav class="navbar navbar-inverse">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">Chaincoin Explorer</a>
+            </div>
+
+            <ul class="nav navbar-nav">
+                <li class="active">
+                    <a class="menu-explorer" href="#Explorer">Explorer</a>
+                </li>
+                <li><a class="menu-contactMe"  href="#ContactMe">Contact Me</a></li>
+                <!--<li><a href="#">Page 1</a></li>
+    <li><a href="#">Page 2</a></li>
+    <li><a href="#">Page 3</a></li>-->
+            </ul>
+        </div>
+    </nav>
+
+
+    <div class="row center page-header">
+
+        <div class="col-sm-6 col-lg-2">
+            <div class="panel panel-default network-ticker-panel">
+                <div class="panel-heading">Network (GH/s)</div>
+                <div class="panel-body network-ticker">Loading</div>
+            </div>
+        </div>
+
+
+        <div class="col-sm-6 col-lg-2">
+            <div class="panel panel-default blockcount-ticker-panel">
+                <div class="panel-heading">Block Count</div>
+                <div class="panel-body blockcount-ticker">Loading</div>
+            </div>
+        </div>
+
+        <div class="col-sm-12 col-lg-4 chaincoin-logo">
+
+        </div>
+
+        <div class="col-sm-6 col-lg-2">
+            <div class="panel panel-default difficulty-ticker-panel">
+                <div class="panel-heading">Difficulty</div>
+                <div class="panel-body difficulty-ticker">Loading</div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-2">
+            <div class="panel panel-default coinsupply-ticker-panel">
+                <div class="panel-heading">Coin Supply (CHC)</div>
+                <div class="panel-body coinsupply-ticker">Loading</div>
+            </div>
+        </div>
+
+    </div>
+
+
+    
+
+    <route-area hash="^#Explorer/Block/(.*)$" html="/areas/Explorer/BlockDetails.html" params="$1">
+    </route-area>
+   
+
+    <route-area hash="^#Explorer$|^$" html="/areas/Explorer/BlockList.html" >
+    </route-area>
+
+    <route-area hash="^#Explorer/Transaction/(.*)$" html="/areas/Explorer/TransactionDetails.html" params="$1" >
+    </route-area>
+
+    
+    <route-area hash="^#ContactMe$" html="/areas/ContactMe/ContactMe.html"  >
+    </route-area>
+    
+
+    <div class="footer">
+
+        <div class="center">
+            Powered by Mcna ;) 
+        </div>
+
+    </div>
+
+    <script>
+
+
+        var chaincoinBlockchainApiUrl = "http://api.chaincoinexplorer.co.uk"
+
+        if (window.location.hostname == "test.chaincoinexplorer.co.uk"){
+            chaincoinBlockchainApiUrl = "http://testapi.chaincoinexplorer.co.uk";
+        } 
+        else if (window.location.hostname == "local.chaincoinexplorer.co.uk"){
+            chaincoinBlockchainApiUrl = "http://localapi.chaincoinexplorer.co.uk";
+        } 
+
+
+
+
+        $(function () {
+            var difficultyPromise = $.get(chaincoinBlockchainApiUrl + "/getDifficulty").then(function (getDifficulty) {
+                $(".difficulty-ticker").text(getDifficulty);
+            });
+
+
+            var blockCountPromise = $.get(chaincoinBlockchainApiUrl + "/getBlockCount").then(function (getBlockCount) {
+                $(".blockcount-ticker").text(getBlockCount);
+                $("body").trigger("blockCount", [getBlockCount]);
+                return getBlockCount;
+            });
+
+            var bestBlockHashPromise = $.get(chaincoinBlockchainApiUrl + "/getBestBlockHash").then(function (getBestBlockHash) {
+
+            });
+
+            var networkHashpsPromise = $.get(chaincoinBlockchainApiUrl + "/getNetworkHashps").then(function (getNetworkHashps) {
+                $(".network-ticker").text(getNetworkHashps / 1000000000);
+            });
+
+            var txOutSetInfoPromise = $.get(chaincoinBlockchainApiUrl + "/getTxOutSetInfo").then(function (getTxOutSetInfo) {
+                $(".coinsupply-ticker").text(getTxOutSetInfo.total_amount);
+            });
+
+
+            $("body").on("getBlockCount",function(event,promise)
+            {
+                blockCountPromise.then(function(getBlockCount){
+                    promise.resolve(getBlockCount);
+                })
+            });
+        });
+
+        
+
+
+
+       
+
+
+
+        
+
+        $(function () {
+            $("body").on("showContactMe", function (event, transactionId) {
+                contactMeEl.show();
+            });
+            $("body").on("hideAll", function () {
+                contactMeEl.hide();
+            });
+            var contactMeEl = $(".ContactMePage");
+        })
+
+
+
+        //Routing
+        $(function () {
+
+            var navBar = $(".navbar");
+            var explorerMenuItem = navBar.find(".menu-explorer");
+            var contactMeMenuItem = navBar.find(".menu-contactMe");
+
+
+
+            var activateMenuItem = function(menuItem)
+            {
+                navBar.find(".active").removeClass("active");
+                menuItem.parent().addClass("active");
+            }
+
+
+
+            function routing() {
+
+                var path = window.location.hash;
+
+              
+
+
+                var routeAreas = $("route-area");
+                routeAreas.hide();
+                routeAreas.each(function(){
+                    var area = $(this);
+                    var route = new RegExp(area.attr("hash"), "i");
+                    if (route.test(path))
+                    {
+                        var params = [];
+                        if (area.attr("params") != null && area.attr("params") !="")
+                        {
+                            area.attr("params").split(",").forEach(function(paramStr){
+                                params.push(path.replace(route, paramStr));
+                            });
+                        }
+
+                        area.show();
+                        area.children().trigger("showArea",params);
+                    }
+                });
+            }
+
+
+            var setupPromises = [];
+
+            var routeAreas = $("route-area");
+            routeAreas.each(function(){
+                var area = $(this);
+                var htmlUrl = area.attr("html");
+                if (htmlUrl != null && htmlUrl != "") setupPromises.push($.ajax({method: "get", url:htmlUrl, cache: false}).then(function(html){
+                        area.html(html);
+                        return html;
+                    }));
+            });
+
+            $.when.apply($, setupPromises).then(function () {
+                routing();
+            });
+
+            window.addEventListener("hashchange", routing, false);
+            
+        });
+
+
+
+        var getBlock = function (blockId) {
+            var rowPromise = jQuery.Deferred();
+
+            $.get(chaincoinBlockchainApiUrl + "/getBlock?hash=" + blockId).then(function (block) {
+
+                var transactionPromises = [];
+
+                for (var i = 0; i < block.tx.length; i++) {
+                    transactionPromises[i] = $.get(chaincoinBlockchainApiUrl + "/getTransaction?txid=" + block.tx[i])
+                }
+
+
+                $.when.apply($, transactionPromises).then(function () {
+
+                    block.transactions = [];
+
+                    if (transactionPromises.length == 1) block.transactions.push(arguments[0]);
+                    else if (transactionPromises.length > 1) {
+                        for (var i = 0; i < arguments.length; i++) {
+                            block.transactions[i] = arguments[i][0];
+                        }
+                    }
+
+                    rowPromise.resolve(block);
+                });
+
+            }).fail(function () {
+                rowPromise.reject();
+            });
+
+            return rowPromise;
+        };
+
+
+    </script>
+
+
+
+    <style>
+        .page-header {
+            width: 80%;
+        }
+
+        .BlocksTable {
+            width: 80%;
+            min-height: 200px;
+        }
+
+
+        .BlocksTable .panel-body {
+            position: relative;
+        }
+
+        .BlocksTable.loading .BlocksTable-content {
+            position: relative;
+            opacity: 0.2;
+        }
+
+        .BlocksTable .loader-container {
+            position: absolute;
+            top: 0px;
+            bottom: 0px;
+            left: 0px;
+            right: 0px;
+            display: none;
+
+        }
+
+        .BlocksTable.loading .loader-container {
+            display: block;
+        }
+
+        .ellipsis > a{
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .center {
+            display: table;
+            margin: 0 auto;
+        }
+
+
+        .row-striped:nth-of-type(odd) {
+            background-color: #f9f9f9;
+        }
+
+        .row-striped:nth-of-type(even) {
+            background-color: #ffffff;
+        }
+
+
+
+        .loader {
+            border: 16px solid #f3f3f3;
+            /* Light grey */
+            border-top: 16px solid #3498db;
+            /* Blue */
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+
+
+
+
+        .BlockDetails {
+            width: 80%;
+        }
+
+        .TransactionDetails {
+            width: 80%;
+        }
+
+
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: rgb(51, 51, 51);
+            color: white;
+            height: 40px;
+            padding-top:10px
+        }
+        route-area{
+            display: none;
+        }
+    </style>
+
+</body>
+
+</html>

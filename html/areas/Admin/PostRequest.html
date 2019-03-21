@@ -1,0 +1,58 @@
+<div class="Admin-PostRequest center">
+
+    <div class="card">
+        <div class="card-header">
+            Post Rquest
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-xs-6">
+                    Request JSON
+                </div>
+                <div class="col-xs-6">
+                    <input class="requestJson" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xs-6">
+                    Signature JSON
+                </div>
+                <div class="col-xs-6">
+                    <input class="signature" />
+                </div>
+            </div>
+            <button class="btn btn-primary submitButton">Submit</button>
+        </div>
+    </div>
+
+    
+</div>
+
+<script>
+    $(function(){
+        var postRequestEl = $(".Admin-PostRequest")
+
+        var requestJsonEl = postRequestEl.find(".requestJson");
+        var signatureEl = postRequestEl.find(".signature");
+        var submitButtonEl = postRequestEl.find(".submitButton")
+
+
+        submitButtonEl.click(function(){
+
+            var request = {
+                op:"adminFunction",
+                signature: signatureEl.val(),
+                message:requestJsonEl.val()
+            };
+
+            sendRequest(request).then(function(result){
+                alert("successful");
+            }).catch(function(){
+                alert("failed");
+            });
+        });
+
+
+    });
+</script>

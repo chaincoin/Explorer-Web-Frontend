@@ -1,0 +1,309 @@
+<div class="MinerDetails">
+
+
+    <div class="card">
+        <div class="card-header">
+            CHC Miner
+        </div>
+        <div class="card-body">
+            <div class="miner-detail-row">
+                Hash rate: <span class="hash-rate">Stopped</span>
+            </div>
+
+            <div class="miner-detail-row">
+                Mining Strength
+                <input class="mining-strength" data-slider-id='mining-strength-slider' type="text" data-slider-min="1"
+                    data-slider-max="100" data-slider-step="1" data-slider-value="5" />
+            </div>
+
+            <div class="miner-detail-row">
+                Mining Threads
+                <input class="mining-threads" data-slider-id='mining-threads-slider' type="text" data-slider-min="1"
+                    data-slider-max="24" data-slider-step="1" data-slider-value="1" />
+            </div>
+
+
+            <button type="button" class="btn btn-primary start-button">Start</button>
+            <button type="button" class="btn btn-primary stop-button">Stop</button>
+            <button type="button" class="btn btn-primary test-button">Test</button>
+        </div>
+    </div>
+
+
+    <div class="card MinedBlocksTable">
+        <div class="card-header">
+            Mined Blocks
+        </div>
+        <div class="card-body">
+            <div class="MinedBlocksTable-content">
+                <div class="row header">
+                    <div class="col-lg-5 hash-col">
+                        Hash
+                    </div>
+
+                    <div class="col-lg-2 timestamp-col">
+                        Timestamp
+                    </div>
+                </div>
+
+                <div class="rows">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+<script>
+
+    $(function () {
+
+        
+
+        var minerDetailsEl = $(".MinerDetails");
+
+        var minedBlocksTableEl = minerDetailsEl.find(".MinedBlocksTable");
+        var minedBlocksTableRowTemplateEl = minedBlocksTableEl.find(".header").clone().removeClass("header").addClass("row-striped");
+        var minedBlocksTableRowsEl = minedBlocksTableEl.find(".rows");
+        
+
+        $(".MinerDetails").on("showArea", function (event, blockId) {
+            
+            var mineStrengthStr = $.urlParam("mineStrength");
+            if (mineStrengthStr != null && mineStrengthStr != "") {
+                var mineStrength = parseInt(mineStrengthStr);
+
+                if (isNaN(mineStrength) == false && mineStrength > 0 && mineStrength <= 100) {
+                    miningStrength.val(mineStrength);
+                    miningStrength.trigger("slideStop");
+                }
+
+            }
+
+            var mineThreadsStr = $.urlParam("mineThreads");
+            if (mineThreadsStr != null && mineThreadsStr != "") {
+                var mineThreads = parseInt(mineThreadsStr);
+
+                if (isNaN(mineThreads) == false && mineThreads > 0 && mineThreads <= 100) {
+                    miningThreads.val(mineThreads);
+                }
+
+            }
+
+            miningThreads.trigger("slideStop");
+
+            var mineStr = $.urlParam("mine");
+            if (mineStr != null && mineStr.toLowerCase() == "true") {
+                startButtonEl.click();
+            }
+
+
+        });
+
+  
+
+
+        
+
+
+        var mining = false;
+        var hashRateEl = minerDetailsEl.find(".hash-rate");
+        var hashRateInterval = null;
+        var miningStrength = minerDetailsEl.find(".mining-strength");
+        var miningThreads = minerDetailsEl.find(".mining-threads");
+        var startButtonEl = minerDetailsEl.find(".start-button");
+        var stopButtonEl = minerDetailsEl.find(".stop-button");
+        var testButtonEl = minerDetailsEl.find(".test-button");
+
+        var workers = [];
+        
+
+        
+        
+
+
+        startButtonEl.click(function () {
+            for(var i = 0; i < workers.length; i++)
+            {
+                var worker = workers[i];
+                worker.postMessage({cmd:"start"});
+            }
+debugger;
+            hashRateInterval = setInterval(function(){
+                var hashRate = 0; 
+                for(var i = 0; i < workers.length; i++)
+                {
+                    if (workers[i].hashRate != null) hashRate = hashRate + workers[i].hashRate;
+                }
+                hashRateEl.text("" +hashRate.toFixed(0));
+            },1000);
+            
+            mining = true;
+
+            gtag('event', 'Miner_Started', 
+            {
+                'event_category' : 'Mining',
+                'event_label' : 'Miner Started'
+            });
+        });
+
+        stopButtonEl.click(function () {
+            for(var i = 0; i < workers.length; i++)
+            {
+                var worker = workers[i];
+                worker.postMessage({cmd:"stop"});
+            }
+            
+            hashRateEl.text("Stopped");
+            if (hashRateInterval != null) clearInterval(hashRateInterval);
+            hashRateInterval = null;
+            mining = false;
+
+            gtag('event', 'Miner_Stopped', 
+            {
+                'event_category' : 'Mining',
+                'event_label' : 'Miner Stopped'
+            });
+        });
+
+
+        testButtonEl.click(function () {
+   
+            MinerTest("030000005e629c56bc69b941f8c8f85feb5e1fc8f1bf082d88f298fc7e40f98a1400000009d732ee8829fdd2bb99f78f910068d0a13bc3eddcac8782eb646a349fd5535a9589f657df78201d00000000",
+                "000000035746684f069ade1faa570034062f3663ffdd0087b1f8b8c464bba929",
+                4230287488,
+                bitesToTarget("1d2078df")
+            );
+        });
+
+
+        miningStrength.slider({
+            formatter: function (value) {
+                return 'Current value: ' + value;
+            }
+        });
+
+        miningStrength.on('slideStop', function(ev){
+            var newVal = miningStrength.data('slider').getValue();
+
+            for(var i = 0; i < workers.length; i++)
+            {
+                var worker = workers[i];
+                worker.postMessage({
+                    cmd:"setStrength",
+                    strength: newVal
+                });
+            }
+
+        });
+
+        miningThreads.slider({
+            formatter: function (value) {
+                return 'Current value: ' + value;
+            }
+        });
+
+        miningThreads.on('slideStop', function(ev){
+            debugger;
+            var threads = miningThreads.data('slider').getValue();
+
+            if (workers == null)
+            {
+                workers = [];
+            }
+
+            var makeWorker = function()
+            {
+                var worker = new Worker('areas/Mining/miner-worker.js?id=14');
+                worker.addEventListener('message', function(e) {
+                    //console.log(e.data);
+                    var request = e.data;
+
+                    if (request.event == "HashRate"){
+                        worker.hashRate = request.hashRate;
+                    }
+
+                    if (request.event == "MinedBlock"){
+
+                        var blockHash = "Mined";
+                        var timestamp = new Date();
+
+                        var rowUi = minedBlocksTableRowTemplateEl.clone().appendTo(minedBlocksTableRowsEl);
+                        rowUi.find(".hash-col").text(blockHash);
+                        rowUi.find(".timestamp-col").text(timestamp.toLocaleTimeString() + " " + timestamp.toLocaleDateString());
+                    }
+
+                }, false);
+
+                worker.postMessage({
+                    cmd:"setWsUrl",
+                    wsUrl: chaincoinWebsocketUrl
+                });
+
+                worker.postMessage({
+                    cmd:"setStrength",
+                    strength:  miningStrength.data('slider').getValue()
+                });
+
+                if (mining) worker.postMessage({cmd:"start"});
+
+                workers.push(worker);
+            };
+
+            while(workers.length < threads)
+            {
+                makeWorker();
+            }
+
+            while(workers.length > threads)
+            {
+                var work = workers.pop();
+                work.postMessage({
+                    cmd:"close"
+                });
+            }
+
+
+        });
+
+
+        $(window).on('beforeunload',function(){
+
+            for(var i = 0; i < workers.length; i++)
+            {
+                var worker = workers[i];
+                worker.postMessage({
+                    cmd:"close"
+                });
+
+                worker.terminate();
+            }
+           
+        });
+
+    });
+
+
+    
+
+</script>
+
+
+<style>
+    .miner-detail-row{
+        padding-bottom: 10px;
+    }
+
+    .slider.slider-horizontal .tooltip.tooltip-main, 
+    .slider.slider-vertical .tooltip.tooltip-main  
+    { 
+        display: none;
+    }
+
+    .slider.slider-horizontal:hover .tooltip.tooltip-main, 
+    .slider.slider-vertical:hover .tooltip.tooltip-main  
+    { 
+        opacity: 1 !important;
+        display: block;
+      }
+</style>

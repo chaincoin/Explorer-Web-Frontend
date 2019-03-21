@@ -1,0 +1,226 @@
+<div class="MemPoolDetails" >
+
+
+    <div class="card mempool-details-card">
+        <div class="card-header">
+            txid:
+            <span class="mempool-txid"></span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-xl-12">
+                    <div>
+                        Hash
+                    </div>
+                    <div class="mempool-hash">
+
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                    <div>
+                        Version
+                    </div>
+                    <div class="mempool-version">
+
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                    <div>
+                        Size
+                    </div>
+                    <div class="mempool-size">
+
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                    <div>
+                        V Size
+                    </div>
+                    <div class="mempool-vsize">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+
+        <div class="col-lg-6">
+
+
+            <div class="card vinList">
+                <div class="card-header">
+                    Vin List
+                </div>
+                <div class="card-body">
+                    <div class="row header">
+                        <div class="col-sm-9 vin-txid">
+                            txid
+                        </div>
+                        <div class="col-sm-3 vin-vout">
+                            vout
+                        </div>
+                    </div>
+
+                    <div class="rows">
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-lg-6">
+
+
+            <div class="card voutList">
+                <div class="card-header">
+                    Vout List
+                </div>
+                <div class="card-body">
+                    <div class="row header">
+                        <div class="col-sm-9 vout-address">
+                            Address
+                        </div>
+                        <div class="col-sm-3 vout-amount">
+                            Amount (CHC)
+                        </div>
+                    </div>
+
+                    <div class="rows">
+
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        
+    </div>
+
+
+
+</div>
+<script>
+     //block details 
+     $(function () {
+
+        $(".MemPoolDetails").on("showArea", function (event, transactionId ) {
+            loadMemPoolTransaction(transactionId);
+            debugger;
+        });
+
+
+        var mempoolDetailsEl = $(".MemPoolDetails");
+        var mempoolDetailsCardEl = mempoolDetailsEl.find(".mempool-details-card");
+        var mempoolTransactionIdEl = mempoolDetailsCardEl.find(".mempool-txid");
+        var mempoolHashEl = mempoolDetailsCardEl.find(".mempool-hash");
+        var mempoolVersionEl = mempoolDetailsCardEl.find(".mempool-version");
+        var mempoolSizeEl = mempoolDetailsCardEl.find(".mempool-size");
+        var mempoolVSizeEl = mempoolDetailsCardEl.find(".mempool-vsize");
+
+
+
+        var vinListEl = mempoolDetailsEl.find(".vinList");
+        var vinTemplateEl = vinListEl.find(".header");
+        var vinRowsEl = vinListEl.find(".rows");
+
+        var voutListEl = mempoolDetailsEl.find(".voutList");
+        var voutTemplateEl = voutListEl.find(".header");
+        var voutRowsEl = voutListEl.find(".rows");
+
+        var loadMemPoolTransaction = function (transactionId) {
+
+            mempoolTransactionIdEl.text("");
+            mempoolHashEl.text("");
+            mempoolVersionEl.text("");
+            mempoolSizeEl.text("");
+            mempoolVSizeEl.text("");
+
+
+            vinRowsEl.empty();
+            voutRowsEl.empty();
+
+            var request = {
+                op:"getRawMemPool",
+                extended:true
+            }
+
+            sendRequest(request).then(function (mempoolList) {
+
+                var transaction = null;
+                for(var i = 0; i < mempoolList.length; i++)
+                {
+                    if (mempoolList[i].txid == transactionId) transaction = mempoolList[i];
+                }
+
+                if (transaction == null) return;
+
+
+                mempoolTransactionIdEl.text(transaction.txid);
+                mempoolHashEl.text(transaction.hash);
+                mempoolVersionEl.text(transaction.version);
+                mempoolSizeEl.text(transaction.size);
+
+                mempoolVSizeEl.text(transaction.vsize);
+
+
+                for(var i = 0; i < transaction.vin.length; i++)
+                {
+                    var vin = transaction.vin[i];
+                    var rowEl = vinTemplateEl.clone();
+
+                    rowEl.find(".vin-txid").text();
+                    var anchorEl = $('<a href="#Explorer/Transaction/' + vin.txid + '" />');
+                    anchorEl.text(vin.txid);
+                    anchorEl.appendTo(rowEl.find(".vin-txid"));
+
+
+                    rowEl.find(".vin-vout").text(vin.vout);
+
+                    rowEl.appendTo(vinRowsEl);
+                }
+
+                for(var i = 0; i < transaction.vout.length; i++)
+                {
+                    var vout = transaction.vout[i];
+                    var rowEl = voutTemplateEl.clone();
+
+                    if (vout.scriptPubKey != null && vout.scriptPubKey.addresses != null && vout.scriptPubKey.addresses.length > 0)
+                    {
+                        rowEl.find(".vout-address").text("");
+                        var anchorEl = $('<a href="#Explorer/Address/' + vout.scriptPubKey.addresses[0] + '" />');
+                        anchorEl.text(vout.scriptPubKey.addresses[0]);
+                        anchorEl.appendTo(rowEl.find(".vout-address"));
+                    }
+                    else{
+                        rowEl.find(".vout-address").text("");
+                    }
+                    
+                    rowEl.find(".vout-amount").text(vout.value);
+
+                    rowEl.appendTo(voutRowsEl);
+                }
+
+            });
+        }
+
+
+    });
+
+
+ 
+        
+</script>
+
+
+<style>
+
+    .block-json-link{
+        float:right;
+        font-size: 20px;
+    }
+    
+</style>

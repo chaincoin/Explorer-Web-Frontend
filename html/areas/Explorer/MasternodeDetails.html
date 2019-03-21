@@ -1,0 +1,274 @@
+<div class="MasternodeDetails" >
+
+
+    <div class="card masternode-details-card">
+        <div class="card-header">
+            Output:
+            <span class="masternode-output"></span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-xl-12">
+                    <div>
+                        Payee
+                    </div>
+                    <div class="masternode-payee">
+
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                    <div>
+                        Status
+                    </div>
+                    <div class="masternode-status">
+
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                    <div>
+                        Address
+                    </div>
+                    <div class="masternode-address">
+
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                    <div>
+                        Active Seconds
+                    </div>
+                    <div class="masternode-activeseconds">
+
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                    <div>
+                        Last Seen
+                    </div>
+                    <div class="masternode-lastseen">
+
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                    <div>
+                        Daemon Version
+                    </div>
+                    <div class="masternode-daemonversion">
+
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                    <div>
+                        Last Paid Block
+                    </div>
+                    <div class="masternode-lastpaidblock">
+
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                    <div>
+                        Last Paid Time
+                    </div>
+                    <div class="masternode-lastpaidtime">
+
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                    <div>
+                        Sentinel Version
+                    </div>
+                    <div class="masternode-sentinelversion">
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card masternode-notifications-card">
+        <div class="card-header">
+            Notifications
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-4">
+                    Enabled Push Notification
+                </div>
+                <div class="col-sm-4">
+                    <input type="checkbox" class="push-notification-enabled">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-4">
+                    Status Change Notification
+                </div>
+                <div class="col-sm-4">
+                    <input type="checkbox" class="masternode-status-change-notification">
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+</div>
+<script>
+     //block details 
+     $(function () {
+
+        $(".MasternodeDetails").on("showArea", function (event, output) {
+            loadMasternode(output);
+            debugger;
+        });
+
+
+        var masternodeDetailsEl = $(".MasternodeDetails");
+        var masternodeDetailsCardEl = masternodeDetailsEl.find(".masternode-details-card");
+        var masternodeOutputEl = masternodeDetailsCardEl.find(".masternode-output");
+        var masternodePayeeEl = masternodeDetailsCardEl.find(".masternode-payee");
+        var masternodeStatusEl = masternodeDetailsCardEl.find(".masternode-status");
+        var masternodeAddressEl = masternodeDetailsCardEl.find(".masternode-address");
+        var masternodeActiveSecondsEl = masternodeDetailsCardEl.find(".masternode-activeseconds");
+        var masternodeLastSeenEl = masternodeDetailsCardEl.find(".masternode-lastseen");
+        var masternodeDaemonVersion = masternodeDetailsCardEl.find(".masternode-daemonversion");
+        var masternodeLastPaidBlockEl = masternodeDetailsCardEl.find(".masternode-lastpaidblock");
+        var masternodeLastPaidTimeEl = masternodeDetailsCardEl.find(".masternode-lastpaidtime");
+        var masternodeSentinelVersionEl = masternodeDetailsCardEl.find(".masternode-sentinelversion");
+
+        
+
+
+        var loadMasternode = function (output) {
+
+            masternodeOutputEl.text("");
+            masternodePayeeEl.text("");
+            masternodeStatusEl.text("");
+            masternodeAddressEl.text("");
+            masternodeActiveSecondsEl.text("");
+            masternodeLastSeenEl.text("");
+            masternodeDaemonVersion.text("");
+            masternodeLastPaidBlockEl.text("");
+            masternodeLastPaidTimeEl.text("");
+            masternodeSentinelVersionEl.text("");
+
+
+            var request = {
+                op:"getMasternodeList",
+                extended:true
+            }
+
+            sendRequest(request).then(function (masternodeList) {
+
+                var masternode = masternodeList[output];
+
+                masternodeOutputEl.text(output);
+
+                var anchorEl = $('<a href="#Explorer/Address/' + masternode.payee + '" />');
+                anchorEl.text(masternode.payee);
+                masternodePayeeEl.append(anchorEl);
+
+                masternodeStatusEl.text(masternode.status);
+                masternodeAddressEl.text(masternode.address);
+                masternodeActiveSecondsEl.text(masternode.activeseconds);
+
+                var lastseenTimestamp = new Date(masternode.lastseen * 1000);
+                masternodeLastSeenEl.text(lastseenTimestamp.toLocaleTimeString() + " " + lastseenTimestamp.toLocaleDateString());
+
+
+                masternodeDaemonVersion.text(masternode.daemonversion);
+                masternodeLastPaidBlockEl.text(masternode.lastpaidblock);
+
+                var lastpaidtimeTimestamp = new Date(masternode.lastpaidtime * 1000);
+                masternodeLastPaidTimeEl.text(lastpaidtimeTimestamp.toLocaleTimeString() + " " + lastpaidtimeTimestamp.toLocaleDateString());
+
+                masternodeSentinelVersionEl.text(masternode.sentinelversion);
+
+
+            });
+        }
+
+
+    });
+
+
+    $(function(){
+
+
+        var _output = null;
+
+        var load = function(){
+
+            if (_output == null) return;
+            $.get( location.protocol + "//notifications" + chaincoinApiDomain + "/isMasternodeSubscription?firebaseId=" + encodeURI(deviceToken) + "&masternodeOutpoint=" + _output, function( data ) {
+                masternodeStatusChangeNotificationEl.prop("checked",data);
+            });
+        }
+
+        var masternodeDetailsEl = $(".MasternodeDetails");
+        var masternodeNotificationsCardEl = masternodeDetailsEl.find(".masternode-notifications-card");
+        var pushNotificationEnabledEl = masternodeNotificationsCardEl.find(".push-notification-enabled");
+        var masternodeStatusChangeNotificationEl = masternodeNotificationsCardEl.find(".masternode-status-change-notification");
+        
+
+        $("body").on("PushedNotificationEnabled",function(){
+            masternodeStatusChangeNotificationEl.attr("disabled", false);
+            load();
+        });
+        $("body").on("PushedNotificationDisabled",function(){
+            masternodeStatusChangeNotificationEl.attr("disabled", true);
+        });
+
+        masternodeDetailsEl.on("showArea", function (event, output) {
+            _output = output;
+            if (deviceToken != null) load();
+        });
+
+       
+        setupEnabledPushNotificationCheckbox(pushNotificationEnabledEl);
+
+        if (deviceToken == null) masternodeStatusChangeNotificationEl.attr("disabled", true);
+
+        masternodeStatusChangeNotificationEl.change(function(){
+            if (masternodeStatusChangeNotificationEl.prop("checked"))
+            {
+                $.get( location.protocol + "//notifications" + chaincoinApiDomain + "/saveMasternodeSubscription?firebaseId=" + encodeURI(deviceToken) + "&masternodeOutpoint=" + _output)
+                .done(function(data){
+
+                })
+                .fail(function(){
+                    alert("an error occurred");
+                    masternodeStatusChangeNotificationEl.prop("checked",false);
+                });
+            }
+            else
+            {
+                $.get( location.protocol + "//notifications" + chaincoinApiDomain + "/saveMasternodeSubscription?firebaseId=" + encodeURI(deviceToken) + "&masternodeOutpoint=" + _output)
+                .done(function(data){
+
+                })
+                .fail(function(){
+                    alert("an error occurred");
+                    masternodeStatusChangeNotificationEl.prop("checked",true);
+                });
+            }
+        });
+
+
+    });
+        
+</script>
+
+
+<style>
+
+    .block-json-link{
+        float:right;
+        font-size: 20px;
+    }
+    
+</style>

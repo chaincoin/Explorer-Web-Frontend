@@ -1,0 +1,82 @@
+<div class="NewsPage center">
+
+
+
+
+    <div class="card NewsCard">
+        <div class="card-header">
+            
+        </div>
+        <div class="card-body">
+
+        </div>
+    </div>
+
+
+    <div class="news-list">
+
+    </div>
+    
+</div>
+
+
+<script>
+    $(function(){
+
+
+        var newsList = [
+            {
+                header:"Chaincoin 0.6.14 MN guide",
+                body:"A new guide to creating a chaincoin 0.6.14 MN is now available <a href=\"#Tutorials\">here</a>"
+            },
+            {
+                header:"Chaincoin Explorer's new Server",
+                body:"Welcome to my new shiny server from https://www.hetzner.com/<br>A 64 gb ram beast https://www.hetzner.com/dedicated-rootserver/ex42"
+            },
+            {
+                header:"Push Notifications (MainNet only)",
+                body:"Google Firebase push notifications to devices, tested with Windows and Android<br>Masternode status changes and expiring pushing notifications"
+            },
+            {
+                header:"MainNet web miner",
+                body:"Chaincoin Explorer has successfully mined two blocks on MainNet - <a href=\"http://chaincoinexplorer.co.uk/?#Explorer/Address/chc1qy2n9qmvp3j6ew2k0prqk2q7h9j3e8wrlgmyea2\" target=\"_blank\">chc1qy2n9qmvp3j6ew2k0prqk2q7h9j3e8wrlgmyea2</a><br>But I didn't realise the monumental event had happened and have spent the CHC :("
+            },
+            {
+                header:"SerfNet web miner",
+                body:"Chaincoin Explorer has successfully mined many blocks on SerfNet - <a href=\"http://test.chaincoinexplorer.co.uk/?#Explorer/Address/tchc1qq03kpt3xpw0vdg6n03g3xurd776g98aclljeph\" target=\"_blank\">tchc1qq03kpt3xpw0vdg6n03g3xurd776g98aclljeph</a>"
+            }
+        ];
+
+
+        
+        var newsPageEl = $(".NewsPage");
+        var newsCardTemplateEl = newsPageEl.find(".NewsCard");
+        var newsCardList = newsPageEl.find(".news-list");
+
+
+        for(var i = 0; i < newsList.length; i++)
+        {
+            var news = newsList[i];
+            var newsCardEl = newsCardTemplateEl.clone();
+            newsCardEl.find(".card-header").html(news.header);
+            newsCardEl.find(".card-body").html(news.body);
+
+            newsCardEl.appendTo(newsCardList);
+        }
+
+
+    });
+
+</script>
+
+<style>
+.NewsCard
+{   
+    display: none;
+}
+
+.news-list .NewsCard{
+    display: block;
+}
+
+</style>
