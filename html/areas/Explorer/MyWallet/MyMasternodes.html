@@ -10,7 +10,7 @@
 
 
             <div class="my-masternode-table-content">
-                <div class="center">
+                <div class="center" style="display: none;">
                     <nav aria-label="Page navigation example">
                         <ul class="pagination">
                             <li class="page-item pagination-start">
@@ -55,7 +55,7 @@
                 </div>
 
 
-                <div class="center">
+                <div class="center" style="display: none;">
                     <nav aria-label="Page navigation example">
                         <ul class="pagination">
                             <li class="page-item pagination-start">
@@ -136,6 +136,8 @@ $(function(){
         Promise.all([myMasternodesPromise, masternodeListPromise]).then(function(values) {
 
             debugger;
+            myMasternodesRowsEl.empty();
+
             var myMasternodes = values[0].data;
             var masternodeList = values[1];
 
