@@ -248,6 +248,9 @@ var Chaincoin = {
             var name = prompt("Please enter a name for the address");
             if (name == null) return;
 
+            var address = prompt("Please enter the address");
+            if (address == null) return;
+
             sendWalletWorkerRequest({
                 op:"createAddress",
                 name:name,
