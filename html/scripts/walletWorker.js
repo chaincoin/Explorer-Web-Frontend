@@ -88,7 +88,7 @@ if (addEventListener != null)
 dbPromise = new Promise(function(resolve, reject){
 	
 	var _indexedDB = indexedDB || mozIndexedDB || webkitIndexedDB || msIndexedDB;
-	var openRequest = _indexedDB.open(databaseName, 3);
+	var openRequest = _indexedDB.open(databaseName, 4);
 	databaseOpen = databaseOpenState.opening;
 
 	openRequest.onsuccess  = function(event) {
@@ -114,6 +114,13 @@ dbPromise = new Promise(function(resolve, reject){
 			var masternodesObjectStore = db.createObjectStore("masternodes", { keyPath: "output", unique: true });
 		}
 		
+		if (event.oldVersion < 4) {
+			var masternodesObjectStore = openRequest.transaction.objectStore("masternodes");
+			var masternodesNameIndex = masternodesObjectStore.createIndex("by_name", "name");
+
+			var addressesObjectStore = openRequest.transaction.objectStore("addresses");
+			var addressesNameIndex = addressesObjectStore.createIndex("by_name", "name");
+		}
 		
 	};
 	

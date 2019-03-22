@@ -37,7 +37,13 @@
                         Name
                     </div>
                     <div class="col-lg-2 status-col">
-                        status
+                        Status
+                    </div>
+                    <div class="col-lg-2 lastseen-col">
+                        Last Seen
+                    </div>
+                    <div class="col-lg-2 lastpaidtime-col">
+                        Last Paid
                     </div>
                     <div class="col-lg-2 controls-col">
                         <button type="button" class="btn btn-danger my-masternode-action-delete">Delete</button>
@@ -144,11 +150,27 @@ $(function(){
                 if (masternode != null && (masternode.status == "ENABLED" || masternode.status == "PRE_ENABLED")) statusIconEl.addClass("fa fa-check");
                 else statusIconEl.addClass("fa fa-times");
                 
-                myMasternodesRowEl.find(".name-col").text(myMasternode.name);
+                
+                var nameColumnEl = myMasternodesRowEl.find(".name-col")
+                if(masternode != null) nameColumnEl.text("").append($('<a href="#Explorer/MasternodeList/' + myMasternode.output + '" />').text(myMasternode.name));
+                else nameColumnEl.text(myMasternode.name);
+
 
                 if (masternode != null)
                 {
                     myMasternodesRowEl.find(".status-col").text(masternode.status);
+
+                    var lastseenTimestamp = new Date((masternode.lastseen * 1000));
+                    myMasternodesRowEl.find(".lastseen-col").text(lastseenTimestamp.toLocaleTimeString() + " " + lastseenTimestamp.toLocaleDateString());
+
+                    var lastpaidTimestamp = new Date((masternode.lastpaidtime * 1000));
+                    myMasternodesRowEl.find(".lastpaidtime-col").text(lastpaidTimestamp.toLocaleTimeString() + " " + lastpaidTimestamp.toLocaleDateString());
+                }
+                else
+                {
+                    myMasternodesRowEl.find(".status-col").text("Not Found");
+                    myMasternodesRowEl.find(".lastseen-col").text("");
+                    myMasternodesRowEl.find(".lastpaidtime-col").text("");
                 }
 
                 myMasternodesRowEl.find(".my-masternode-action-delete").click(function(){
