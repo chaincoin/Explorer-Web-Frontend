@@ -40,11 +40,8 @@
                         <span class="status-icon"></span>
                     </div>
 
-                    <div class="col-sm-11">
+                    <div class="col-sm-10">
                         <div class="row">
-                            <div class="col-lg-12 col-sm-12 output-col">
-                                Output
-                            </div>
                             <div class="col-lg-4 col-sm-6 payee-col">
                                 Payee
                             </div>
@@ -64,8 +61,22 @@
                             <div class="col-lg-4 col-sm-4 status-col">
                                 Status
                             </div>
+
                         </div>
                     </div>
+                    <div class="col-sm-1 menu-col">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false">Menu</button>
+                            <div class="dropdown-menu">
+                              <a class="dropdown-item view-masternode" href="#">View Masternode</a>
+                              <a class="dropdown-item view-address" href="#">View Address</a>
+                              <div class="dropdown-divider"></div>
+                              <button class="dropdown-item add-to-my-masternodes">Add To My Masternodes</button>
+                              <button class="dropdown-item remove-from-my-masternodes">Remove From My Masternodes</button>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="rows">
@@ -248,29 +259,29 @@
                 });*/
 
                 rowsUi.empty();
-                for (var key in masternodeList) {
-                    var masternode = masternodeList[key];
-                    var rowUi = rowUiTemplate.clone().appendTo(rowsUi);
+                for (let key in masternodeList) {
+                    let masternode = masternodeList[key];
+                    let rowUi = rowUiTemplate.clone().appendTo(rowsUi);
 
                     rowUi.addClass("row-striped");
 
-                    var statusIconEl = rowUi.find(".status-icon");
+                    let statusIconEl = rowUi.find(".status-icon");
                     if (masternode.status == "ENABLED" || masternode.status == "PRE_ENABLED") statusIconEl.addClass("fa fa-check");
                     else statusIconEl.addClass("fa fa-times");
 
 
-                    var outputColEl =  rowUi.find(".output-col");
+                    let outputColEl =  rowUi.find(".output-col");
                     outputColEl.text("");
 
-                    var ouputAnchorEl = $('<a href="#Explorer/MasternodeList/' + key + '" />');
+                    let ouputAnchorEl = $('<a href="#Explorer/MasternodeList/' + key + '" />');
                     ouputAnchorEl.text(masternode.name != null && masternode.name != "" ? masternode.name + "(" + key + ")" : key);
                     outputColEl.append(ouputAnchorEl);
 
 
-                    var payeeColEl =  rowUi.find(".payee-col");
+                    let payeeColEl =  rowUi.find(".payee-col");
                     payeeColEl.text("");
 
-                    var anchorEl = $('<a href="#Explorer/Address/' + masternode.payee + '" />');
+                    let anchorEl = $('<a href="#Explorer/Address/' + masternode.payee + '" />');
                     anchorEl.text(masternode.payee);
                     payeeColEl.append(anchorEl);
 
@@ -278,12 +289,12 @@
 
                     rowUi.find(".address-col").text(masternode.address);
                     
-                    var lastseenTimestamp = new Date((masternode.lastseen * 1000));
+                    let lastseenTimestamp = new Date((masternode.lastseen * 1000));
                     rowUi.find(".last-seen-col").text(lastseenTimestamp.toLocaleTimeString() + " " + lastseenTimestamp.toLocaleDateString());
                   
                     if (masternode.lastpaidtime != 0)
                     {
-                        var lastpaidTimestamp = new Date((masternode.lastpaidtime * 1000));
+                        let lastpaidTimestamp = new Date((masternode.lastpaidtime * 1000));
                         rowUi.find(".last-paid-col").text(lastpaidTimestamp.toLocaleTimeString() + " " + lastpaidTimestamp.toLocaleDateString());
                     }
                     else{
@@ -292,6 +303,64 @@
                   
 
                     rowUi.find(".status-col").text(masternode.status);
+
+
+                    if (masternode.lastpaidtime != 0)
+                    {
+                        let lastpaidTimestamp = new Date((masternode.lastpaidtime * 1000));
+                        rowUi.find(".last-paid-col").text(lastpaidTimestamp.toLocaleTimeString() + " " + lastpaidTimestamp.toLocaleDateString());
+                    }
+                    else{
+                        rowUi.find(".last-paid-col").text("Never paid");
+                    }
+
+
+                    rowUi.find(".menu-col .view-masternode").attr("href","#Explorer/MasternodeList/" + key);
+                    rowUi.find(".menu-col .view-address").attr("href","#Explorer/address/" + masternode.payee);
+
+                    let addMyMasternodeEl = rowUi.find(".menu-col .add-to-my-masternodes");
+                    addMyMasternodeEl.click(function(){
+                        var name = prompt("Please enter a name for the masternode");
+                        if (name == null) return;
+
+                        sendWalletWorkerRequest({
+                            op:"createMasternode",
+                            name:name,
+                            output: key
+                        });
+                        return;
+                    });
+
+                    let removeMyMasternodeEl = rowUi.find(".menu-col .remove-from-my-masternodes");
+                    removeMyMasternodeEl.click(function(){
+                        if (confirm("Are you sure? the address cant be recovered") == false) return;
+                    
+                        sendWalletWorkerRequest({
+                            op:"deleteMasternode",
+                            output: key
+                        });
+                        return;
+                    });
+
+                    rowUi.find(".dropdown-toggle").click(function(){
+
+                        sendWalletWorkerRequest({
+                            op:"getMasternode",
+                            output: key
+                        }).then(function(response){
+                            debugger;
+                            if (response.data != null)
+                            {
+                                addMyMasternodeEl.addClass("disabled");
+                                removeMyMasternodeEl.removeClass("disabled");
+                            }
+                            else{
+                                addMyMasternodeEl.removeClass("disabled");
+                                removeMyMasternodeEl.addClass("disabled");
+                            }
+                        });
+
+                    });
 
                 }  
 
@@ -336,13 +405,15 @@
         display: block;
     }
 
+    .MasternodeListTable .header .menu-col{
+        visibility: hidden;
+    }
+
 
     .MasternodeListTable .status-icon-col .status-icon{
         font-size: 50px;
     }
     
-
-
     .MasternodeListTable .status-icon-col .status-icon.fa-check{
         color:lawngreen;
     }
@@ -350,5 +421,7 @@
     .MasternodeListTable .status-icon-col .status-icon.fa-times{
         color:red;
     }
+
+
 
 </style>
