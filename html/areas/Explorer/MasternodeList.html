@@ -333,7 +333,7 @@
 
                     let removeMyMasternodeEl = rowUi.find(".menu-col .remove-from-my-masternodes");
                     removeMyMasternodeEl.click(function(){
-                        if (confirm("Are you sure? the address cant be recovered") == false) return;
+                        if (confirm("Are you sure?") == false) return;
                     
                         sendWalletWorkerRequest({
                             op:"deleteMasternode",
