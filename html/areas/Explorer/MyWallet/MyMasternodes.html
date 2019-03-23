@@ -176,6 +176,9 @@ $(function(){
                 }
 
                 myMasternodesRowEl.find(".my-masternode-action-delete").click(function(){
+
+                    if (confirm("Are you sure?") == false) return;
+                    
                     sendWalletWorkerRequest({
                         op:"deleteMasternode",
                         output:myMasternode.output
