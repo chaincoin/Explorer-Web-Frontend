@@ -162,6 +162,19 @@ var functions = {
 			});
 		});
 	},
+	getAddress: function(request){
+		return dbPromise.then(function(db){
+			return new Promise(function(resolve, reject) {
+				var dbRequest = db.transaction(["addresses"], "readonly").objectStore("addresses").get(request.address);
+				dbRequest.onsuccess = function(event) {
+				  resolve(event.target.result);
+				};
+				dbRequest.onerror = function(event) {
+				  reject();
+				};
+			});
+		});
+	},
 	deleteAddress: function(request){
 		return dbPromise.then(function(db){
 			return new Promise(function(resolve, reject) {
@@ -199,6 +212,19 @@ var functions = {
 		return dbPromise.then(function(db){
 			return new Promise(function(resolve, reject) {
 				var dbRequest = db.transaction(["masternodes"], "readonly").objectStore("masternodes").getAll();
+				dbRequest.onsuccess = function(event) {
+				  resolve(event.target.result);
+				};
+				dbRequest.onerror = function(event) {
+				  reject();
+				};
+			});
+		});
+	},
+	getMasternode: function(request){
+		return dbPromise.then(function(db){
+			return new Promise(function(resolve, reject) {
+				var dbRequest = db.transaction(["masternodes"], "readonly").objectStore("masternodes").get(request.output);
 				dbRequest.onsuccess = function(event) {
 				  resolve(event.target.result);
 				};
