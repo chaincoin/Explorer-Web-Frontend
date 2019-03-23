@@ -3,8 +3,25 @@
 
     <div class="card masternode-details-card">
         <div class="card-header">
-            Output:
-            <span class="masternode-output"></span>
+            <div class="row">
+                <div class="col-md-11">
+                    Output:
+                    <span class="masternode-output"></span>
+                </div>
+            
+                <div class="col-md-1 menu-col">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false">Menu</button>
+                        <div class="dropdown-menu">
+                        <a class="dropdown-item view-address" href="#">View Address</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item add-to-my-masternodes">Add To My Masternodes</button>
+                        <button class="dropdown-item remove-from-my-masternodes">Remove From My Masternodes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
         <div class="card-body">
             <div class="row">
@@ -140,7 +157,11 @@
         var masternodeLastPaidTimeEl = masternodeDetailsCardEl.find(".masternode-lastpaidtime");
         var masternodeSentinelVersionEl = masternodeDetailsCardEl.find(".masternode-sentinelversion");
 
-        
+
+        var menuButtonEl = masternodeDetailsCardEl.find(".card-header .menu-col .dropdown-toggle");
+        var viewAddressEl = masternodeDetailsCardEl.find(".card-header .menu-col .view-address");
+        var addMyMasternodeEl = masternodeDetailsCardEl.find(".card-header .menu-col .add-to-my-masternodes");
+        var removeMyMasternodeEl = masternodeDetailsCardEl.find(".card-header .menu-col .remove-from-my-masternodes");
 
 
         var loadMasternode = function (output) {
@@ -187,6 +208,55 @@
                 masternodeLastPaidTimeEl.text(lastpaidtimeTimestamp.toLocaleTimeString() + " " + lastpaidtimeTimestamp.toLocaleDateString());
 
                 masternodeSentinelVersionEl.text(masternode.sentinelversion);
+
+
+
+                viewAddressEl.attr("href","#Explorer/address/" + masternode.payee);
+
+                addMyMasternodeEl.click(function(){
+                    var name = prompt("Please enter a name for the masternode");
+                    if (name == null) return;
+
+                    sendWalletWorkerRequest({
+                        op:"createMasternode",
+                        name:name,
+                        output: output
+                    });
+                    return;
+                });
+
+
+                removeMyMasternodeEl.click(function(){
+                    if (confirm("Are you sure?") == false) return;
+                
+                    sendWalletWorkerRequest({
+                        op:"deleteMasternode",
+                        output: output
+                    });
+                    return;
+                });
+
+
+                menuButtonEl.click(function(){
+
+                    sendWalletWorkerRequest({
+                        op:"getMasternode",
+                        output: output
+                    }).then(function(response){
+
+                        if (response.data != null)
+                        {
+                            addMyMasternodeEl.addClass("disabled");
+                            removeMyMasternodeEl.removeClass("disabled");
+                        }
+                        else{
+                            addMyMasternodeEl.removeClass("disabled");
+                            removeMyMasternodeEl.addClass("disabled");
+                        }
+                    });
+
+                });
+
 
 
             });
