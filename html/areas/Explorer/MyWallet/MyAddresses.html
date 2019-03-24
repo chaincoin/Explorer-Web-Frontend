@@ -129,7 +129,7 @@ var Chaincoin = {
 }
 
     try{
-        var walletWorker = new Worker('/scripts/walletWorker.js?13');
+        var walletWorker = new Worker('/scripts/walletWorker.js?' + (new Date().getTime())); //TODO: need better cache control than this
        // walletWorker.start();
 
 
