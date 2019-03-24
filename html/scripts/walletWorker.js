@@ -88,7 +88,7 @@ if (addEventListener != null)
 dbPromise = new Promise(function(resolve, reject){
 	
 	var _indexedDB = indexedDB || mozIndexedDB || webkitIndexedDB || msIndexedDB;
-	var openRequest = _indexedDB.open(databaseName, 5);
+	var openRequest = _indexedDB.open(databaseName, 7);
 	databaseOpen = databaseOpenState.opening;
 
 	openRequest.onsuccess  = function(event) {
@@ -116,27 +116,22 @@ dbPromise = new Promise(function(resolve, reject){
 		}
 		
 		if (event.oldVersion < 4) {
-			
-			var masternodesObjectStore = db.createObjectStore("masternodes", { keyPath: "output", unique: true });
-			var masternodesNameIndex = masternodesObjectStore.createIndex("by_name", "name");
 
-			var addressesObjectStore = db.createObjectStore("addresses", { keyPath: "address", unique: true });
-			var addressesNameIndex = addressesObjectStore.createIndex("by_name", "name");
 		}
 		
-		if (event.oldVersion < 5)
+		if (event.oldVersion < 7)
 		{
 			var masternodesObjectStore = null;
-			if (db.objectStoreNames.contains("masternodes") == -1) masternodesObjectStore = db.createObjectStore("masternodes", { keyPath: "output", unique: true });
+			if (db.objectStoreNames.contains("masternodes") == false) masternodesObjectStore = db.createObjectStore("masternodes", { keyPath: "output", unique: true });
 			else masternodesObjectStore = transaction.objectStore("masternodes");
 
-			if (masternodesObjectStore.indexNames.contains("by_name") == -1) masternodesObjectStore.createIndex("by_name", "name");
+			if (masternodesObjectStore.indexNames.contains("by_name") == false) masternodesObjectStore.createIndex("by_name", "name");
 
 			var addressesObjectStore = null;
-			if (db.objectStoreNames.contains("addresses") == -1) addressesObjectStore = db.createObjectStore("addresses", { keyPath: "address", unique: true });
+			if (db.objectStoreNames.contains("addresses") == false) addressesObjectStore = db.createObjectStore("addresses", { keyPath: "address", unique: true });
 			else addressesObjectStore = transaction.objectStore("addresses");
 
-			if (addressesObjectStore.indexNames.contains("by_name") == -1) addressesObjectStore.createIndex("by_name", "name");
+			if (addressesObjectStore.indexNames.contains("by_name") == false) addressesObjectStore.createIndex("by_name", "name");
 
 		}
 		
