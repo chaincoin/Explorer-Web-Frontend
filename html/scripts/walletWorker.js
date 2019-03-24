@@ -88,7 +88,7 @@ if (addEventListener != null)
 dbPromise = new Promise(function(resolve, reject){
 	
 	var _indexedDB = indexedDB || mozIndexedDB || webkitIndexedDB || msIndexedDB;
-	var openRequest = _indexedDB.open(databaseName, 4);
+	var openRequest = _indexedDB.open(databaseName, 5);
 	databaseOpen = databaseOpenState.opening;
 
 	openRequest.onsuccess  = function(event) {
@@ -104,23 +104,42 @@ dbPromise = new Promise(function(resolve, reject){
 
 
 	openRequest.onupgradeneeded = function(event) {
-		var db = event.target.result;
+		var db = openRequest.result;
+		var transaction = openRequest.transaction;
 				
 		if (event.oldVersion < 1) {
-			var addressesObjectStore = db.createObjectStore("addresses", { keyPath: "address", unique: true });
+			
 		}
 
 		if (event.oldVersion < 2) {
-			var masternodesObjectStore = db.createObjectStore("masternodes", { keyPath: "output", unique: true });
+			
 		}
 		
 		if (event.oldVersion < 4) {
-			var masternodesObjectStore = openRequest.transaction.objectStore("masternodes");
+			
+			var masternodesObjectStore = db.createObjectStore("masternodes", { keyPath: "output", unique: true });
 			var masternodesNameIndex = masternodesObjectStore.createIndex("by_name", "name");
 
-			var addressesObjectStore = openRequest.transaction.objectStore("addresses");
+			var addressesObjectStore = db.createObjectStore("addresses", { keyPath: "address", unique: true });
 			var addressesNameIndex = addressesObjectStore.createIndex("by_name", "name");
 		}
+		
+		if (event.oldVersion < 5)
+		{
+			var masternodesObjectStore = null;
+			if (db.objectStoreNames.contains("masternodes") == -1) masternodesObjectStore = db.createObjectStore("masternodes", { keyPath: "output", unique: true });
+			else masternodesObjectStore = transaction.objectStore("masternodes");
+
+			if (masternodesObjectStore.indexNames.contains("by_name") == -1) masternodesObjectStore.createIndex("by_name", "name");
+
+			var addressesObjectStore = null;
+			if (db.objectStoreNames.contains("addresses") == -1) addressesObjectStore = db.createObjectStore("addresses", { keyPath: "address", unique: true });
+			else addressesObjectStore = transaction.objectStore("addresses");
+
+			if (addressesObjectStore.indexNames.contains("by_name") == -1) addressesObjectStore.createIndex("by_name", "name");
+
+		}
+		
 		
 	};
 	
@@ -211,9 +230,26 @@ var functions = {
 	listMasternodes: function(request){
 		return dbPromise.then(function(db){
 			return new Promise(function(resolve, reject) {
-				var dbRequest = db.transaction(["masternodes"], "readonly").objectStore("masternodes").getAll();
+				
+				var masternodesStore = db.transaction(["masternodes"], "readonly").objectStore("masternodes");
+				var nameIndex = masternodesStore.index("by_name");
+				var dbRequest = nameIndex.openCursor();
+
+				var masternodes = [];
+
 				dbRequest.onsuccess = function(event) {
-				  resolve(event.target.result);
+
+					var cursor = event.target.result;
+					if (cursor) {
+						masternodes.push(cursor.value);
+						cursor.continue();
+					}
+					else
+					{
+						resolve(masternodes);
+					}
+
+				  
 				};
 				dbRequest.onerror = function(event) {
 				  reject();
