@@ -3,11 +3,25 @@
 
     <div class="card">
         <div class="card-header">
-            Address:
-            <span class="address-address"></span>
-            <a class="address-download-link">
-                <span class="fa fa-download"></span>
-            </a>
+            
+            <div class="row">
+                <div class="col-md-11">
+                    Address:
+                    <span class="address-address"></span>
+                </div>
+            
+                <div class="col-md-1 menu-col">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false">Menu</button>
+                        <div class="dropdown-menu">
+                        <button class="dropdown-item export-address" href="#">Export</button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item add-to-my-addresses">Add To My Addresses</button>
+                        <button class="dropdown-item remove-from-my-addresses">Remove From My Addresses</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="card-body">
@@ -116,6 +130,7 @@
     $(function(){
         $(".AddressDetails").on("showArea", function (event, addressId) {
             loadAddress(addressId);
+            debugger;
         });
 
         var _addressId = null;
@@ -126,7 +141,6 @@
 
 
         var addressDetailsEl = $(".AddressDetails");
-        var downloadButtonEl = addressDetailsEl.find(".address-download-link");
         var addressEl = addressDetailsEl.find(".address-address");
         var sentEl = addressDetailsEl.find(".address-sent");
         var receivedEl = addressDetailsEl.find(".address-received");
@@ -137,6 +151,10 @@
         var transactionRowsEl = addressDetailsEl.find(".rows");
 
 
+        var menuButtonEl = addressDetailsEl.find(".card-header .menu-col .dropdown-toggle");
+        var exportAddressEl = addressDetailsEl.find(".card-header .menu-col .export-address");
+        var addMyAddressesEl = addressDetailsEl.find(".card-header .menu-col .add-to-my-addresses");
+        var removeMyAddressesEl = addressDetailsEl.find(".card-header .menu-col .remove-from-my-addresses");
 
 
         var transactionListPaginationEl = transactionListEl.find(".pagination");
@@ -171,6 +189,48 @@
 
             LoadAddressTxInfo(_address.txCount < _transactionPerPage ? _address.txCount : _transactionPerPage);
             return false;
+        });
+
+
+        addMyAddressesEl.click(function(){
+            var name = prompt("Please enter a name for the address");
+            if (name == null) return;
+
+            sendWalletWorkerRequest({
+                op:"createAddress",
+                name:name,
+                address: _address.address
+            });
+            return;
+        });
+
+
+        removeMyAddressesEl.click(function(){
+            if (confirm("Are you sure?") == false) return;
+        
+            sendWalletWorkerRequest({
+                op:"deleteAddress",
+                address: _address.address
+            });
+            return;
+        });
+
+        menuButtonEl.click(function(){
+            sendWalletWorkerRequest({
+                op:"getAddress",
+                address: _address.address
+            }).then(function(response){
+
+                if (response.data != null)
+                {
+                    addMyAddressesEl.addClass("disabled");
+                    removeMyAddressesEl.removeClass("disabled");
+                }
+                else{
+                    addMyAddressesEl.removeClass("disabled");
+                    removeMyAddressesEl.addClass("disabled");
+                }
+            });
         });
 
 
@@ -295,7 +355,9 @@
         };
 
 
-        downloadButtonEl.click(function(){
+        
+
+        exportAddressEl.click(function(){
 
 
             var pageSize = 100;
