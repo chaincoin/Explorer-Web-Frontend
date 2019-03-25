@@ -138,6 +138,7 @@
      //block details 
      $(function () {
 
+        var _output = null;
         $(".MasternodeDetails").on("showArea", function (event, output) {
             loadMasternode(output);
             debugger;
@@ -164,7 +165,54 @@
         var removeMyMasternodeEl = masternodeDetailsCardEl.find(".card-header .menu-col .remove-from-my-masternodes");
 
 
+        addMyMasternodeEl.click(function(){
+            var name = prompt("Please enter a name for the masternode");
+            if (name == null) return;
+
+            sendWalletWorkerRequest({
+                op:"createMasternode",
+                name:name,
+                output: _output
+            });
+            return;
+        });
+
+
+        removeMyMasternodeEl.click(function(){
+            if (confirm("Are you sure?") == false) return;
+        
+            sendWalletWorkerRequest({
+                op:"deleteMasternode",
+                output: _output
+            });
+            return;
+        });
+
+
+        menuButtonEl.click(function(){
+
+            sendWalletWorkerRequest({
+                op:"getMasternode",
+                output: _output
+            }).then(function(response){
+
+                if (response.data != null)
+                {
+                    addMyMasternodeEl.addClass("disabled");
+                    removeMyMasternodeEl.removeClass("disabled");
+                }
+                else{
+                    addMyMasternodeEl.removeClass("disabled");
+                    removeMyMasternodeEl.addClass("disabled");
+                }
+            });
+
+        });
+
+
         var loadMasternode = function (output) {
+
+            _output = output;
 
             masternodeOutputEl.text("");
             masternodePayeeEl.text("");
@@ -212,52 +260,6 @@
 
 
                 viewAddressEl.attr("href","#Explorer/address/" + masternode.payee);
-
-                addMyMasternodeEl.click(function(){
-                    var name = prompt("Please enter a name for the masternode");
-                    if (name == null) return;
-
-                    sendWalletWorkerRequest({
-                        op:"createMasternode",
-                        name:name,
-                        output: output
-                    });
-                    return;
-                });
-
-
-                removeMyMasternodeEl.click(function(){
-                    if (confirm("Are you sure?") == false) return;
-                
-                    sendWalletWorkerRequest({
-                        op:"deleteMasternode",
-                        output: output
-                    });
-                    return;
-                });
-
-
-                menuButtonEl.click(function(){
-
-                    sendWalletWorkerRequest({
-                        op:"getMasternode",
-                        output: output
-                    }).then(function(response){
-
-                        if (response.data != null)
-                        {
-                            addMyMasternodeEl.addClass("disabled");
-                            removeMyMasternodeEl.removeClass("disabled");
-                        }
-                        else{
-                            addMyMasternodeEl.removeClass("disabled");
-                            removeMyMasternodeEl.addClass("disabled");
-                        }
-                    });
-
-                });
-
-
 
             });
         }
