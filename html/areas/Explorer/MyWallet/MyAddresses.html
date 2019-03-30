@@ -251,12 +251,24 @@ var Chaincoin = {
             var address = prompt("Please enter the address");
             if (address == null) return;
 
-            sendWalletWorkerRequest({
-                op:"createAddress",
-                name:name,
-                address: address,
-                WIF:null
-            }).then(loadAddresses).then(displayAddresses);
+            sendRequest({
+                op:"validateAddress",
+                address: address
+            }).then(function(response){
+                if (response.isvalid){
+                    sendWalletWorkerRequest({
+                        op:"createAddress",
+                        name:name,
+                        address: address,
+                        WIF:null
+                    }).then(loadAddresses).then(displayAddresses);
+                }
+                else{
+                    alert("invalid address");
+                }
+                
+            });
+ 
         });
         
         
