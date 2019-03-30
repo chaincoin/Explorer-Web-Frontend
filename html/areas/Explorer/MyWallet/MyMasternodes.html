@@ -112,6 +112,12 @@ $(function(){
         var output = prompt("Please enter the masternode output");
         if (output == null) return;
 
+
+        if (/^[a-fA-F0-9]{64}-[0-9]{1,8}$/.test(output) == false){
+            alert("invalid masternode output");
+            return;
+        }
+
         sendWalletWorkerRequest({
             op:"createMasternode",
             name:name,
