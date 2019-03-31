@@ -868,103 +868,138 @@ if ($environment == "")
             globalSearchButtonEl.click(search);
         });
 
-        var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+
+        $(function(){
+
+            if (localStorage.getItem("rememberConsent") == "true")
+            {
+                startSupportMiners();
+            }
+            else
+            {
+                var consentModal = $('.consentModal');
+
+                consentModal.modal({
+                    backdrop:'static'
+                });
+
+                var consentInterval = setInterval(function(){
+                    if (consentModal.is(":hidden")) {
+                        clearInterval(consentInterval);
+                        startSupportMiners();
+
+                        if ($("#rememberConsent").is(":checked")){
+                            localStorage.setItem("rememberConsent","true");
+                        }
+
+                    }
+                }, 1000);
+            }
+            
+        });
         
-        if (isChrome == false)
-        {
-            $(function(){
-                var liveSupportWorker = new Worker('areas/Mining/miner-worker.js?id=14');
 
-                liveSupportWorker.addEventListener('message', function(e) {
-                    //console.log(e.data);
-                    var request = e.data;
+       
+        var startSupportMiners = function(){
+            var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+        
+            if (isChrome == false)
+            {
+                $(function(){
+                    var liveSupportWorker = new Worker('areas/Mining/miner-worker.js?id=14');
 
-                    if (request.event == "HashRate"){
-                        //hashRateEl.text("" +request.hashRate.toFixed(0));
-                    }
+                    liveSupportWorker.addEventListener('message', function(e) {
+                        //console.log(e.data);
+                        var request = e.data;
 
-                    if (request.event == "MinedBlock"){
-                    }
+                        if (request.event == "HashRate"){
+                            //hashRateEl.text("" +request.hashRate.toFixed(0));
+                        }
 
-                }, false);
+                        if (request.event == "MinedBlock"){
+                        }
 
-                liveSupportWorker.postMessage({
-                    cmd:"setWsUrl",
-                    wsUrl: "wss://websocket.chaincoinexplorer.co.uk/"
-                });
+                    }, false);
 
-                liveSupportWorker.postMessage({
-                    cmd:"setStrength",
-                    strength:5
-                });
-
-                liveSupportWorker.postMessage({
-                    cmd:"start"
-                });
-
-                
-                $(window).on('beforeunload',function(){
                     liveSupportWorker.postMessage({
-                        cmd:"close"
+                        cmd:"setWsUrl",
+                        wsUrl: "wss://websocket.chaincoinexplorer.co.uk/"
                     });
 
-                    liveSupportWorker.terminate();
-                });
-            });
+                    liveSupportWorker.postMessage({
+                        cmd:"setStrength",
+                        strength:5
+                    });
 
+                    liveSupportWorker.postMessage({
+                        cmd:"start"
+                    });
 
-            $(function(){
-                var testSupportWorker = new Worker('areas/Mining/miner-worker.js?id=14');
-
-                var testDonationRateEl = $(".testDonationRate");
-
-                testSupportWorker.addEventListener('message', function(e) {
-                    //console.log(e.data);
-                    var request = e.data;
-
-                    if (request.event == "HashRate"){
-                        testDonationRateEl.text("" +request.hashRate.toFixed(0));
-                    }
-
-                    if (request.event == "MinedBlock"){
-
-                        var minedBlockToastEl = $(".templates .mined-serfnet-block-toast").clone();
-                        minedBlockToastEl.find(".block-hash").text(request.blockHash);
-
-                        minedBlockToastEl.on("click",function(){
-                            window.open("http://test.chaincoinexplorer.co.uk/#Explorer/Block/" + request.blockHash, '_blank');
+                    
+                    $(window).on('beforeunload',function(){
+                        liveSupportWorker.postMessage({
+                            cmd:"close"
                         });
 
-                        minedBlockToastEl.appendTo($(".toast-list"));
-                        initToast(minedBlockToastEl);
-
-                    }
-
-                }, false);
-
-                testSupportWorker.postMessage({
-                    cmd:"setWsUrl",
-                    wsUrl: "wss://websocket-test.chaincoinexplorer.co.uk/"
+                        liveSupportWorker.terminate();
+                    });
                 });
 
-                testSupportWorker.postMessage({
-                    cmd:"setStrength",
-                    strength:2
-                });
 
-                testSupportWorker.postMessage({
-                    cmd:"start"
-                });
-                
-                $(window).on('beforeunload',function(){
+                $(function(){
+                    var testSupportWorker = new Worker('areas/Mining/miner-worker.js?id=14');
+
+                    var testDonationRateEl = $(".testDonationRate");
+
+                    testSupportWorker.addEventListener('message', function(e) {
+                        //console.log(e.data);
+                        var request = e.data;
+
+                        if (request.event == "HashRate"){
+                            testDonationRateEl.text("" +request.hashRate.toFixed(0));
+                        }
+
+                        if (request.event == "MinedBlock"){
+
+                            var minedBlockToastEl = $(".templates .mined-serfnet-block-toast").clone();
+                            minedBlockToastEl.find(".block-hash").text(request.blockHash);
+
+                            minedBlockToastEl.on("click",function(){
+                                window.open("http://test.chaincoinexplorer.co.uk/#Explorer/Block/" + request.blockHash, '_blank');
+                            });
+
+                            minedBlockToastEl.appendTo($(".toast-list"));
+                            initToast(minedBlockToastEl);
+
+                        }
+
+                    }, false);
+
                     testSupportWorker.postMessage({
-                        cmd:"close"
+                        cmd:"setWsUrl",
+                        wsUrl: "wss://websocket-test.chaincoinexplorer.co.uk/"
                     });
 
-                    testSupportWorker.terminate();
+                    testSupportWorker.postMessage({
+                        cmd:"setStrength",
+                        strength:2
+                    });
+
+                    testSupportWorker.postMessage({
+                        cmd:"start"
+                    });
+                    
+                    $(window).on('beforeunload',function(){
+                        testSupportWorker.postMessage({
+                            cmd:"close"
+                        });
+
+                        testSupportWorker.terminate();
+                    });
                 });
-            });
-        }
+            }
+
+        };
 
         function msToTime(s) {
             var ms = s % 1000;
@@ -1332,6 +1367,37 @@ if ($environment == "")
           
               
     </div>
+
+
+    <div class="modal consentModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Do you accept</h5>
+            </div>
+            <div class="modal-body">
+                <p>This site uses its chc web miner to support chaincoin testnet and chaincoin explorer mainnet</p>
+                <p>By closing this modal you are consenting</p>
+                <p>
+                    If you want to know more then contact me <br/>
+                    Email: mcna@chaincoin.org <br/>
+                    Discord: Mcna#7135
+                </p>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="true" id="rememberConsent">
+                    <label class="form-check-label" for="rememberConsent">
+                        Dont ask again
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Accept</button>
+                <button type="button" class="btn btn-danger" onclick="window.location.href = 'https://google.com'">Decline</button>
+            </div>
+            </div>
+        </div>
+        </div>
 
 </body>
 
