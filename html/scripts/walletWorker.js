@@ -12,7 +12,7 @@ var Chaincoin = {
   },
   pubKeyHash: 0x1C,
   scriptHash: 0x04,
-  wif: 0x80
+  wif: 0x9C
 }*/
 	
 var databaseVersion = 2;
