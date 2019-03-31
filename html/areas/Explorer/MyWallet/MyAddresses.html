@@ -123,11 +123,12 @@ var Chaincoin = {
 	public: 0x02FE52F8,
 	private: 0x02FE52CC
   },
+  bech32: "chc",
   pubKeyHash: 0x1C,
   scriptHash: 0x04,
-  wif: 0x80
+  wif: 0x9C
 }
-
+ 
     try{
         var walletWorker = new Worker('/scripts/walletWorker.js?21'); //TODO: need better cache control than this
        // walletWorker.start();
@@ -209,6 +210,9 @@ var Chaincoin = {
 	        var WIF = keyPair.toWIF();
             var address = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: Chaincoin }).address;
             
+            
+            var address = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: Chaincoin }).address;
+
 
             
             sendWalletWorkerRequest({
