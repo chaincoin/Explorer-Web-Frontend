@@ -24,84 +24,110 @@
 
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-xl-12">
-                    <div>
-                        Payee
-                    </div>
-                    <div class="masternode-payee">
 
+
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active masternodeDetailsTab" data-toggle="tab" href="#masternodeDetailsTabData" role="tab" aria-selected="true">Details</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link masternodeGraphTab" data-toggle="tab" href="#masternodeGraphTabData" role="tab" aria-selected="false">Graph</a>
+                </li>
+            </ul>
+                
+            <div class="tab-content">
+                
+                <div class="tab-pane fade show active" id="masternodeDetailsTabData" role="tabpanel">
+                    <div class="row">
+                        <div class="col-xl-12">
+                            <div>
+                                Payee
+                            </div>
+                            <div class="masternode-payee">
+        
+                            </div>
+                        </div>
+        
+                        <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                            <div>
+                                Status
+                            </div>
+                            <div class="masternode-status">
+        
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                            <div>
+                                Address
+                            </div>
+                            <div class="masternode-address">
+        
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                            <div>
+                                Active Seconds
+                            </div>
+                            <div class="masternode-activeseconds">
+        
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                            <div>
+                                Last Seen
+                            </div>
+                            <div class="masternode-lastseen">
+        
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                            <div>
+                                Daemon Version
+                            </div>
+                            <div class="masternode-daemonversion">
+        
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                            <div>
+                                Last Paid Block
+                            </div>
+                            <div class="masternode-lastpaidblock">
+        
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                            <div>
+                                Last Paid Time
+                            </div>
+                            <div class="masternode-lastpaidtime">
+        
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+                            <div>
+                                Sentinel Version
+                            </div>
+                            <div class="masternode-sentinelversion">
+        
+                            </div>
+                        </div>
+        
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
-                    <div>
-                        Status
-                    </div>
-                    <div class="masternode-status">
-
-                    </div>
+                <div class="tab-pane fade" id="masternodeGraphTabData" role="tabpanel">
+                    <canvas class="masternodePayoutsGraph"></canvas>
                 </div>
-                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
-                    <div>
-                        Address
-                    </div>
-                    <div class="masternode-address">
-
-                    </div>
-                </div>
-                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
-                    <div>
-                        Active Seconds
-                    </div>
-                    <div class="masternode-activeseconds">
-
-                    </div>
-                </div>
-                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
-                    <div>
-                        Last Seen
-                    </div>
-                    <div class="masternode-lastseen">
-
-                    </div>
-                </div>
-                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
-                    <div>
-                        Daemon Version
-                    </div>
-                    <div class="masternode-daemonversion">
-
-                    </div>
-                </div>
-                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
-                    <div>
-                        Last Paid Block
-                    </div>
-                    <div class="masternode-lastpaidblock">
-
-                    </div>
-                </div>
-                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
-                    <div>
-                        Last Paid Time
-                    </div>
-                    <div class="masternode-lastpaidtime">
-
-                    </div>
-                </div>
-                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
-                    <div>
-                        Sentinel Version
-                    </div>
-                    <div class="masternode-sentinelversion">
-
-                    </div>
-                </div>
-
             </div>
+                
+
+
+
+            
         </div>
     </div>
+
 
 
     <div class="card masternode-notifications-card">
@@ -139,14 +165,19 @@
      $(function () {
 
         var _output = null;
+        var _masternode = null;
         $(".MasternodeDetails").on("showArea", function (event, output) {
             loadMasternode(output);
+            masternodeDetailsTabEl.click();
             debugger;
         });
 
 
         var masternodeDetailsEl = $(".MasternodeDetails");
         var masternodeDetailsCardEl = masternodeDetailsEl.find(".masternode-details-card");
+
+        var masternodeDetailsTabEl = masternodeDetailsEl.find(".masternodeDetailsTab");
+
         var masternodeOutputEl = masternodeDetailsCardEl.find(".masternode-output");
         var masternodePayeeEl = masternodeDetailsCardEl.find(".masternode-payee");
         var masternodeStatusEl = masternodeDetailsCardEl.find(".masternode-status");
@@ -163,6 +194,10 @@
         var viewAddressEl = masternodeDetailsCardEl.find(".card-header .menu-col .view-address");
         var addMyMasternodeEl = masternodeDetailsCardEl.find(".card-header .menu-col .add-to-my-masternodes");
         var removeMyMasternodeEl = masternodeDetailsCardEl.find(".card-header .menu-col .remove-from-my-masternodes");
+
+
+        
+
 
 
         addMyMasternodeEl.click(function(){
@@ -213,6 +248,7 @@
         var loadMasternode = function (output) {
 
             _output = output;
+            _masternode = null;
 
             masternodeOutputEl.text("");
             masternodePayeeEl.text("");
@@ -234,6 +270,7 @@
             sendRequest(request).then(function (masternodeList) {
 
                 var masternode = masternodeList[output];
+                _masternode = masternode;
 
                 masternodeOutputEl.text(output);
 
@@ -261,11 +298,122 @@
 
                 viewAddressEl.attr("href","#Explorer/address/" + masternode.payee);
 
+
+
             });
+
+
+            
         }
 
 
+
+
+        var masternodePayoutsGraphEl = masternodeDetailsEl.find(".masternodePayoutsGraph");
+        var masternodeGraphTabEl = masternodeDetailsEl.find(".masternodeGraphTab");
+        var masternodeGraph = null;
+
+        var color = Chart.helpers.color;
+        var config = {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Masternode',
+                    backgroundColor: color("rgb(255, 99, 132)").alpha(0.5).rgbString(),
+                    borderColor: "rgb(255, 99, 132)",
+                    fill: false,
+                    data: [],
+                }]
+            },
+            options: {
+                title: {
+                    text: 'Maternode Payouts'
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            unit: 'day'
+                        }
+                    }],
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Payouts'
+                        }
+                    }]
+                },
+            }
+        };
+
+        masternodeGraphTabEl.click(function(){
+            loadGraph();
+        })
+
+
+        var loadGraph = function(){
+            sendRequest({
+                op: "getPayoutStats",
+                address: _masternode.payee,
+                type:"masternode",
+                unit:"daily"
+            }).then(function(stats){
+
+
+                var data = [];
+                var lastDate = null;
+                for(var i = 0; i < stats.length; i++)
+                {
+                    var stat = stats[i];
+                    var date = new Date(stat._id.year, stat._id.month - 1, stat._id.day);
+
+                    if (lastDate != null)
+                    {
+                        var current = new Date(lastDate.getTime());
+                        current.setDate(current.getDate() + 1);
+
+                        while(current < date){
+                            data.push({
+                                x: current,
+                                y: 0
+                            });
+
+                            current = new Date(current.getTime());
+                            current.setDate(current.getDate() + 1);
+                        }
+                    }
+
+                    
+                    
+                    data.push({
+                        x: date,
+                        y: stat.value
+                    });
+
+                    lastDate = date;
+                }
+
+
+                config.data.datasets[0].data = data;
+
+                if (masternodeGraph == null)
+                {
+                    var ctx = masternodePayoutsGraphEl[0].getContext('2d');
+                    masternodeGraph = new Chart(ctx, config);
+                }
+                else
+                {
+                    masternodeGraph.update();
+                }
+                
+
+            });
+        }
+        
+
     });
+
+    
 
 
     $(function(){
