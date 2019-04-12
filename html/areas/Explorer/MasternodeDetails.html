@@ -117,7 +117,23 @@
                 </div>
 
                 <div class="tab-pane fade" id="masternodeGraphTabData" role="tabpanel">
-                    <canvas class="masternodePayoutsGraph"></canvas>
+                    <div class="form-group">
+                        <label>Unit:</label>
+                        <select class="form-control mnPayoutsGraphUnit">
+                            <option value="daily">Daily</option>
+                            <option value="weekly" selected="selected">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Value:</label>
+                        <select class="form-control mnPayoutsGraphValue">
+                            <option value="sum" selected="selected">CHC</option>
+                            <option value="count">Count</option>
+                        </select>
+                    </div>
+                    <canvas class="mnPayoutsGraph"></canvas>
                 </div>
             </div>
                 
@@ -308,9 +324,14 @@
 
 
 
-
-        var masternodePayoutsGraphEl = masternodeDetailsEl.find(".masternodePayoutsGraph");
         var masternodeGraphTabEl = masternodeDetailsEl.find(".masternodeGraphTab");
+
+        var masternodeGraphTabData= masternodeDetailsEl.find("#masternodeGraphTabData");
+        var mnPayoutsGraphUnitEl = masternodeGraphTabData.find(".mnPayoutsGraphUnit");
+        var mnPayoutsGraphValueEl = masternodeGraphTabData.find(".mnPayoutsGraphValue");
+        var mnPayoutsGraphEl = masternodeGraphTabData.find(".mnPayoutsGraph");
+
+
         var masternodeGraph = null;
 
         var color = Chart.helpers.color;
@@ -333,7 +354,7 @@
                     xAxes: [{
                         type: 'time',
                         time: {
-                            unit: 'day'
+                            unit: 'week'
                         }
                     }],
                     yAxes: [{
@@ -348,57 +369,90 @@
 
         masternodeGraphTabEl.click(function(){
             loadGraph();
-        })
+        });
+
+        mnPayoutsGraphUnitEl.change(function(){
+            loadGraph();
+        });
+
+        mnPayoutsGraphValueEl.change(function(){
+            loadGraph();
+        });
+
+        
 
 
         var loadGraph = function(){
+
+
+            if (mnPayoutsGraphUnitEl.val() == "daily") config.options.scales.xAxes[0].time.unit = "day";
+            if (mnPayoutsGraphUnitEl.val() == "weekly") config.options.scales.xAxes[0].time.unit = "week";
+            if (mnPayoutsGraphUnitEl.val() == "monthly") config.options.scales.xAxes[0].time.unit = "month";
+            if (mnPayoutsGraphUnitEl.val() == "yearly") config.options.scales.xAxes[0].time.unit = "year";
+
             sendRequest({
                 op: "getPayoutStats",
                 address: _masternode.payee,
                 type:"masternode",
-                unit:"daily"
+                unit:mnPayoutsGraphUnitEl.val()
             }).then(function(stats){
 
 
-                var data = [];
+                config.data.datasets[0].data = [];
                 var lastDate = null;
                 for(var i = 0; i < stats.length; i++)
                 {
                     var stat = stats[i];
-                    var date = new Date(stat._id.year, stat._id.month - 1, stat._id.day);
+                    var date = null;
+                    
+
+                    if (mnPayoutsGraphUnitEl.val() == "daily") date = new Date(stat._id.year, stat._id.month - 1, stat._id.day);
+                    if (mnPayoutsGraphUnitEl.val() == "weekly") {
+                        date = new Date(stat._id.year, 0, 1);
+                        date.setDate(stat._id.week * 7);
+                    }
+                    if (mnPayoutsGraphUnitEl.val() == "monthly") date = new Date(stat._id.year, stat._id.month - 1, 1);
+                    if (mnPayoutsGraphUnitEl.val() == "yearly") date = new Date(stat._id.year, 0, 1);
 
                     if (lastDate != null)
                     {
                         var current = new Date(lastDate.getTime());
-                        current.setDate(current.getDate() + 1);
+
+                        if (mnPayoutsGraphUnitEl.val() == "daily") current.setDate(current.getDate() + 1);
+                        if (mnPayoutsGraphUnitEl.val() == "weekly") current.setDate(current.getDate() + 7);
+                        if (mnPayoutsGraphUnitEl.val() == "monthly") current.setMonth(current.getMonth() + 1);
+                        if (mnPayoutsGraphUnitEl.val() == "yearly") current.setFullYear(current.getFullYear() + 1);
+
+                        
+
 
                         while(current < date){
-                            data.push({
+                            config.data.datasets[0].data.push({
                                 x: current,
                                 y: 0
                             });
 
                             current = new Date(current.getTime());
-                            current.setDate(current.getDate() + 1);
+                            if (mnPayoutsGraphUnitEl.val() == "daily") current.setDate(current.getDate() + 1);
+                            if (mnPayoutsGraphUnitEl.val() == "weekly") current.setDate(current.getDate() + 7);
+                            if (mnPayoutsGraphUnitEl.val() == "monthly") current.setMonth(current.getMonth() + 1);
+                            if (mnPayoutsGraphUnitEl.val() == "yearly") current.setFullYear(current.getFullYear() + 1);
                         }
                     }
 
-                    
-                    
-                    data.push({
+                    config.data.datasets[0].data.push({
                         x: date,
-                        y: stat.value
+                        y: mnPayoutsGraphValueEl.val() == "sum" ? stat.value : stat.count
                     });
 
                     lastDate = date;
                 }
 
 
-                config.data.datasets[0].data = data;
 
                 if (masternodeGraph == null)
                 {
-                    var ctx = masternodePayoutsGraphEl[0].getContext('2d');
+                    var ctx = mnPayoutsGraphEl[0].getContext('2d');
                     masternodeGraph = new Chart(ctx, config);
                 }
                 else
