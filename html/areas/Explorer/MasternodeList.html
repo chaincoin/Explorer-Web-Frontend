@@ -281,9 +281,10 @@
                     let payeeColEl =  rowUi.find(".payee-col");
                     payeeColEl.text("");
 
-                    let anchorEl = $('<a href="#Explorer/Address/' + masternode.payee + '" />');
-                    anchorEl.text(masternode.payee);
-                    payeeColEl.append(anchorEl);
+                    let addressAnchorEl = $('<a href="#Explorer/MasternodeList/' + key + '" />');
+                    //let anchorEl = $('<a href="#Explorer/Address/' + masternode.payee + '" />');
+                    addressAnchorEl.text(masternode.payee);
+                    payeeColEl.append(addressAnchorEl);
 
 
 
