@@ -67,7 +67,39 @@ const BlockCount = Observable.create(function(observer) {
   }
 
 
+  var getTransaction = (txid) =>{
+
+    return Observable.create(function(observer) {
+
+      var _tranaction = null;
+
+      var getBlockHttp = () =>{
+        fetch(apiUrl + "/getTransaction?txid=" + txid + "&extended=true")
+        .then(res => res.json())
+        .then((tranaction) => {
+
+          if (_tranaction == null || _tranaction.confirmations != tranaction.confirmations)
+          {
+            _tranaction = tranaction;
+            observer.next(tranaction);
+          }
+          
+        });
+      };
+
+      var blockCountSubscription = BlockCount.subscribe(blockCount => getBlockHttp());
+
+      return () => {
+        blockCountSubscription.unsubscribe();
+      }
+
+
+    });
+  }
+
+
   export default {
     blockCount: BlockCount,
-    getBlock: getBlock
+    getBlock: getBlock,
+    getTransaction:getTransaction
   }
