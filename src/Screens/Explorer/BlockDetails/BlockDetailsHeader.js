@@ -92,7 +92,7 @@ class BlockDetailsHeader extends React.Component {
                 Timestamp
               </div>
               <div>
-                {block.time}
+                {TimeToString(block.time)}
               </div>
             </Grid>
             
@@ -108,9 +108,20 @@ class BlockDetailsHeader extends React.Component {
   
 }
 
+
+
 BlockDetailsHeader.propTypes = {
   classes: PropTypes.object.isRequired,
   block: PropTypes.object.isRequired,
 };
 
 export default withStyles(styles)(BlockDetailsHeader);
+
+
+
+
+
+var TimeToString = (timestamp) =>{
+  var d = new Date(timestamp * 1000);
+  return d.toLocaleTimeString() + " " + d.toLocaleDateString();
+}
