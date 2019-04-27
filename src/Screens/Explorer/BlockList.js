@@ -94,7 +94,7 @@ class BlockList extends React.Component {
       .then(
         (results) => {
           this.setState({
-            loading: true,
+            loading: false,
             rows: results
           });
         },
