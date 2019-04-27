@@ -9,6 +9,8 @@ import Header from './Components/Header/Header'
 import HomeScreen from './Screens/HomeScreen'
 
 import BlockList from './Screens/Explorer/BlockList'
+import BlockDetails from './Screens/Explorer/BlockDetails/BlockDetails'
+
 
 import ContactMe from './Screens/ContactMe'
 
@@ -34,6 +36,8 @@ const styles = theme => ({
         <Header/>
 
         <Route exact path="/" component={BlockList} />
+        <Route exact path="/Explorer/Block/:blockId" component={BlockDetails} />
+
         <Route exact path="/ContactMe" component={ContactMe} />
       </div>
     </Router>;
