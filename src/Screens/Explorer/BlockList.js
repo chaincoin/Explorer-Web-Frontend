@@ -56,7 +56,6 @@ class BlockList extends React.Component {
   };
 
   handleChangeRowsPerPage = event => {
-    debugger;
     this.setState({ page: 0, rowsPerPage: parseInt(event.target.value) }, this.getBlocks);
   };
 
@@ -86,7 +85,6 @@ class BlockList extends React.Component {
 
 
   getBlocks(){
-debugger;
     var blockPos = this.state.blockCount - (this.state.page * this.state.rowsPerPage);
     var rowsPerPage = blockPos < this.state.rowsPerPage ? blockPos : this.state.rowsPerPage;
 
