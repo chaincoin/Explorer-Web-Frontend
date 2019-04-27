@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
+import Grid from '@material-ui/core/Grid';
 
 
 const styles = {
@@ -32,7 +33,71 @@ class BlockDetailsHeader extends React.Component {
         CHC Block: {block.hash}
         </CardHeader>
         <CardBody>
-          <CardText>Not Implemented</CardText>
+          <Grid container spacing={24}>
+            <Grid item xs={12} sm={4} lg={2}>
+              <div>
+                  Height
+              </div>
+              <div>
+                {block.height}
+              </div>
+            </Grid>
+            <Grid item xs={12} sm={4} lg={2}>
+              <div>
+                Difficulty
+              </div>
+              <div>
+                {block.difficulty}
+              </div>
+            </Grid>
+
+            <Grid item xs={12} sm={4} lg={2}>
+              <div>
+                Confirmations
+              </div>
+              <div>
+                {block.confirmations}
+              </div>
+            </Grid>
+
+            <Grid item xs={12} sm={4} lg={2}>
+              <div>
+                Size (kB)
+              </div>
+              <div>
+                {block.size}
+              </div>
+            </Grid>
+
+            <Grid item xs={12} sm={4} lg={2}>
+              <div>
+                Bits
+              </div>
+              <div>
+                {block.bits}
+              </div>
+            </Grid>
+
+            <Grid item xs={12} sm={4} lg={2}>
+              <div>
+                Nonce
+              </div>
+              <div>
+                {block.nonce}
+              </div>
+            </Grid>
+
+            <Grid item xs={12} sm={4} lg={2}>
+              <div>
+                Timestamp
+              </div>
+              <div>
+                {block.time}
+              </div>
+            </Grid>
+            
+          </Grid>
+
         </CardBody>
       </Card>
     </div>
