@@ -128,12 +128,35 @@ const BlockCount = Observable.create(function(observer) {
     });
   }
 
+  var masternodeCount = Observable.create(function(observer) {
+
+    var _masternodeCount = null;
+
+    var getMasternodeCountHttp = () =>{
+      fetch(apiUrl + "/getMasternodeCount")
+      .then(res => res.json())
+      .then((masternodeCount) => {
+        _masternodeCount = masternodeCount;
+        observer.next(masternodeCount);
+      });
+    };
+
+    var intervalId = setInterval(getMasternodeCountHttp, 30000);
+    getMasternodeCountHttp();
+
+    return () => {
+        clearInterval(intervalId);
+    }
+  
+  }).pipe(shareReplay({
+    bufferSize: 1,
+    refCount: true
+  }));
 
 
+  var masternodeList = Observable.create(function(observer) {
 
-  var getMasternodeList = Observable.create(function(observer) {
-
-    var _masternodeList = 0;
+    var _masternodeList = null;
 
     var getMasternodeListHttp = () =>{
       fetch(apiUrl + "/getMasternodeList")
@@ -162,5 +185,6 @@ const BlockCount = Observable.create(function(observer) {
     getBlock: getBlock,
     getTransaction:getTransaction,
     getAddress: getAddress,
-    getMasternodeList:getMasternodeList
+    masternodeCount: masternodeCount,
+    masternodeList: masternodeList
   }
