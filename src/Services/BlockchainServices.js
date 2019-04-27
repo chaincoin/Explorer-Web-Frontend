@@ -73,7 +73,7 @@ const BlockCount = Observable.create(function(observer) {
 
       var _tranaction = null;
 
-      var getBlockHttp = () =>{
+      var getTransactionHttp = () =>{
         fetch(apiUrl + "/getTransaction?txid=" + txid + "&extended=true")
         .then(res => res.json())
         .then((tranaction) => {
@@ -87,7 +87,38 @@ const BlockCount = Observable.create(function(observer) {
         });
       };
 
-      var blockCountSubscription = BlockCount.subscribe(blockCount => getBlockHttp());
+      var blockCountSubscription = BlockCount.subscribe(blockCount => getTransactionHttp());
+
+      return () => {
+        blockCountSubscription.unsubscribe();
+      }
+
+
+    });
+  }
+
+
+  var getAddress = (addressId) =>{
+
+    return Observable.create(function(observer) {
+
+      var _address = null;
+
+      var getAddressHttp = () =>{
+        fetch(apiUrl + "/getAddress?address=" + addressId)
+        .then(res => res.json())
+        .then((address) => {
+
+          if (_address == null || _address.confirmations != address.confirmations)
+          {
+            _address = address;
+            observer.next(address);
+          }
+          
+        });
+      };
+
+      var blockCountSubscription = BlockCount.subscribe(blockCount => getAddressHttp());
 
       return () => {
         blockCountSubscription.unsubscribe();
@@ -101,5 +132,6 @@ const BlockCount = Observable.create(function(observer) {
   export default {
     blockCount: BlockCount,
     getBlock: getBlock,
-    getTransaction:getTransaction
+    getTransaction:getTransaction,
+    getAddress: getAddress
   }
