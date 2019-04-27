@@ -104,7 +104,7 @@ class MasternodeList extends React.Component {
               <TableBody>
                 {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
                   <TableRow >
-                    <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row[1].payee}>{row[1].payee}</Link></TableCell>
+                    <TableCell component="th" scope="row"><Link to={"/Explorer/MasternodeList/" + row[0]}>{row[1].payee}</Link></TableCell>
                     <TableCell>{row[1].address}</TableCell>
                     <TableCell>{row[1].status}</TableCell>
                     <TableCell>{TimeToString(row[1].lastseen)}</TableCell>
