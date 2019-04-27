@@ -26,7 +26,7 @@ class BlockCount extends React.Component {
 
   componentDidMount() {
 
-    this.blockCountSubscription = BlockchainServices.BlockCount.subscribe((blockCount) =>{
+    this.blockCountSubscription = BlockchainServices.blockCount.subscribe((blockCount) =>{
       this.setState({
         blockCount: blockCount
       });

@@ -36,8 +36,38 @@ const BlockCount = Observable.create(function(observer) {
 
 
 
+  var getBlock = (blockId) =>{
+
+    return Observable.create(function(observer) {
+
+      var _block = null;
+
+      var getBlockHttp = () =>{
+        fetch(apiUrl + "/getBlock?hash=" + blockId + "&extended=true")
+        .then(res => res.json())
+        .then((block) => {
+
+          if (_block == null || _block.confirmations != block.confirmations)
+          {
+            _block = block;
+            observer.next(block);
+          }
+          
+        });
+      };
+
+      var blockCountSubscription = BlockCount.subscribe(blockCount => getBlockHttp());
+
+      return () => {
+        blockCountSubscription.unsubscribe();
+      }
+
+
+    });
+  }
 
 
   export default {
-    BlockCount: BlockCount
+    blockCount: BlockCount,
+    getBlock: getBlock
   }
