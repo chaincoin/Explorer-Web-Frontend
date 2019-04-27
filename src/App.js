@@ -41,6 +41,7 @@ const styles = theme => ({
         <Header/>
 
         <Route exact path="/" component={BlockList} />
+        <Route exact path="/Explorer" component={BlockList} />
         <Route exact path="/Explorer/Block/:blockId" component={BlockDetails} />
         <Route exact path="/Explorer/Transaction/:txid" component={TransactionDetails} />
         <Route exact path="/Explorer/Address/:addressId" component={AddressDetails} />
