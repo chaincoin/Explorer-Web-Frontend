@@ -13,6 +13,8 @@ import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 
 import TablePaginationActions from '../../Components/TablePaginationActions';
 
+import BlockchainServices from '../../Services/BlockchainServices';
+
 
 let counter = 0;
 function createData(name, calories, fat) {
@@ -41,15 +43,21 @@ class BlockList extends React.Component {
     page: 0,
     rowsPerPage: 5,
     loading: true,
-    windowWidth: 0
+    windowWidth: 0,
+
+    blockCount: null
   };
 
+  blockCountSubscription = null;
+
   handleChangePage = (event, page) => {
-    this.setState({ page });
+    this.setState({ page }, this.getBlocks);
+    
   };
 
   handleChangeRowsPerPage = event => {
-    this.setState({ page: 0, rowsPerPage: event.target.value });
+    debugger;
+    this.setState({ page: 0, rowsPerPage: parseInt(event.target.value) }, this.getBlocks);
   };
 
   componentDidMount() {
@@ -57,7 +65,32 @@ class BlockList extends React.Component {
     window.addEventListener("resize", () => this.updateDimensions());
     this.setState({windowWidth: window.innerWidth});
 
-    fetch(`https://api.chaincoinexplorer.co.uk/getBlocks?blockId=1811550&pageSize=${this.state.rowsPerPage}&extended=true`)
+    this.blockCountSubscription = BlockchainServices.BlockCount.subscribe((blockCount) =>{
+
+      this.setState({
+        blockCount: blockCount
+      }, this.state.blockCount == null ? this.getBlocks : null);
+    });
+
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("resize", () => this.updateDimensions()); //TODO: this wont work as expected 
+    this.blockCountSubscription.unsubscribe();
+  }
+
+
+  updateDimensions() {
+    this.setState({windowWidth: window.innerWidth});
+  }
+
+
+  getBlocks(){
+debugger;
+    var blockPos = this.state.blockCount - (this.state.page * this.state.rowsPerPage);
+    var rowsPerPage = blockPos < this.state.rowsPerPage ? blockPos : this.state.rowsPerPage;
+
+    fetch(`https://api.chaincoinexplorer.co.uk/getBlocks?blockId=${blockPos}&pageSize=${rowsPerPage}&extended=true`)
       .then(res => res.json())
       .then(
         (results) => {
@@ -77,20 +110,11 @@ class BlockList extends React.Component {
         }
       )
   }
-
-  componentWillUnmount() {
-    window.removeEventListener("resize", () => this.updateDimensions()); //TODO: this wont work as expected 
-  }
-
-
-  updateDimensions() {
-    this.setState({windowWidth: window.innerWidth});
-  }
  
   render() {
     const { classes } = this.props;
-    const { rows, rowsPerPage, page } = this.state;
-    const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+    const { rows, rowsPerPage, page, blockCount } = this.state;
+    const emptyRows = rowsPerPage - rows.length;
 
     return (
       <Card>
@@ -130,7 +154,7 @@ class BlockList extends React.Component {
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     colSpan={3}
-                    count={rows.length}
+                    count={blockCount}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     SelectProps={{
