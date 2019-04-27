@@ -16,6 +16,8 @@ import AddressDetails from './Screens/Explorer/AddressDetails/AddressDetails'
 import MasternodeList from './Screens/Explorer/MasternodeList'
 import MasternodeDetails from './Screens/Explorer/MasternodeDetails/MasternodeDetails'
 
+import RichList from './Screens/Explorer/RichList'
+
 
 import ContactMe from './Screens/ContactMe'
 
@@ -48,6 +50,7 @@ const styles = theme => ({
         <Route exact path="/Explorer/MasternodeList/" component={MasternodeList} />
         <Route exact path="/Explorer/MasternodeList/:output" component={MasternodeDetails} />
         
+        <Route exact path="/Explorer/RichList" component={RichList} />
         
 
         <Route exact path="/ContactMe" component={ContactMe} />
