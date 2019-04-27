@@ -41,7 +41,7 @@ class BlockList extends React.Component {
      
     ],
     page: 0,
-    rowsPerPage: 5,
+    rowsPerPage: 10,
     loading: true,
     windowWidth: 0,
 
@@ -65,7 +65,7 @@ class BlockList extends React.Component {
     window.addEventListener("resize", () => this.updateDimensions());
     this.setState({windowWidth: window.innerWidth});
 
-    this.blockCountSubscription = BlockchainServices.BlockCount.subscribe((blockCount) =>{
+    this.blockCountSubscription = BlockchainServices.blockCount.subscribe((blockCount) =>{
 
       this.setState({
         blockCount: blockCount
