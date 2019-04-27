@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
 import Header from './BlockDetailsHeader';
+import Transactions from './BlockDetailsTransactions';
 
 import BlockchainServices from '../../../Services/BlockchainServices';
 
@@ -45,7 +46,6 @@ class BlockDetails extends React.Component {
 
 
   render(){
-      debugger;
     const { classes } = this.props;
     const { block } = this.state;
 
@@ -56,6 +56,7 @@ class BlockDetails extends React.Component {
     return (
     <div>
       <Header block={block}/>
+      <Transactions block={block}/>
     </div>
       
     );
