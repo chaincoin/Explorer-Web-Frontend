@@ -14,7 +14,7 @@ import TransactionDetails from './Screens/Explorer/TransactionDetails/Transactio
 import AddressDetails from './Screens/Explorer/AddressDetails/AddressDetails'
 
 import MasternodeList from './Screens/Explorer/MasternodeList'
-
+import MasternodeDetails from './Screens/Explorer/MasternodeDetails/MasternodeDetails'
 
 
 import ContactMe from './Screens/ContactMe'
@@ -45,7 +45,8 @@ const styles = theme => ({
         <Route exact path="/Explorer/Transaction/:txid" component={TransactionDetails} />
         <Route exact path="/Explorer/Address/:addressId" component={AddressDetails} />
         <Route exact path="/Explorer/MasternodeList/" component={MasternodeList} />
-
+        <Route exact path="/Explorer/MasternodeList/:output" component={MasternodeDetails} />
+        
         
 
         <Route exact path="/ContactMe" component={ContactMe} />
