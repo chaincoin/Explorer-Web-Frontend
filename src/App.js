@@ -10,8 +10,8 @@ import HomeScreen from './Screens/HomeScreen'
 
 import BlockList from './Screens/Explorer/BlockList'
 import BlockDetails from './Screens/Explorer/BlockDetails/BlockDetails'
-
 import TransactionDetails from './Screens/Explorer/TransactionDetails/TransactionDetails'
+import AddressDetails from './Screens/Explorer/AddressDetails/AddressDetails'
 
 
 import ContactMe from './Screens/ContactMe'
@@ -40,6 +40,7 @@ const styles = theme => ({
         <Route exact path="/" component={BlockList} />
         <Route exact path="/Explorer/Block/:blockId" component={BlockDetails} />
         <Route exact path="/Explorer/Transaction/:txid" component={TransactionDetails} />
+        <Route exact path="/Explorer/Address/:addressId" component={AddressDetails} />
 
         <Route exact path="/ContactMe" component={ContactMe} />
       </div>
