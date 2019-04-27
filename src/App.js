@@ -13,6 +13,9 @@ import BlockDetails from './Screens/Explorer/BlockDetails/BlockDetails'
 import TransactionDetails from './Screens/Explorer/TransactionDetails/TransactionDetails'
 import AddressDetails from './Screens/Explorer/AddressDetails/AddressDetails'
 
+import MasternodeList from './Screens/Explorer/MasternodeList'
+
+
 
 import ContactMe from './Screens/ContactMe'
 
@@ -41,6 +44,9 @@ const styles = theme => ({
         <Route exact path="/Explorer/Block/:blockId" component={BlockDetails} />
         <Route exact path="/Explorer/Transaction/:txid" component={TransactionDetails} />
         <Route exact path="/Explorer/Address/:addressId" component={AddressDetails} />
+        <Route exact path="/Explorer/MasternodeList/" component={MasternodeList} />
+
+        
 
         <Route exact path="/ContactMe" component={ContactMe} />
       </div>
