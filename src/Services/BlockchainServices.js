@@ -210,6 +210,40 @@ const BlockCount = Observable.create(function(observer) {
   }
 
 
+
+  var txOutSetInfo = Observable.create(function(observer) {
+    var getTxOutSetInfoHttp = () =>{
+      fetch(apiUrl + "/getTxOutSetInfo?")
+      .then(res => res.json())
+      .then((txOutSetInfo) => {
+        observer.next(txOutSetInfo);
+      });
+    };
+
+    var blockCountSubscription = BlockCount.subscribe(blockCount => getTxOutSetInfoHttp());
+
+    return () => {
+      blockCountSubscription.unsubscribe();
+    }
+  });
+
+
+  var networkHashps = Observable.create(function(observer) {
+    var getNetworkHashpsHttp = () =>{
+      fetch(apiUrl + "/getNetworkHashps?")
+      .then(res => res.json())
+      .then((txOutSetInfo) => {
+        observer.next(txOutSetInfo);
+      });
+    };
+
+    var blockCountSubscription = BlockCount.subscribe(blockCount => getNetworkHashpsHttp());
+
+    return () => {
+      blockCountSubscription.unsubscribe();
+    }
+  });
+
   export default {
     blockCount: BlockCount,
     getBlock: getBlock,
@@ -217,5 +251,9 @@ const BlockCount = Observable.create(function(observer) {
     getAddress: getAddress,
     masternodeCount: masternodeCount,
     masternodeList: masternodeList,
-    getMasternode: getMasternode
+    getMasternode: getMasternode,
+
+
+    txOutSetInfo,
+    networkHashps
   }
