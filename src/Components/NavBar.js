@@ -66,9 +66,11 @@ class ChaincoinExplorerNavBar extends React.Component {
                     Block List
                   </DropdownItem>
                 </Link>
-                <DropdownItem>
+                <Link to="/Explorer/MasternodeList">
+                  <DropdownItem>
                   Masternode List
-                </DropdownItem>
+                  </DropdownItem>
+                </Link>
                 <DropdownItem>
                   Masternode Winners List
                 </DropdownItem>
