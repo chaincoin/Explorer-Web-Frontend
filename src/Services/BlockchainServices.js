@@ -109,7 +109,7 @@ const BlockCount = Observable.create(function(observer) {
         .then(res => res.json())
         .then((address) => {
 
-          if (_address == null || _address.confirmations != address.confirmations)
+          if (_address == null || _address.balance != address.balance) //TODO: is this good enough
           {
             _address = address;
             observer.next(address);
