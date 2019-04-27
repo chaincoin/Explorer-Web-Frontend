@@ -153,6 +153,8 @@ const BlockCount = Observable.create(function(observer) {
     refCount: true
   }));
 
+  
+
 
   var masternodeList = Observable.create(function(observer) {
 
@@ -180,11 +182,40 @@ const BlockCount = Observable.create(function(observer) {
   }));
 
 
+  var getMasternode = (output) =>{
+    return Observable.create(function(observer) {
+
+      var _masternode = null;
+  
+      var getMasternodeHttp = () =>{
+        fetch(apiUrl + `/getMasternode?output=${output}&extended=true`)
+        .then(res => res.json())
+        .then((masternode) => {
+          _masternode = masternode;
+          observer.next(masternode);
+        });
+      };
+  
+      var intervalId = setInterval(getMasternodeHttp, 30000);
+      getMasternodeHttp();
+  
+      return () => {
+          clearInterval(intervalId);
+      }
+    
+    }).pipe(shareReplay({
+      bufferSize: 1,
+      refCount: true
+    }));
+  }
+
+
   export default {
     blockCount: BlockCount,
     getBlock: getBlock,
     getTransaction:getTransaction,
     getAddress: getAddress,
     masternodeCount: masternodeCount,
-    masternodeList: masternodeList
+    masternodeList: masternodeList,
+    getMasternode: getMasternode
   }
