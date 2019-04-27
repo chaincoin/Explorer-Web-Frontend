@@ -30,7 +30,11 @@ const styles = theme => ({
   render() {
     return <Router>
       <div>
-        <BlockCount/>
+        <NavBar />
+        <Header/>
+
+        <Route exact path="/" component={BlockList} />
+        <Route exact path="/ContactMe" component={ContactMe} />
       </div>
     </Router>;
   }
