@@ -59,7 +59,7 @@ class MasternodeList extends React.Component {
     window.addEventListener("resize", () => this.updateDimensions());
     this.setState({windowWidth: window.innerWidth});
 
-    this.masternodeListSubscription = BlockchainServices.getMasternodeList.subscribe((masternodeList) =>{
+    this.masternodeListSubscription = BlockchainServices.masternodeList.subscribe((masternodeList) =>{
       this.setState({
         rows: Object.entries(masternodeList)
       });
