@@ -74,9 +74,11 @@ class ChaincoinExplorerNavBar extends React.Component {
                 <DropdownItem>
                   Masternode Winners List
                 </DropdownItem>
-                <DropdownItem>
+                <Link to="/Explorer/RichList">
+                  <DropdownItem>
                   Rich List
-                </DropdownItem>
+                  </DropdownItem>
+                </Link>
                 <DropdownItem>
                   MemPool
                 </DropdownItem>
