@@ -10,6 +10,7 @@ import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
+import { Link } from "react-router-dom";
 
 import TablePaginationActions from '../../Components/TablePaginationActions';
 
@@ -134,8 +135,8 @@ class BlockList extends React.Component {
               <TableBody>
                 {rows.map(row => (
                   <TableRow key={row.id}>
-                    <TableCell component="th" scope="row">{row.height}</TableCell>
-                    <TableCell hidden={this.state.windowWidth < 1110}>{row.hash}</TableCell>
+                    <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.height}>{row.height}</Link></TableCell>
+                    <TableCell hidden={this.state.windowWidth < 1110}><Link to={"/Explorer/Block/" + row.height}>{row.hash}</Link></TableCell>
                     <TableCell hidden={this.state.windowWidth < 660}>{row.tx.map(tx => tx.recipients).reduce(add)}</TableCell>
                     <TableCell hidden={this.state.windowWidth < 560}>{row.tx.map(tx => tx.value).reduce(add)}</TableCell>
                     <TableCell>{TimeToString(row.time)}</TableCell>

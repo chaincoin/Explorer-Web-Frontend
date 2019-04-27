@@ -10,6 +10,7 @@ import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
+import { Link } from "react-router-dom";
 
 import TablePaginationActions from '../../../Components/TablePaginationActions';
 
@@ -66,7 +67,7 @@ class BlockDetailsTransactions extends React.Component {
                 <TableBody>
                   {block.tx.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(tx => (
                     <TableRow key={tx.id}>
-                      <TableCell>{tx.txid}</TableCell>
+                      <TableCell><Link to={"/Explorer/Transaction/" + tx.txid}>{tx.txid}</Link></TableCell>
                       <TableCell>{tx.recipients}</TableCell>
                       <TableCell>{tx.value}</TableCell>
                     </TableRow>
