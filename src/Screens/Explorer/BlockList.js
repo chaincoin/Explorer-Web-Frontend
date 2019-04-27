@@ -153,7 +153,7 @@ debugger;
                 <TableRow>
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
-                    colSpan={3}
+                    colSpan={5}
                     count={blockCount}
                     rowsPerPage={rowsPerPage}
                     page={page}
