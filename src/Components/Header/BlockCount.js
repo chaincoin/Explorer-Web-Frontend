@@ -17,27 +17,26 @@ class BlockCount extends React.Component {
     super(props);
 
     this.blockCountSubscription = null;
+
+    this.state = {
+      blockCount: null
+    };
+
   }
 
   componentDidMount() {
 
     this.blockCountSubscription = BlockchainServices.BlockCount.subscribe((blockCount) =>{
-      console.log(blockCount);
+      this.setState({
+        blockCount: blockCount
+      });
 
     });
-
-    
-
-    BlockchainServices.BlockCount.subscribe((blockCount) =>{
-      console.log(blockCount);
-
-    });
-    
-    this.blockCountSubscription.unsubscribe();
+ 
   }
 
   componentWillUnmount() {
-    
+    this.blockCountSubscription.unsubscribe();
   }
 
 
@@ -47,10 +46,15 @@ class BlockCount extends React.Component {
     <div>
       <Card>
         <CardHeader>
-          Network
+          Block Count
         </CardHeader>
         <CardBody>
-          <CardText>Not Implemented</CardText>
+          <CardText>
+          { this.state.blockCount != null ?
+            this.state.blockCount :
+            "Loading"
+          }
+          </CardText>
         </CardBody>
       </Card>
     </div>
