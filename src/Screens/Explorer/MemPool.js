@@ -9,6 +9,8 @@ import TableFooter from '@material-ui/core/TableFooter';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
+import TextField from '@material-ui/core/TextField';
+
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import { Link } from "react-router-dom";
 
@@ -40,7 +42,9 @@ class MemPoolList extends React.Component {
     rowsPerPage: 10,
     loading: true,
     windowWidth: 0,
-    error: null
+    error: null,
+
+    searchInput:""
   };
 
   rawMemPoolSubscription = null;
@@ -77,13 +81,24 @@ class MemPoolList extends React.Component {
     this.setState({windowWidth: window.innerWidth});
   }
 
-
+  handleSearch = (event) => {
+    this.setState({ searchInput: event.target.value });
+  }
   
  
   render() {
     const { classes } = this.props;
-    const { rows, rowsPerPage, page } = this.state;
+    const { rowsPerPage, page } = this.state;
+    var { rows, searchInput } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+
+    if (searchInput != "")
+    {
+      searchInput = searchInput.toLowerCase();
+      rows = rows.slice(0).filter(row => {
+        return row.txid.indexOf(searchInput) > -1
+      });
+    }
 
     return (
       <Card>
@@ -91,6 +106,15 @@ class MemPoolList extends React.Component {
           Mem Pool
         </CardHeader>
         <CardBody>
+          <TextField
+            id="standard-name"
+            label="Search"
+            className={classes.textField}
+            value={this.state.searchInput}
+            onChange={this.handleSearch}
+            margin="normal"
+            fullWidth
+          />
           <Paper>
             <Table className={classes.table}>
               <TableHead>
