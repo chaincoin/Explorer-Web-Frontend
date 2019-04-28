@@ -100,7 +100,8 @@ class MasternodeList extends React.Component {
       rows = rows.slice(0).filter(row => {
         return row[0].toLowerCase().indexOf(searchInput) > -1 || 
         row[1].payee.toLowerCase().indexOf(searchInput) > -1 ||
-        row[1].address.toLowerCase().indexOf(searchInput) > -1;
+        row[1].address.toLowerCase().indexOf(searchInput) > -1 ||
+        row[1].status.toLowerCase().indexOf(searchInput) > -1;
       });
     }
     

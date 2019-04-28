@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 
 import TablePaginationActions from '../../../Components/TablePaginationActions';
 
+import BlockchainServices from '../../../Services/BlockchainServices';
 
 const styles = theme => ({
   root: {
@@ -55,8 +56,7 @@ class MasternodeDetailsEvents extends React.Component {
     var pos = masternode.eventCount - (this.state.page * this.state.rowsPerPage);
     var rowsPerPage = pos < this.state.rowsPerPage ? pos : this.state.rowsPerPage;
 
-    fetch(`https://api.chaincoinexplorer.co.uk/getMasternodeEvents?output=${output}&pos=${pos}&pageSize=${rowsPerPage}&extended=true`) 
-      .then(res => res.json())
+    BlockchainServices.getMasternodeEvents(output, pos, rowsPerPage)
       .then(
         (results) => {
           this.setState({

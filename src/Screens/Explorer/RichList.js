@@ -90,8 +90,7 @@ class RichList extends React.Component {
     var pos = this.state.page * this.state.rowsPerPage;
     var rowsPerPage = this.state.rowsPerPage;
 
-    fetch(`https://api.chaincoinexplorer.co.uk/getRichList?pos=${pos}&pageSize=${rowsPerPage}&extended=true`)
-      .then(res => res.json())
+    BlockchainServices.getRichList(pos, rowsPerPage)
       .then(
         (results) => {
           this.setState({

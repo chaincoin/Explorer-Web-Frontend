@@ -14,6 +14,8 @@ import { Link } from "react-router-dom";
 
 import TablePaginationActions from '../../../Components/TablePaginationActions';
 
+import BlockchainServices from '../../../Services/BlockchainServices';
+
 
 const styles = theme => ({
   root: {
@@ -54,8 +56,7 @@ class AddressDetailsTransactions extends React.Component {
     var pos = address.txCount - (this.state.page * this.state.rowsPerPage);
     var rowsPerPage = pos < this.state.rowsPerPage ? pos : this.state.rowsPerPage;
 
-    fetch(`https://api.chaincoinexplorer.co.uk/getAddressTxs?address=${address.address}&pos=${pos}&pageSize=${rowsPerPage}&extended=true`)
-      .then(res => res.json())
+    BlockchainServices.getAddressTxs(address.address,pos, rowsPerPage)
       .then(
         (results) => {
           this.setState({

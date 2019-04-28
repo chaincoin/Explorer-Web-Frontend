@@ -1,4 +1,5 @@
 import React from "react";
+import { Helmet } from "react-helmet";
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import { withStyles } from '@material-ui/core/styles';
 
@@ -31,6 +32,36 @@ import News from './Screens/News'
 import Tutorial from './Screens/Tutorials/0.16-MN/Tutorial'
 import ContactMe from './Screens/ContactMe'
 
+import Environment from './Services/Environment';
+
+
+import liveFavicon from './images/icons/favicon-16x16-Live.png';
+import stagingFavicon from './images/icons/favicon-16x16-Staging.png';
+import testFavicon from './images/icons/favicon-16x16-Test.png';
+
+
+import liveAppleTouchIcon60  from './images/icons/apple-icon-60x60-Live.png';
+import stagingAppleTouchIcon60  from './images/icons/apple-icon-60x60-Staging.png';
+import testAppleTouchIcon60  from './images/icons/apple-icon-60x60-Test.png';
+
+
+import liveAppleTouchIcon72  from './images/icons/apple-icon-72x72-Live.png';
+import stagingAppleTouchIcon72  from './images/icons/apple-icon-72x72-Staging.png';
+import testAppleTouchIcon72  from './images/icons/apple-icon-72x72-Test.png';
+
+import liveAppleTouchIcon76  from './images/icons/apple-icon-76x76-Live.png';
+import stagingAppleTouchIcon76  from './images/icons/apple-icon-76x76-Staging.png';
+import testAppleTouchIcon76  from './images/icons/apple-icon-76x76-Test.png';
+
+
+import liveAppleTouchIcon114  from './images/icons/apple-icon-114x114-Live.png';
+import stagingAppleTouchIcon114 from './images/icons/apple-icon-114x114-Staging.png';
+import testAppleTouchIcon114  from './images/icons/apple-icon-114x114-Test.png';
+
+
+import liveAppleTouchIcon120  from './images/icons/apple-icon-120x120-Live.png';
+import stagingAppleTouchIcon120 from './images/icons/apple-icon-120x120-Staging.png';
+import testAppleTouchIcon120 from './images/icons/apple-icon-120x120-Test.png';
 
 
 
@@ -45,11 +76,75 @@ const styles = theme => ({
 
  class App extends React.Component {
 
-  
+  componentDidMount() {
+
+
+
+  }
+
+  componentWillUnmount() {
+    
+  }
+
 
   render() {
     return <Router>
       <div>
+        <Helmet>
+          <title>{
+            Environment.environment == "Live" ? 
+            "Chaincoin Explorer" :
+            "Chaincoin Explorer - " + Environment.environment
+          }</title>
+          
+          {
+            Environment.environment == "Live" ? 
+            "Chaincoin Explorer" :
+            "Chaincoin Explorer - " + Environment.environment
+          }
+          
+          {{
+            Live: <link rel="shortcut icon" href={liveFavicon} />,
+            Staging: <link rel="shortcut icon" href={stagingFavicon} />,
+            Test: <link rel="shortcut icon" href={testFavicon} />,
+          }[Environment.environment]}
+
+
+          
+          {{
+            Live: <link rel="apple-touch-icon" sizes="60x60" href={liveAppleTouchIcon60} />,
+            Staging: <link rel="apple-touch-icon" sizes="60x60" href={stagingAppleTouchIcon60} />,
+            Test: <link rel="apple-touch-icon" sizes="60x60" href={testAppleTouchIcon60} />,
+          }[Environment.environment]}
+
+
+          {{
+            Live: <link rel="apple-touch-icon" sizes="72x72" href={liveAppleTouchIcon72} />,
+            Staging: <link rel="apple-touch-icon" sizes="72x72" href={stagingAppleTouchIcon72} />,
+            Test: <link rel="apple-touch-icon" sizes="72x72" href={testAppleTouchIcon72} />,
+          }[Environment.environment]}
+
+          {{
+            Live: <link rel="apple-touch-icon" sizes="76x76" href={liveAppleTouchIcon76} />,
+            Staging: <link rel="apple-touch-icon" sizes="76x76" href={stagingAppleTouchIcon76} />,
+            Test: <link rel="apple-touch-icon" sizes="76x76" href={testAppleTouchIcon76} />,
+          }[Environment.environment]}
+
+
+          {{
+            Live: <link rel="apple-touch-icon" sizes="114x114" href={liveAppleTouchIcon114} />,
+            Staging: <link rel="apple-touch-icon" sizes="114x114" href={stagingAppleTouchIcon114} />,
+            Test: <link rel="apple-touch-icon" sizes="114x114" href={testAppleTouchIcon114} />,
+          }[Environment.environment]}
+
+
+          {{
+            Live: <link rel="apple-touch-icon" sizes="120x120" href={liveAppleTouchIcon120} />,
+            Staging: <link rel="apple-touch-icon" sizes="120x120" href={stagingAppleTouchIcon120} />,
+            Test: <link rel="apple-touch-icon" sizes="120x120" href={testAppleTouchIcon120} />,
+          }[Environment.environment]}
+                    
+        </Helmet>
         <NavBar />
         <Header/>
 

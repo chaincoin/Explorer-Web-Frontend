@@ -8,7 +8,12 @@ import BlockCount from './BlockCount';
 import Masternodes from './Masternodes';
 import CoinSupply from './CoinSupply';
 
-import logo from '../../images/main-logo.png'
+import liveLogo from '../../images/main-logo-Live.png';
+import stagingLogo from '../../images/main-logo-Staging.png';
+import testLogo from '../../images/main-logo-Test.png';
+
+
+import Environment from '../../Services/Environment';
 
 const styles = {
   root: {
@@ -48,7 +53,7 @@ class ChaincoinExplorerHeader extends React.Component {
         </Grid>
 
         <Grid item xs={12} sm={12} lg={4}>
-          <img className={classes.mainLogo} src={logo} />
+          <img className={classes.mainLogo} src={getLogo()} />
         </Grid>
 
         <Grid item xs={12} sm={6} lg={2}>
@@ -73,3 +78,10 @@ ChaincoinExplorerHeader.propTypes = {
 };
 
 export default withStyles(styles)(ChaincoinExplorerHeader);
+
+
+var getLogo = () =>{
+  if (Environment.environment == "Staging") return stagingLogo;
+  if (Environment.environment == "Test") return testLogo;
+  return liveLogo;
+}

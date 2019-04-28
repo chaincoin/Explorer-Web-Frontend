@@ -89,8 +89,7 @@ class BlockList extends React.Component {
     var blockPos = this.state.blockCount - (this.state.page * this.state.rowsPerPage);
     var rowsPerPage = blockPos < this.state.rowsPerPage ? blockPos : this.state.rowsPerPage;
 
-    fetch(`https://api.chaincoinexplorer.co.uk/getBlocks?blockId=${blockPos}&pageSize=${rowsPerPage}&extended=true`)
-      .then(res => res.json())
+    BlockchainServices.getBlocks(blockPos,rowsPerPage)
       .then(
         (results) => {
           this.setState({

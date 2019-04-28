@@ -1,10 +1,9 @@
 import { Observable } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 
+import Environment from './Environment';
 
 
-
-var apiUrl = "https://api.chaincoinexplorer.co.uk";
 
 
 const BlockCount = Observable.create(function(observer) {
@@ -12,7 +11,7 @@ const BlockCount = Observable.create(function(observer) {
     var _blockCount = 0;
 
     var getBlockCountHttp = () =>{
-      fetch(apiUrl + "/getBlockCount")
+      fetch(Environment.blockchainApiUrl + "/getBlockCount")
       .then(res => res.json())
       .then((blockCount) => {
         if (_blockCount != blockCount) {
@@ -43,7 +42,7 @@ const BlockCount = Observable.create(function(observer) {
       var _block = null;
 
       var getBlockHttp = () =>{
-        fetch(apiUrl + "/getBlock?hash=" + blockId + "&extended=true")
+        fetch(Environment.blockchainApiUrl + "/getBlock?hash=" + blockId + "&extended=true")
         .then(res => res.json())
         .then((block) => {
 
@@ -66,6 +65,11 @@ const BlockCount = Observable.create(function(observer) {
     });
   }
 
+  var getBlocks = (blockPos, rowsPerPage) => {
+    return fetch(`${Environment.blockchainApiUrl}/getBlocks?blockId=${blockPos}&pageSize=${rowsPerPage}&extended=true`)
+    .then(res => res.json());
+  }
+
 
   var getTransaction = (txid) =>{
 
@@ -74,7 +78,7 @@ const BlockCount = Observable.create(function(observer) {
       var _tranaction = null;
 
       var getTransactionHttp = () =>{
-        fetch(apiUrl + "/getTransaction?txid=" + txid + "&extended=true")
+        fetch(Environment.blockchainApiUrl + "/getTransaction?txid=" + txid + "&extended=true")
         .then(res => res.json())
         .then((tranaction) => {
 
@@ -105,7 +109,7 @@ const BlockCount = Observable.create(function(observer) {
       var _address = null;
 
       var getAddressHttp = () =>{
-        fetch(apiUrl + "/getAddress?address=" + addressId)
+        fetch(Environment.blockchainApiUrl + "/getAddress?address=" + addressId)
         .then(res => res.json())
         .then((address) => {
 
@@ -128,12 +132,21 @@ const BlockCount = Observable.create(function(observer) {
     });
   }
 
+  var getAddressTxs = (address, pos, rowsPerPage) => {
+    var address = this.props.address;
+    var pos = address.txCount - (this.state.page * this.state.rowsPerPage);
+    var rowsPerPage = pos < this.state.rowsPerPage ? pos : this.state.rowsPerPage;
+
+    return fetch(`${Environment.blockchainApiUrl}/getAddressTxs?address=${address}&pos=${pos}&pageSize=${rowsPerPage}&extended=true`)
+      .then(res => res.json());
+  }
+
   var masternodeCount = Observable.create(function(observer) {
 
     var _masternodeCount = null;
 
     var getMasternodeCountHttp = () =>{
-      fetch(apiUrl + "/getMasternodeCount")
+      fetch(Environment.blockchainApiUrl + "/getMasternodeCount")
       .then(res => res.json())
       .then((masternodeCount) => {
         _masternodeCount = masternodeCount;
@@ -161,7 +174,7 @@ const BlockCount = Observable.create(function(observer) {
     var _masternodeList = null;
 
     var getMasternodeListHttp = () =>{
-      fetch(apiUrl + "/getMasternodeList")
+      fetch(Environment.blockchainApiUrl + "/getMasternodeList")
       .then(res => res.json())
       .then((masternodeList) => {
         _masternodeList = masternodeList;
@@ -188,7 +201,7 @@ const BlockCount = Observable.create(function(observer) {
       var _masternode = null;
   
       var getMasternodeHttp = () =>{
-        fetch(apiUrl + `/getMasternode?output=${output}&extended=true`)
+        fetch(Environment.blockchainApiUrl + `/getMasternode?output=${output}&extended=true`)
         .then(res => res.json())
         .then((masternode) => {
           _masternode = masternode;
@@ -209,11 +222,15 @@ const BlockCount = Observable.create(function(observer) {
     }));
   }
 
+  var getMasternodeEvents = (output, pos, rowsPerPage) => {
+    return fetch(`${Environment.blockchainApiUrl}/getMasternodeEvents?output=${output}&pos=${pos}&pageSize=${rowsPerPage}&extended=true`)
+      .then(res => res.json());
+  }
   
   var masternodeWinners = Observable.create(function(observer) {
 
     var getMasternodeWinnersHttp = () =>{
-      fetch(apiUrl + "/getMasternodeWinners?")
+      fetch(Environment.blockchainApiUrl + "/getMasternodeWinners?")
       .then(res => res.json())
       .then((masternodeWinners) => {
         observer.next(masternodeWinners);
@@ -232,7 +249,7 @@ const BlockCount = Observable.create(function(observer) {
     var _memPoolInfo = null;
 
     var getMemPoolHttp = () =>{
-      fetch(apiUrl + "/getMemPoolInfo")
+      fetch(Environment.blockchainApiUrl + "/getMemPoolInfo")
       .then(res => res.json())
       .then((memPoolInfo) => {
 
@@ -263,7 +280,7 @@ const BlockCount = Observable.create(function(observer) {
     var _rawMemPool = null;
 
     var getMemPoolHttp = () =>{
-      fetch(apiUrl + "/getRawMemPool?extended=true")
+      fetch(Environment.blockchainApiUrl + "/getRawMemPool?extended=true")
       .then(res => res.json())
       .then((rawMemPool) => {
 
@@ -286,7 +303,7 @@ const BlockCount = Observable.create(function(observer) {
     var _richList = null;
 
     var getAddressHttp = () =>{
-      fetch(apiUrl + "/getRichListCount")
+      fetch(Environment.blockchainApiUrl + "/getRichListCount")
       .then(res => res.json())
       .then((richList) => {
 
@@ -306,12 +323,15 @@ const BlockCount = Observable.create(function(observer) {
     }
   });
 
-
+  var getRichList = (pos, rowsPerPage) => {
+    return fetch(`${Environment.blockchainApiUrl}/getRichList?pos=${pos}&pageSize=${rowsPerPage}&extended=true`)
+      .then(res => res.json());
+  }
 
 
   var txOutSetInfo = Observable.create(function(observer) {
     var getTxOutSetInfoHttp = () =>{
-      fetch(apiUrl + "/getTxOutSetInfo?")
+      fetch(Environment.blockchainApiUrl + "/getTxOutSetInfo?")
       .then(res => res.json())
       .then((txOutSetInfo) => {
         observer.next(txOutSetInfo);
@@ -328,7 +348,7 @@ const BlockCount = Observable.create(function(observer) {
 
   var networkHashps = Observable.create(function(observer) {
     var getNetworkHashpsHttp = () =>{
-      fetch(apiUrl + "/getNetworkHashps?")
+      fetch(Environment.blockchainApiUrl + "/getNetworkHashps?")
       .then(res => res.json())
       .then((txOutSetInfo) => {
         observer.next(txOutSetInfo);
@@ -344,7 +364,7 @@ const BlockCount = Observable.create(function(observer) {
 
 
   var validateAddress = (address) =>{
-    return fetch(apiUrl + "/validateAddress?address="+ address)
+    return fetch(Environment.blockchainApiUrl + "/validateAddress?address="+ address)
     .then(res => res.json());
   };
 
@@ -352,11 +372,14 @@ const BlockCount = Observable.create(function(observer) {
   export default {
     blockCount: BlockCount,
     getBlock: getBlock,
+    getBlocks,
     getTransaction:getTransaction,
     getAddress: getAddress,
+    getAddressTxs,
     masternodeCount: masternodeCount,
     masternodeList: masternodeList,
     getMasternode: getMasternode,
+    getMasternodeEvents,
     masternodeWinners,
 
     memPoolInfo,
@@ -364,6 +387,7 @@ const BlockCount = Observable.create(function(observer) {
     rawMemPool,
 
     richListCount,
+    getRichList,
 
     txOutSetInfo,
     networkHashps,
