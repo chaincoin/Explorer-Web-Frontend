@@ -20,9 +20,12 @@ import MasternodeWinnersList from './Screens/Explorer/MasternodeWinners'
 import MemPool from './Screens/Explorer/MemPool'
 import RichList from './Screens/Explorer/RichList'
 
+
+import News from './Screens/News'
+import Tutorial from './Screens/Tutorials/0.16-MN/Tutorial'
 import ContactMe from './Screens/ContactMe'
 
-import Tutorial from './Screens/Tutorials/0.16-MN/Tutorial'
+
 
 
 
@@ -56,10 +59,10 @@ const styles = theme => ({
         <Route exact path="/Explorer/MemPool" component={MemPool} />
         <Route exact path="/Explorer/RichList" component={RichList} />
 
+        
+        
+        <Route exact path="/News" component={News} />
         <Route exact path="/Tutorials" component={Tutorial} />
-        
-        
-
         <Route exact path="/ContactMe" component={ContactMe} />
       </div>
     </Router>;
