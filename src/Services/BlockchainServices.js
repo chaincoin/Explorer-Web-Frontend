@@ -209,7 +209,76 @@ const BlockCount = Observable.create(function(observer) {
     }));
   }
 
+  
+  var masternodeWinners = Observable.create(function(observer) {
 
+    var getMasternodeWinnersHttp = () =>{
+      fetch(apiUrl + "/getMasternodeWinners?")
+      .then(res => res.json())
+      .then((masternodeWinners) => {
+        observer.next(masternodeWinners);
+      });
+    };
+
+    var blockCountSubscription = BlockCount.subscribe(blockCount => getMasternodeWinnersHttp());
+
+    return () => {
+      blockCountSubscription.unsubscribe();
+    }
+  });
+
+  var memPoolInfo = Observable.create(function(observer) { 
+
+    var _memPoolInfo = null;
+
+    var getMemPoolHttp = () =>{
+      fetch(apiUrl + "/getMemPoolInfo")
+      .then(res => res.json())
+      .then((memPoolInfo) => {
+
+        if (_memPoolInfo == null || _memPoolInfo.size != memPoolInfo.size || _memPoolInfo.bytes != memPoolInfo.bytes)
+        {
+          _memPoolInfo= memPoolInfo;
+          observer.next(memPoolInfo);
+        }
+       
+        
+      });
+    };
+
+    var blockCountSubscription = BlockCount.subscribe(blockCount => getMemPoolHttp());
+
+    var intervalId = setInterval(getMemPoolHttp, 30000);
+    getMemPoolHttp();
+
+    return () => {
+      blockCountSubscription.unsubscribe();
+      clearInterval(intervalId);
+    }
+  });
+
+
+  var rawMemPool = Observable.create(function(observer) { 
+
+    var _rawMemPool = null;
+
+    var getMemPoolHttp = () =>{
+      fetch(apiUrl + "/getRawMemPool?extended=true")
+      .then(res => res.json())
+      .then((rawMemPool) => {
+
+        _rawMemPool= rawMemPool;
+        observer.next(rawMemPool);
+        
+      });
+    };
+
+    var memPoolInfoSubscription = memPoolInfo.subscribe(memPoolInfo => getMemPoolHttp());
+
+    return () => {
+      memPoolInfoSubscription.unsubscribe();
+    }
+  });
 
 
   var richListCount = Observable.create(function(observer) {
@@ -281,7 +350,11 @@ const BlockCount = Observable.create(function(observer) {
     masternodeCount: masternodeCount,
     masternodeList: masternodeList,
     getMasternode: getMasternode,
+    masternodeWinners,
 
+    memPoolInfo,
+  
+    rawMemPool,
 
     richListCount,
 
