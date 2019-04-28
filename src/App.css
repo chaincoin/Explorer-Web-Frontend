@@ -20,14 +20,6 @@
 
 
  /* Tutorial Css*/
- .NewsCard
-{   
-    display: none;
-}
-
-.news-list .NewsCard{
-    display: block;
-}
 
 
 .code{
