@@ -89,6 +89,9 @@ class ChaincoinExplorerNavBar extends React.Component {
               </DropdownMenu>
             </UncontrolledDropdown>
             <NavItem>
+              <NavLink tag={Link} to={'/Api'}>Api</NavLink>
+            </NavItem>
+            <NavItem>
               <NavLink tag={Link} to={'/News'}>News</NavLink>
             </NavItem>
             <NavItem>
