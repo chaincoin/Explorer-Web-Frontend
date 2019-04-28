@@ -1,4 +1,5 @@
 import React from "react";
+import ES6Promise from 'es6-promise'; 
 import { Helmet } from "react-helmet";
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import { withStyles } from '@material-ui/core/styles';
@@ -64,7 +65,7 @@ import stagingAppleTouchIcon120 from './images/icons/apple-icon-120x120-Staging.
 import testAppleTouchIcon120 from './images/icons/apple-icon-120x120-Test.png';
 
 
-
+ES6Promise.polyfill();
 
 const styles = theme => ({
   root: {

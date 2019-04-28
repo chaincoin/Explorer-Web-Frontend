@@ -1,6 +1,7 @@
 import { Observable } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 
+import axios from 'axios'
 import Environment from './Environment';
 
 
@@ -11,8 +12,8 @@ const BlockCount = Observable.create(function(observer) {
     var _blockCount = 0;
 
     var getBlockCountHttp = () =>{
-      fetch(Environment.blockchainApiUrl + "/getBlockCount")
-      .then(res => res.json())
+      axios.get(Environment.blockchainApiUrl + "/getBlockCount")
+      .then(res => res.data)
       .then((blockCount) => {
         if (_blockCount != blockCount) {
           _blockCount = blockCount;
@@ -39,11 +40,13 @@ const BlockCount = Observable.create(function(observer) {
 
     return Observable.create(function(observer) {
 
+      
+
       var _block = null;
 
       var getBlockHttp = () =>{
-        fetch(Environment.blockchainApiUrl + "/getBlock?hash=" + blockId + "&extended=true")
-        .then(res => res.json())
+        axios.get(Environment.blockchainApiUrl + "/getBlock?hash=" + blockId + "&extended=true")
+        .then(res => res.data)
         .then((block) => {
 
           if (_block == null || _block.confirmations != block.confirmations)
@@ -66,8 +69,8 @@ const BlockCount = Observable.create(function(observer) {
   }
 
   var getBlocks = (blockPos, rowsPerPage) => {
-    return fetch(`${Environment.blockchainApiUrl}/getBlocks?blockId=${blockPos}&pageSize=${rowsPerPage}&extended=true`)
-    .then(res => res.json());
+    return axios.get(`${Environment.blockchainApiUrl}/getBlocks?blockId=${blockPos}&pageSize=${rowsPerPage}&extended=true`)
+    .then(res => res.data);
   }
 
 
@@ -78,8 +81,8 @@ const BlockCount = Observable.create(function(observer) {
       var _tranaction = null;
 
       var getTransactionHttp = () =>{
-        fetch(Environment.blockchainApiUrl + "/getTransaction?txid=" + txid + "&extended=true")
-        .then(res => res.json())
+        axios.get(Environment.blockchainApiUrl + "/getTransaction?txid=" + txid + "&extended=true")
+        .then(res => res.data)
         .then((tranaction) => {
 
           if (_tranaction == null || _tranaction.confirmations != tranaction.confirmations)
@@ -109,8 +112,8 @@ const BlockCount = Observable.create(function(observer) {
       var _address = null;
 
       var getAddressHttp = () =>{
-        fetch(Environment.blockchainApiUrl + "/getAddress?address=" + addressId)
-        .then(res => res.json())
+        axios.get(Environment.blockchainApiUrl + "/getAddress?address=" + addressId)
+        .then(res => res.data)
         .then((address) => {
 
           if (_address == null || _address.balance != address.balance) //TODO: is this good enough
@@ -133,12 +136,8 @@ const BlockCount = Observable.create(function(observer) {
   }
 
   var getAddressTxs = (address, pos, rowsPerPage) => {
-    var address = this.props.address;
-    var pos = address.txCount - (this.state.page * this.state.rowsPerPage);
-    var rowsPerPage = pos < this.state.rowsPerPage ? pos : this.state.rowsPerPage;
-
-    return fetch(`${Environment.blockchainApiUrl}/getAddressTxs?address=${address}&pos=${pos}&pageSize=${rowsPerPage}&extended=true`)
-      .then(res => res.json());
+    return axios.get(`${Environment.blockchainApiUrl}/getAddressTxs?address=${address}&pos=${pos}&pageSize=${rowsPerPage}&extended=true`)
+      .then(res => res.data);
   }
 
   var masternodeCount = Observable.create(function(observer) {
@@ -146,8 +145,8 @@ const BlockCount = Observable.create(function(observer) {
     var _masternodeCount = null;
 
     var getMasternodeCountHttp = () =>{
-      fetch(Environment.blockchainApiUrl + "/getMasternodeCount")
-      .then(res => res.json())
+      axios.get(Environment.blockchainApiUrl + "/getMasternodeCount")
+      .then(res => res.data)
       .then((masternodeCount) => {
         _masternodeCount = masternodeCount;
         observer.next(masternodeCount);
@@ -174,8 +173,8 @@ const BlockCount = Observable.create(function(observer) {
     var _masternodeList = null;
 
     var getMasternodeListHttp = () =>{
-      fetch(Environment.blockchainApiUrl + "/getMasternodeList")
-      .then(res => res.json())
+      axios.get(Environment.blockchainApiUrl + "/getMasternodeList")
+      .then(res => res.data)
       .then((masternodeList) => {
         _masternodeList = masternodeList;
         observer.next(masternodeList);
@@ -201,8 +200,8 @@ const BlockCount = Observable.create(function(observer) {
       var _masternode = null;
   
       var getMasternodeHttp = () =>{
-        fetch(Environment.blockchainApiUrl + `/getMasternode?output=${output}&extended=true`)
-        .then(res => res.json())
+        axios.get(Environment.blockchainApiUrl + `/getMasternode?output=${output}&extended=true`)
+        .then(res => res.data)
         .then((masternode) => {
           _masternode = masternode;
           observer.next(masternode);
@@ -223,15 +222,15 @@ const BlockCount = Observable.create(function(observer) {
   }
 
   var getMasternodeEvents = (output, pos, rowsPerPage) => {
-    return fetch(`${Environment.blockchainApiUrl}/getMasternodeEvents?output=${output}&pos=${pos}&pageSize=${rowsPerPage}&extended=true`)
-      .then(res => res.json());
+    return axios.get(`${Environment.blockchainApiUrl}/getMasternodeEvents?output=${output}&pos=${pos}&pageSize=${rowsPerPage}&extended=true`)
+      .then(res => res.data);
   }
   
   var masternodeWinners = Observable.create(function(observer) {
 
     var getMasternodeWinnersHttp = () =>{
-      fetch(Environment.blockchainApiUrl + "/getMasternodeWinners?")
-      .then(res => res.json())
+      axios.get(Environment.blockchainApiUrl + "/getMasternodeWinners?")
+      .then(res => res.data)
       .then((masternodeWinners) => {
         observer.next(masternodeWinners);
       });
@@ -249,8 +248,8 @@ const BlockCount = Observable.create(function(observer) {
     var _memPoolInfo = null;
 
     var getMemPoolHttp = () =>{
-      fetch(Environment.blockchainApiUrl + "/getMemPoolInfo")
-      .then(res => res.json())
+      axios.get(Environment.blockchainApiUrl + "/getMemPoolInfo")
+      .then(res => res.data)
       .then((memPoolInfo) => {
 
         if (_memPoolInfo == null || _memPoolInfo.size != memPoolInfo.size || _memPoolInfo.bytes != memPoolInfo.bytes)
@@ -280,8 +279,8 @@ const BlockCount = Observable.create(function(observer) {
     var _rawMemPool = null;
 
     var getMemPoolHttp = () =>{
-      fetch(Environment.blockchainApiUrl + "/getRawMemPool?extended=true")
-      .then(res => res.json())
+      axios.get(Environment.blockchainApiUrl + "/getRawMemPool?extended=true")
+      .then(res => res.data)
       .then((rawMemPool) => {
 
         _rawMemPool= rawMemPool;
@@ -303,8 +302,8 @@ const BlockCount = Observable.create(function(observer) {
     var _richList = null;
 
     var getAddressHttp = () =>{
-      fetch(Environment.blockchainApiUrl + "/getRichListCount")
-      .then(res => res.json())
+      axios.get(Environment.blockchainApiUrl + "/getRichListCount")
+      .then(res => res.data)
       .then((richList) => {
 
         if (_richList == null || _richList != richList) 
@@ -324,15 +323,15 @@ const BlockCount = Observable.create(function(observer) {
   });
 
   var getRichList = (pos, rowsPerPage) => {
-    return fetch(`${Environment.blockchainApiUrl}/getRichList?pos=${pos}&pageSize=${rowsPerPage}&extended=true`)
-      .then(res => res.json());
+    return axios.get(`${Environment.blockchainApiUrl}/getRichList?pos=${pos}&pageSize=${rowsPerPage}&extended=true`)
+      .then(res => res.data);
   }
 
 
   var txOutSetInfo = Observable.create(function(observer) {
     var getTxOutSetInfoHttp = () =>{
-      fetch(Environment.blockchainApiUrl + "/getTxOutSetInfo?")
-      .then(res => res.json())
+      axios.get(Environment.blockchainApiUrl + "/getTxOutSetInfo?")
+      .then(res => res.data)
       .then((txOutSetInfo) => {
         observer.next(txOutSetInfo);
       });
@@ -348,8 +347,8 @@ const BlockCount = Observable.create(function(observer) {
 
   var networkHashps = Observable.create(function(observer) {
     var getNetworkHashpsHttp = () =>{
-      fetch(Environment.blockchainApiUrl + "/getNetworkHashps?")
-      .then(res => res.json())
+      axios.get(Environment.blockchainApiUrl + "/getNetworkHashps?")
+      .then(res => res.data)
       .then((txOutSetInfo) => {
         observer.next(txOutSetInfo);
       });
@@ -364,8 +363,8 @@ const BlockCount = Observable.create(function(observer) {
 
 
   var validateAddress = (address) =>{
-    return fetch(Environment.blockchainApiUrl + "/validateAddress?address="+ address)
-    .then(res => res.json());
+    return axios.get(Environment.blockchainApiUrl + "/validateAddress?address="+ address)
+    .then(res => res.data);
   };
 
 

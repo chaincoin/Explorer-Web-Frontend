@@ -5,7 +5,9 @@
   "dependencies": {
     "@material-ui/core": "latest",
     "@material-ui/icons": "^3.0.2",
+    "axios": "^0.18.0",
     "bootstrap": "^4.3.1",
+    "es6-promise": "^4.2.6",
     "react": "^16.8.6",
     "react-addons-update": "^15.6.2",
     "react-dom": "^16.8.6",

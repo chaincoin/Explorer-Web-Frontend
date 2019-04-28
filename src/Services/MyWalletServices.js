@@ -4,9 +4,12 @@ import walletWorker from '../Scripts/walletWorker.js'
 
 
 
+
+var _walletWorker = null
+
 const walletWorkerCode = walletWorker.toString();
 const walletWorkerCodeBlob = new Blob(['('+walletWorkerCode+')()']);
-var _walletWorker = new Worker(URL.createObjectURL(walletWorkerCodeBlob));
+_walletWorker = new Worker(URL.createObjectURL(walletWorkerCodeBlob));
 
 
 var myMasternodeAdded = new Subject();
@@ -18,22 +21,26 @@ var myAddressDeleted = new Subject();
 var walletWorkerRequestId = 0;
 var pendingWalletWorkerRequests = {}
 
-_walletWorker.onmessage = function(e) {
-    var message = e.data;
-    var pendingWalletWorkerRequest = pendingWalletWorkerRequests["r" + message.id];
-    if (pendingWalletWorkerRequest != null)
-    {
-        if (message.success)pendingWalletWorkerRequest.resolve(message);
-        else pendingWalletWorkerRequest.reject(message);
-        clearTimeout(pendingWalletWorkerRequest.timer);
-        eval("delete pendingWalletWorkerRequests.r" + message.id);
+if (_walletWorker != null)
+{
+    _walletWorker.onmessage = function(e) {
+        var message = e.data;
+        var pendingWalletWorkerRequest = pendingWalletWorkerRequests["r" + message.id];
+        if (pendingWalletWorkerRequest != null)
+        {
+            if (message.success)pendingWalletWorkerRequest.resolve(message);
+            else pendingWalletWorkerRequest.reject(message);
+            clearTimeout(pendingWalletWorkerRequest.timer);
+            eval("delete pendingWalletWorkerRequests.r" + message.id);
+        }
+    
+        if (message.event == "addedMasternode") myMasternodeAdded.next(message.data);
+        else if (message.event == "deletedMasternode") myMasternodeDeleted.next(message.data);
+        else if (message.event == "addedAddress") myAddressAdded.next(message.data);
+        else if (message.event == "deletedAddress") myAddressDeleted.next(message.data);
     }
-
-    if (message.event == "addedMasternode") myMasternodeAdded.next(message.data);
-    else if (message.event == "deletedMasternode") myMasternodeDeleted.next(message.data);
-    else if (message.event == "addedAddress") myAddressAdded.next(message.data);
-    else if (message.event == "deletedAddress") myAddressDeleted.next(message.data);
 }
+
 
 
 
