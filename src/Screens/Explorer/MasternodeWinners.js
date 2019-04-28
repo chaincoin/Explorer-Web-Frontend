@@ -84,8 +84,8 @@ class MasternodeWinners extends React.Component {
     const { classes } = this.props;
     const { rows, rowsPerPage, page } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
-
-    return (
+//TODO: Work out if the block has been mined and create link if it has been
+    return ( 
       <Card>
         <CardHeader>
           Masternode Winners
@@ -102,7 +102,7 @@ class MasternodeWinners extends React.Component {
               <TableBody>
                 {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
                   <TableRow >
-                    <TableCell component="th" scope="row"><Link to={"/Explorer/Address/" + row[0]}>{row[0]}</Link></TableCell>
+                    <TableCell component="th" scope="row">{row[0]}</TableCell>
                     <TableCell>{row[1]}</TableCell>
                   </TableRow>
                 ))}
