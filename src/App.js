@@ -16,6 +16,10 @@ import AddressDetails from './Screens/Explorer/AddressDetails/AddressDetails'
 import MasternodeList from './Screens/Explorer/MasternodeList'
 import MasternodeDetails from './Screens/Explorer/MasternodeDetails/MasternodeDetails'
 
+import MasternodeWinnersList from './Screens/Explorer/MasternodeWinners'
+
+import MemPool from './Screens/Explorer/MemPool'
+
 import RichList from './Screens/Explorer/RichList'
 
 
@@ -49,7 +53,9 @@ const styles = theme => ({
         <Route exact path="/Explorer/Address/:addressId" component={AddressDetails} />
         <Route exact path="/Explorer/MasternodeList/" component={MasternodeList} />
         <Route exact path="/Explorer/MasternodeList/:output" component={MasternodeDetails} />
+        <Route exact path="/Explorer/MasternodeWinnersList" component={MasternodeWinnersList} />
         
+        <Route exact path="/Explorer/MemPool" component={MemPool} />
         <Route exact path="/Explorer/RichList" component={RichList} />
         
 
