@@ -49,7 +49,7 @@ class TransactionDetailsVin extends React.Component {
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, transaction.vin.length - page * rowsPerPage);
 
     
-//TODO: vin not working with unconfirmed transactions
+//TODO: vin not working with unconfirmed transactions / Extended = false
     return (
       <Card>
         <CardHeader>
@@ -66,12 +66,21 @@ class TransactionDetailsVin extends React.Component {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {transaction.vin.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(vin => (
-                    <TableRow>
-                      <TableCell><Link to={"/Explorer/Address/" + vin.address}>{vin.address}</Link></TableCell>
-                      <TableCell>{vin.value}</TableCell>
-                    </TableRow>
-                  ))}
+                  {transaction.vin.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(vin =>
+                    vin.coinbase == null ?
+                    (
+                      <TableRow>
+                        <TableCell><Link to={"/Explorer/Address/" + vin.address}>{vin.address}</Link></TableCell>
+                        <TableCell>{vin.value}</TableCell>
+                      </TableRow>
+                    ) :
+                    (
+                      <TableRow>
+                        <TableCell>New Coins</TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+                    )
+                  )}
                   {emptyRows > 0 && (
                     <TableRow style={{ height: 48 * emptyRows }}>
                       <TableCell colSpan={2} />
