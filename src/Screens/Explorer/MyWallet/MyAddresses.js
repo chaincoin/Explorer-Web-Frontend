@@ -119,6 +119,18 @@ class MyAddresses extends React.Component {
     MyWalletServices.addMyAddress(name, address, WIF); //TODO: handle error
   }
 
+  handleImportAddress(){
+    var WIF = prompt("Please enter WIF");
+    if (WIF == null || WIF == "") return;
+
+    var name = prompt("Please enter a name for the address");
+    if (name == null) return;
+
+    var keyPair = bitcoin.ECPair.fromWIF(WIF, Chaincoin);
+    var address = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: Chaincoin }).address;
+
+    MyWalletServices.addMyAddress(name,address, WIF);
+  }
 
   handleWatchAddress(){
     var name = prompt("Please enter a name for the address");
@@ -168,6 +180,10 @@ class MyAddresses extends React.Component {
 
         <Button variant="contained" color="primary" className={classes.button} onClick={this.handleWatchAddress}>
           Watch Address
+        </Button>
+
+        <Button variant="contained" color="primary" className={classes.button} onClick={this.handleImportAddress}>
+          Import Address
         </Button>
         
           <Paper>
