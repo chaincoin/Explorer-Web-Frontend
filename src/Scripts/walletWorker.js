@@ -147,6 +147,7 @@ export default () => {
 					
 					dbRequest.onsuccess = function(event) {
 						resolve();
+						sendEvent("addedAddress");
 					};
 					dbRequest.onerror = function(event) {
 						reject();
@@ -187,6 +188,7 @@ export default () => {
 					
 					dbRequest.onsuccess = function(event) {
 						resolve();
+						sendEvent("deletedAddress");
 					};
 					dbRequest.onerror = function(event) {
 						reject();

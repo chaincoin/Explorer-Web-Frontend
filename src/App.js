@@ -20,6 +20,7 @@ import MasternodeWinnersList from './Screens/Explorer/MasternodeWinners'
 import MemPool from './Screens/Explorer/MemPool'
 import RichList from './Screens/Explorer/RichList'
 
+import MyAddresses from './Screens/Explorer/MyWallet/MyAddresses'
 import MyMasternodes from './Screens/Explorer/MyWallet/MyMasternodes'
 
 
@@ -64,6 +65,8 @@ const styles = theme => ({
         <Route exact path="/Explorer/MemPool" component={MemPool} />
         <Route exact path="/Explorer/RichList" component={RichList} />
 
+        
+        <Route exact path="/Explorer/MyWallet/MyAddresses" component={MyAddresses} />
         <Route exact path="/Explorer/MyWallet/MyMasternodes" component={MyMasternodes} />
         
 

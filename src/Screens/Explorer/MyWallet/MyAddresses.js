@@ -1,5 +1,5 @@
 import React from 'react';
-import { combineLatest } from 'rxjs';
+import update from 'react-addons-update'; // ES6
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
@@ -21,6 +21,7 @@ import BlockchainServices from '../../../Services/BlockchainServices';
 import MyWalletServices from '../../../Services/MyWalletServices';
 
 
+
 const styles = theme => ({
   root: {
     width: '100%',
@@ -37,7 +38,9 @@ const styles = theme => ({
   },
 });
 
-class MyMasternodes extends React.Component {
+class MyAddresses extends React.Component {
+  
+
   state = {
     rows: [
      
@@ -51,7 +54,8 @@ class MyMasternodes extends React.Component {
   };
 
 
-  subscription = null;
+  myAddressesSubscription = null;
+  addressSubscriptions = [];
 
   handleChangePage = (event, page) => {
     this.setState({ page });
@@ -68,23 +72,31 @@ class MyMasternodes extends React.Component {
     this.setState({windowWidth: window.innerWidth});
 
 
-    this.subscription = combineLatest(BlockchainServices.masternodeList, MyWalletServices.myMasternodes).subscribe(
-      ([masternodeList, myMasternodes]) =>{
+    this.myAddressesSubscription = MyWalletServices.myAddresses.subscribe(myAddresses =>{ //TODO: this could be done better
 
-        myMasternodes.data.forEach(myMn =>{
-          myMn.mn = masternodeList[myMn.output];
-        });
-
+        this.addressSubscriptions.forEach(v => v.unsubscribe());
         this.setState({
-          rows: myMasternodes.data
+          rows: myAddresses.data
+        }, () =>{
+
+          myAddresses.data.map((address, index) => {
+            BlockchainServices.getAddress(address.address).subscribe(address =>{
+              this.setState({
+                rows: update(this.state.rows, {[index]: {data: {$set: address}}})
+              })
+  
+            });
+          });
+
         });
       });
-
   }
 
   componentWillUnmount() {
     window.removeEventListener("resize", () => this.updateDimensions()); //TODO: this wont work as expected 
-    this.subscription.unsubscribe();
+    this.myAddressesSubscription.unsubscribe();
+    this.addressSubscriptions.forEach(v => v.unsubscribe());
+
   }
 
 
@@ -94,28 +106,43 @@ class MyMasternodes extends React.Component {
 
   
 
-  handleAddMasternode(){
-    var name = prompt("Please enter a name for the masternode");
+  handleCreateAddress(){
+    var name = prompt("Please enter a name for the address");
     if (name == null) return;
 
-    var output = prompt("Please enter the masternode output");
-    if (output == null) return;
+    var keyPair = bitcoin.ECPair.makeRandom({ network: Chaincoin }); // eslint-disable-line no-undef
+    var WIF = keyPair.toWIF();
+    //var address = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: Chaincoin }).address;
+                
+    var address = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: Chaincoin }).address; // eslint-disable-line no-undef
 
-
-    if (/^[a-fA-F0-9]{64}-[0-9]{1,8}$/.test(output) == false){
-        alert("invalid masternode output");
-        return;
-    }
-
-
-    MyWalletServices.addMyMasternode(name, output); //TODO: handle error
+    MyWalletServices.addMyAddress(name, address, WIF); //TODO: handle error
   }
 
-  handleDeleteMasternode(output, MyWalletServices)
+
+  handleWatchAddress(){
+    var name = prompt("Please enter a name for the address");
+    if (name == null) return;
+
+    var address = prompt("Please enter the address");
+    if (address == null) return;
+
+    BlockchainServices.validateAddress(address).then(function(response){
+      if (response.isvalid){
+          MyWalletServices.addMyAddress(name,address);
+      }
+      else{
+          alert("invalid address");
+      }
+        
+    });
+  }
+
+  handleDeleteMasternode(address)
   {
-    return ()=>{
-      if (window.confirm("Are you sure?") == false) return;
-      MyWalletServices.deleteMyMasternode(output); //TODO: handle error
+    return function(){
+      if (window.confirm("Are you sure? the address cant be recovered") == false) return;
+      MyWalletServices.deleteMyAddress(address); //TODO: handle error
     }
   }
 
@@ -131,12 +158,16 @@ class MyMasternodes extends React.Component {
     return (
       <Card>
         <CardHeader>
-          My Masternodes
+          My Addresses
         </CardHeader>
         <CardBody>
 
-        <Button variant="contained" color="primary" className={classes.button} onClick={this.handleAddMasternode}>
-          Add Masternode
+        <Button variant="contained" color="primary" className={classes.button} onClick={this.handleCreateAddress}>
+          Create Address
+        </Button>
+
+        <Button variant="contained" color="primary" className={classes.button} onClick={this.handleWatchAddress}>
+          Watch Address
         </Button>
         
           <Paper>
@@ -144,39 +175,27 @@ class MyMasternodes extends React.Component {
               <TableHead>
                 <TableRow>
                   <TableCell>Name</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Last Seen</TableCell>
-                  <TableCell>Last Paid</TableCell>
+                  <TableCell>Address</TableCell>
+                  <TableCell>Balance (CHC)</TableCell>
                   <TableCell></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
                   <TableRow >
-                    <TableCell component="th" scope="row"><Link to={"/Explorer/MasternodeList/" + row.output}>{row.name}</Link></TableCell>
+                    <TableCell>
+                      {row.name}
+                    </TableCell>
+                    <TableCell component="th" scope="row"><Link to={"/Explorer/Address/" + row.address}>{row.address}</Link></TableCell>
                     <TableCell>
                       {
-                        row.mn != null ? 
-                        row.mn.status :
-                        "Not Found"
+                        row.data != null ? 
+                        row.data.balance :
+                        "0"
                       }
                     </TableCell>
                     <TableCell>
-                      {
-                        row.mn != null ? 
-                        TimeToString(row.mn.lastseen) :
-                        "Not Found"
-                      }
-                    </TableCell>
-                    <TableCell>
-                      {
-                        row.mn != null ? 
-                        TimeToString(row.mn.lastpaidtime) :
-                        "Not Found"
-                      }
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="contained" color="secondary" className={classes.button} onClick={this.handleDeleteMasternode(row.output,MyWalletServices)}>
+                      <Button variant="contained" color="secondary" className={classes.button} onClick={this.handleDeleteMasternode(row.address)}>
                         Remove
                       </Button>
                     </TableCell>
@@ -215,10 +234,10 @@ class MyMasternodes extends React.Component {
 }
 
 
-MyMasternodes.propTypes = {
+MyAddresses.propTypes = {
   classes: PropTypes.object.isRequired,
 };
-export default withStyles(styles)(MyMasternodes);
+export default withStyles(styles)(MyAddresses);
 
 
 
@@ -229,3 +248,14 @@ var TimeToString = (timestamp) =>{
   return d.toLocaleTimeString() + " " + d.toLocaleDateString();
 }
 
+var Chaincoin = {
+  messagePrefix: 'DarkCoin Signed Message:\n',
+  bip32: {
+  public: 0x02FE52F8,
+  private: 0x02FE52CC
+  },
+  bech32: "chc",
+  pubKeyHash: 0x1C,
+  scriptHash: 0x04,
+  wif: 0x9C
+};

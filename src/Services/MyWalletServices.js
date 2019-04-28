@@ -12,6 +12,9 @@ var _walletWorker = new Worker(URL.createObjectURL(walletWorkerCodeBlob));
 var myMasternodeAdded = new Subject();
 var myMasternodeDeleted = new Subject();
 
+var myAddressAdded = new Subject();
+var myAddressDeleted = new Subject();
+
 var walletWorkerRequestId = 0;
 var pendingWalletWorkerRequests = {}
 
@@ -28,6 +31,8 @@ _walletWorker.onmessage = function(e) {
 
     if (message.event == "addedMasternode") myMasternodeAdded.next(message.data);
     else if (message.event == "deletedMasternode") myMasternodeDeleted.next(message.data);
+    else if (message.event == "addedAddress") myAddressAdded.next(message.data);
+    else if (message.event == "deletedAddress") myAddressDeleted.next(message.data);
 }
 
 
@@ -57,6 +62,54 @@ function sendWalletWorkerRequest(request)
 }
 
 
+const myAddresses = Observable.create(function(observer) {
+
+    var _addresses = null;
+
+    var listAddresses = () =>{
+        sendWalletWorkerRequest({
+            op:"listAddresses"
+        })
+        .then(addresses =>{
+            _addresses = addresses;
+            observer.next(addresses);
+        })
+        .catch(err => observer.error(err));
+    };
+
+    var myAddressAddedSubscription = myAddressAdded.subscribe(listAddresses);
+    var myAddressDeletedSubscription = myAddressDeleted.subscribe(listAddresses);
+
+    var intervalId = setInterval(listAddresses, 30000);
+    listAddresses();
+
+    return () => {
+        clearInterval(intervalId);
+        myAddressAddedSubscription.unsubscribe();
+        myAddressDeletedSubscription.unsubscribe();
+    }
+  
+  }).pipe(shareReplay({
+    bufferSize: 1,
+    refCount: true
+  }));
+
+
+  var addMyAddress = (name, address, WIF) =>{ 
+    return sendWalletWorkerRequest({
+        op:"createAddress",
+        name:name,
+        address: address,
+        WIF:WIF
+    });
+  }
+
+  var deleteMyAddress = (address) =>{ 
+    return sendWalletWorkerRequest({
+        op:"deleteAddress",
+        address: address
+    });
+  }
 
 
   
@@ -77,12 +130,8 @@ const myMasternodes = Observable.create(function(observer) {
         .catch(err => observer.error(err));
     };
 
-    var myMasternodeAddedSubscription = myMasternodeAdded.subscribe(()=>{
-        listMasternodes();
-    });
-    var myMasternodeDeletedSubscription = myMasternodeDeleted.subscribe(()=>{
-        listMasternodes();
-    });
+    var myMasternodeAddedSubscription = myMasternodeAdded.subscribe(listMasternodes);
+    var myMasternodeDeletedSubscription = myMasternodeDeleted.subscribe(listMasternodes);
 
     var intervalId = setInterval(listMasternodes, 30000);
     listMasternodes();
@@ -99,7 +148,7 @@ const myMasternodes = Observable.create(function(observer) {
   }));
 
 
-  var addMyMasternode = (name, output) =>{ //TODO: get this fuction to trigger an update to myMasternodes Observable
+  var addMyMasternode = (name, output) =>{ 
     return sendWalletWorkerRequest({
         op:"createMasternode",
         name:name,
@@ -107,7 +156,7 @@ const myMasternodes = Observable.create(function(observer) {
     });
   }
 
-  var deleteMyMasternode = (output) =>{ //TODO: get this fuction to trigger an update to myMasternodes Observable
+  var deleteMyMasternode = (output) =>{ 
     return sendWalletWorkerRequest({
         op:"deleteMasternode",
         output: output
@@ -116,6 +165,10 @@ const myMasternodes = Observable.create(function(observer) {
 
 
 export default {
+    myAddresses,
+    addMyAddress,
+    deleteMyAddress,
+
     myMasternodes,
     addMyMasternode,
     deleteMyMasternode

@@ -98,7 +98,7 @@ const BlockCount = Observable.create(function(observer) {
   }
 
 
-  var getAddress = (addressId) =>{
+  var getAddress = (addressId) =>{ //TODO: Cache the Observable so it can be shared
 
     return Observable.create(function(observer) {
 
@@ -182,7 +182,7 @@ const BlockCount = Observable.create(function(observer) {
   }));
 
 
-  var getMasternode = (output) =>{
+  var getMasternode = (output) =>{ //TODO: Cache the Observable so it can be shared
     return Observable.create(function(observer) {
 
       var _masternode = null;
@@ -342,6 +342,13 @@ const BlockCount = Observable.create(function(observer) {
     }
   });
 
+
+  var validateAddress = (address) =>{
+    return fetch(apiUrl + "/validateAddress?address="+ address)
+    .then(res => res.json());
+  };
+
+
   export default {
     blockCount: BlockCount,
     getBlock: getBlock,
@@ -359,5 +366,7 @@ const BlockCount = Observable.create(function(observer) {
     richListCount,
 
     txOutSetInfo,
-    networkHashps
+    networkHashps,
+
+    validateAddress
   }
