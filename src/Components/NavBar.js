@@ -88,6 +88,26 @@ class ChaincoinExplorerNavBar extends React.Component {
                 </Link>
               </DropdownMenu>
             </UncontrolledDropdown>
+            <UncontrolledDropdown nav inNavbar>
+              <DropdownToggle nav caret>
+                My Wallet
+              </DropdownToggle>
+              <DropdownMenu>
+                <Link to="/Explorer/MyWallet/MyAddresses">
+                  <DropdownItem>
+                    My Addresses
+                  </DropdownItem>
+                </Link>
+                <Link to="/Explorer/MyWallet/MyMasternodes">
+                  <DropdownItem>
+                    My Masternodes
+                  </DropdownItem>
+                </Link>
+              </DropdownMenu>
+            </UncontrolledDropdown>
+            <NavItem>
+              <NavLink tag={Link} to={'/BountyList'}>Bounty List</NavLink>
+            </NavItem>
             <NavItem>
               <NavLink tag={Link} to={'/Api'}>Api</NavLink>
             </NavItem>
