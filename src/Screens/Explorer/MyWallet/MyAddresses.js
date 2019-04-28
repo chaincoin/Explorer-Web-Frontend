@@ -126,8 +126,8 @@ class MyAddresses extends React.Component {
     var name = prompt("Please enter a name for the address");
     if (name == null) return;
 
-    var keyPair = bitcoin.ECPair.fromWIF(WIF, Chaincoin);
-    var address = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: Chaincoin }).address;
+    var keyPair = bitcoin.ECPair.fromWIF(WIF, Chaincoin); // eslint-disable-line no-undef
+    var address = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: Chaincoin }).address; // eslint-disable-line no-undef
 
     MyWalletServices.addMyAddress(name,address, WIF);
   }
@@ -150,7 +150,7 @@ class MyAddresses extends React.Component {
     });
   }
 
-  handleDeleteMasternode(address)
+  handleDeleteAddress(address)
   {
     return function(){
       if (window.confirm("Are you sure? the address cant be recovered") == false) return;
@@ -158,6 +158,13 @@ class MyAddresses extends React.Component {
     }
   }
 
+
+  handleExportWif(WIF)
+  {
+    return function(){
+      alert(WIF);
+    }
+  }
  
   render() {
     const { classes } = this.props;
@@ -211,8 +218,11 @@ class MyAddresses extends React.Component {
                       }
                     </TableCell>
                     <TableCell>
-                      <Button variant="contained" color="secondary" className={classes.button} onClick={this.handleDeleteMasternode(row.address)}>
+                      <Button variant="contained" color="secondary" className={classes.button} onClick={this.handleDeleteAddress(row.address)}>
                         Remove
+                      </Button>
+                      <Button variant="contained" color="primary" className={classes.button} onClick={this.handleExportWif(row.WIF)} disabled={row.WIF == null}>
+                        WIF
                       </Button>
                     </TableCell>
                   </TableRow>
