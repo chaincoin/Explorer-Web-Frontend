@@ -144,7 +144,7 @@ class BlockList extends React.Component {
                 ))}
                 {emptyRows > 0 && (
                   <TableRow style={{ height: 48 * emptyRows }}>
-                    <TableCell colSpan={6} />
+                    <TableCell colSpan={5} />
                   </TableRow>
                 )}
               </TableBody>
