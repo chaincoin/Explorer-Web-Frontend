@@ -17,15 +17,13 @@ import MasternodeList from './Screens/Explorer/MasternodeList'
 import MasternodeDetails from './Screens/Explorer/MasternodeDetails/MasternodeDetails'
 
 import MasternodeWinnersList from './Screens/Explorer/MasternodeWinners'
-
 import MemPool from './Screens/Explorer/MemPool'
-
 import RichList from './Screens/Explorer/RichList'
-
 
 import ContactMe from './Screens/ContactMe'
 
-import BlockCount from './Components/Header/BlockCount'
+import Tutorial from './Screens/Tutorials/0.16-MN/Tutorial'
+
 
 
 const styles = theme => ({
@@ -57,6 +55,9 @@ const styles = theme => ({
         
         <Route exact path="/Explorer/MemPool" component={MemPool} />
         <Route exact path="/Explorer/RichList" component={RichList} />
+
+        <Route exact path="/Tutorials" component={Tutorial} />
+        
         
 
         <Route exact path="/ContactMe" component={ContactMe} />
