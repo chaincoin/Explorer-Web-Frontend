@@ -62,7 +62,7 @@ class BountyList extends React.Component {
 
   componentDidMount() {
 
-    window.addEventListener("resize", () => this.updateDimensions());
+    window.addEventListener("resize", this.updateDimensions);
     this.setState({windowWidth: window.innerWidth});
 
     this.addressSubscriptions = this.state.rows.map((row, index) => BlockchainServices.getAddress(row.address).subscribe(address =>{
@@ -77,7 +77,7 @@ class BountyList extends React.Component {
   }
 
   componentWillUnmount() {
-    window.removeEventListener("resize", () => this.updateDimensions()); //TODO: this wont work as expected 
+    window.removeEventListener("resize", this.updateDimensions); //TODO: this wont work as expected 
 
     this.addressSubscriptions.forEach(addressSubscription => {
       addressSubscription.unsubscribe();
@@ -85,7 +85,7 @@ class BountyList extends React.Component {
   }
 
 
-  updateDimensions() {
+  updateDimensions = () => {
     this.setState({windowWidth: window.innerWidth});
   }
 

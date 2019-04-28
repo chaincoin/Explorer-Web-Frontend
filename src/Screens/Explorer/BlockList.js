@@ -62,7 +62,7 @@ class BlockList extends React.Component {
 
   componentDidMount() {
 
-    window.addEventListener("resize", () => this.updateDimensions());
+    window.addEventListener("resize",  this.updateDimensions);
     this.setState({windowWidth: window.innerWidth});
 
     this.blockCountSubscription = BlockchainServices.blockCount.subscribe((blockCount) =>{
@@ -75,12 +75,12 @@ class BlockList extends React.Component {
   }
 
   componentWillUnmount() {
-    window.removeEventListener("resize", () => this.updateDimensions()); //TODO: this wont work as expected 
+    window.removeEventListener("resize",this.updateDimensions); //TODO: this wont work as expected 
     this.blockCountSubscription.unsubscribe();
   }
 
 
-  updateDimensions() {
+  updateDimensions = () => {
     this.setState({windowWidth: window.innerWidth});
   }
 

@@ -60,7 +60,7 @@ class MasternodeList extends React.Component {
 
   componentDidMount() {
 
-    window.addEventListener("resize", () => this.updateDimensions());
+    window.addEventListener("resize", this.updateDimensions);
     this.setState({windowWidth: window.innerWidth});
 
     this.masternodeListSubscription = BlockchainServices.masternodeList.subscribe((masternodeList) =>{
@@ -71,8 +71,8 @@ class MasternodeList extends React.Component {
 
   }
 
-  componentWillUnmount() {
-    window.removeEventListener("resize", () => this.updateDimensions()); //TODO: this wont work as expected 
+  componentWillUnmount = () => {
+    window.removeEventListener("resize", this.updateDimensions); //TODO: this wont work as expected 
     this.masternodeListSubscription.unsubscribe();
   }
 
