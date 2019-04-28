@@ -49,7 +49,7 @@ class TransactionDetailsVin extends React.Component {
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, transaction.vin.length - page * rowsPerPage);
 
     
-
+//TODO: vin not working with unconfirmed transactions
     return (
       <Card>
         <CardHeader>
