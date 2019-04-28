@@ -30,7 +30,7 @@ class BlockDetailsHeader extends React.Component {
     <div>
       <Card>
         <CardHeader>
-        CHC Transaction: {transaction.blockhash}
+        CHC Transaction: {transaction.txid}
         </CardHeader>
         <CardBody>
           <Grid container spacing={24}>
@@ -39,7 +39,11 @@ class BlockDetailsHeader extends React.Component {
                 Confirmations
               </div>
               <div>
-                {transaction.confirmations}
+                {
+                  transaction.confirmations != null ? 
+                  transaction.confirmations:
+                  "Unconfirmed"
+                }
               </div>
             </Grid>
             <Grid item lg={7}>
@@ -47,7 +51,14 @@ class BlockDetailsHeader extends React.Component {
                 Block Hash
               </div>
               <div>
-              <Link to={"/Explorer/Block/" + transaction.height}>{transaction.blockhash}</Link>
+                {
+                  transaction.blockhash != null ? 
+                  (
+                    <Link to={"/Explorer/Block/" + transaction.height}>{transaction.blockhash}</Link>
+                  ) :
+                  "Unconfirmed"
+                }
+              
               </div>
             </Grid>
 
@@ -56,7 +67,11 @@ class BlockDetailsHeader extends React.Component {
                 Timestamp
               </div>
               <div>
-                {TimeToString(transaction.time)}
+                {
+                  transaction.time != null ? 
+                  TimeToString(transaction.time) :
+                  "Unconfirmed"
+                }
               </div>
             </Grid>
 
