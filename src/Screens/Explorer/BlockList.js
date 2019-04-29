@@ -66,9 +66,17 @@ class BlockList extends React.Component {
     this.setState({windowWidth: window.innerWidth});
 
     this.blockCountSubscription = BlockchainServices.blockCount.subscribe((blockCount) =>{
+      //TODO: this works to make the Pagination controls correct but its not great and the Displayed Item numbers is wrong 
+      var page = this.state.page;
+      if (this.state.rows[0] != null && this.state.blockCount != blockCount)
+      {
+        var height = this.state.rows[0].height;
+        page = Math.ceil((blockCount - height) / this.state.rowsPerPage);
+      }
 
       this.setState({
-        blockCount: blockCount
+        blockCount,
+        page
       }, this.state.blockCount == null ? this.getBlocks : null);
     });
 
