@@ -247,9 +247,10 @@ const BlockCount = Observable.create(function(observer) {
 
     if (transactionObservable == null)
     {
-      transactionObservable = Observable.create(function(observer) {
+      var _tranaction = null;
+      var _blockCount = null;
 
-        var _tranaction = null;
+      transactionObservable = Observable.create(function(observer) {
   
         var getTransactionHttp = () =>{
           sendRequest({
@@ -266,7 +267,14 @@ const BlockCount = Observable.create(function(observer) {
           });
         };
         
-        var blockCountSubscription = BlockCount.subscribe(blockCount => getTransactionHttp());
+        var blockCountSubscription = BlockCount.subscribe(blockCount =>{
+          if (_blockCount == null || _tranaction == null || _blockCount != blockCount) {
+            getTransactionHttp();
+            _blockCount = blockCount;
+          }else{
+            observer.next(_tranaction);
+          }
+        });
   
         return () => {
           blockCountSubscription.unsubscribe();
