@@ -141,7 +141,7 @@ const BlockCount = Observable.create(function(observer) {
 
     
 
-    webSocket.subscribe(enabled =>{
+    var webSocketSubscription = webSocket.subscribe(enabled =>{
 
       if (enabled == true)
       {
@@ -161,7 +161,7 @@ const BlockCount = Observable.create(function(observer) {
     });
 
     
-    websocketMessage.subscribe(message =>{
+    var websocketMessageSubscription = websocketMessage.subscribe(message =>{
       if (message.op == "newBlock") processBlockCount(message.data.height);
     });
      
@@ -169,6 +169,8 @@ const BlockCount = Observable.create(function(observer) {
 
     return () => {
         clearInterval(intervalId);
+        webSocketSubscription.unsubscribe();
+        websocketMessageSubscription.unsubscribe();
     }
   
   }).pipe(shareReplay({
@@ -181,8 +183,6 @@ const BlockCount = Observable.create(function(observer) {
   var getBlock = (blockId) =>{
 
     return Observable.create(function(observer) {
-
-      
 
       var _block = null;
 
@@ -205,8 +205,6 @@ const BlockCount = Observable.create(function(observer) {
       return () => {
         blockCountSubscription.unsubscribe();
       }
-
-
     });
   }
 
