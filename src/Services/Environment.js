@@ -7,9 +7,9 @@ var environment = "Live";
 
 if (window.location.host == "staging.chaincoinexplorer.co.uk")
 {
-    blockchainApiUrl = "https://staging-blockchain.chaincoinexplorer.co.uk";
-    webServicesApiUrl = "wss://staging-websocket.chaincoinexplorer.co.uk";
-    notificationsApiUrl = "https://staging-notifications.chaincoinexplorer.co.uk";
+    blockchainApiUrl = "https://blockchain-staging.chaincoinexplorer.co.uk";
+    webServicesApiUrl = "wss://websocket-staging.chaincoinexplorer.co.uk";
+    notificationsApiUrl = "https://notifications-staging.chaincoinexplorer.co.uk";
     environment = "Staging";
 }
 
@@ -17,9 +17,9 @@ if (window.location.host == "staging.chaincoinexplorer.co.uk")
 
 if (window.location.host == "test.chaincoinexplorer.co.uk")
 {
-    blockchainApiUrl = "https://test-blockchain.chaincoinexplorer.co.uk";
-    webServicesApiUrl = "wss://test-websocket.chaincoinexplorer.co.uk";
-    notificationsApiUrl = "https://test-notifications.chaincoinexplorer.co.uk";
+    blockchainApiUrl = "https://blockchain-test.chaincoinexplorer.co.uk";
+    webServicesApiUrl = "wss://websocket-test.chaincoinexplorer.co.uk";
+    notificationsApiUrl = "https://notifications-test.chaincoinexplorer.co.uk";
     environment = "Test";
 }
 
@@ -35,9 +35,9 @@ if (window.location.host == "explorer.chaincoin.org")
 
 if (window.location.host == "test.chaincoin.org")
 {
-    blockchainApiUrl = "https://test-api.chaincoin.org";
-    webServicesApiUrl = "wss://test-websocket.chaincoin.org";
-    notificationsApiUrl = "https://test-notifications.chaincoin.org";
+    blockchainApiUrl = "https://api-test.chaincoin.org";
+    webServicesApiUrl = "wss://websocket-test.chaincoin.org";
+    notificationsApiUrl = "https://notifications-test.chaincoin.org";
     environment = "Test";
 }
 
