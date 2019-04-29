@@ -76,11 +76,11 @@ class MyAddresses extends React.Component {
 
         this.addressSubscriptions.forEach(v => v.unsubscribe());
         this.setState({
-          rows: myAddresses.data
+          rows: myAddresses 
         }, () =>{
 
-          myAddresses.data.map((address, index) => {
-            BlockchainServices.getAddress(address.address).subscribe(address =>{
+          this.addressSubscriptions = myAddresses.map((address, index) => {
+            return BlockchainServices.getAddress(address.address).subscribe(address =>{
               this.setState({
                 rows: update(this.state.rows, {[index]: {data: {$set: address}}})
               })
