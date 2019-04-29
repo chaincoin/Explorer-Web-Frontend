@@ -71,15 +71,22 @@ function sendWalletWorkerRequest(request)
 
 const myAddresses = Observable.create(function(observer) {
 
-    var _addresses = null;
+    var _response = null;
 
     var listAddresses = () =>{
         sendWalletWorkerRequest({
             op:"listAddresses"
         })
-        .then(addresses =>{
-            _addresses = addresses;
-            observer.next(addresses);
+        .then(response =>{
+            debugger;
+            if (response.success)
+            {
+                if (_response == null || _response.data.length != response.data.length)
+                {
+                    _response = response;
+                    observer.next(response.data)
+                }
+            }
         })
         .catch(err => observer.error(err));
     };
