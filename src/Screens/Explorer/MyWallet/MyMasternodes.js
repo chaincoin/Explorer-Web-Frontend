@@ -71,12 +71,12 @@ class MyMasternodes extends React.Component {
     this.subscription = combineLatest(BlockchainServices.masternodeList, MyWalletServices.myMasternodes).subscribe(
       ([masternodeList, myMasternodes]) =>{
 
-        myMasternodes.data.forEach(myMn =>{
+        myMasternodes.forEach(myMn =>{
           myMn.mn = masternodeList[myMn.output];
         });
 
         this.setState({
-          rows: myMasternodes.data
+          rows: myMasternodes
         });
       });
 
