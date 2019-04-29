@@ -72,7 +72,7 @@ class MasternodeList extends React.Component {
   }
 
   componentWillUnmount = () => {
-    window.removeEventListener("resize", this.updateDimensions); //TODO: this wont work as expected 
+    window.removeEventListener("resize", this.updateDimensions); 
     this.masternodeListSubscription.unsubscribe();
   }
 
