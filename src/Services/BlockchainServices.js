@@ -132,7 +132,7 @@ const BlockCount = Observable.create(function(observer) {
       }
     };
 
-    var getBlockCountHttp = () =>{
+    var getBlockCount = () =>{
       sendRequest({
         op: "getBlockCount"
       }).then(processBlockCount);
@@ -147,14 +147,14 @@ const BlockCount = Observable.create(function(observer) {
       {
         if (intervalId != null) clearInterval(intervalId);
         intervalId = null;
-        sendRequest({op: "getBlockCount"}).then(processBlockCount)
         _websocket.send(JSON.stringify({op: "newBlockSubscribe"}));//subscribe to event //TODO: should i really be using the web socket directly, if i use send request it throws an error as subcriptions are responded to
+        getBlockCount();
       }
       else
       {
         if (intervalId == null) {
-          intervalId = setInterval(getBlockCountHttp, 30000);
-          getBlockCountHttp();
+          intervalId = setInterval(getBlockCount, 30000);
+          getBlockCount();
         }
       }
 
@@ -245,34 +245,73 @@ const BlockCount = Observable.create(function(observer) {
   }
 
 
-  var getAddress = (addressId) =>{ //TODO: Cache the Observable so it can be shared
+  var addressObservables = {}
 
-    return Observable.create(function(observer) {
+  var getAddress = (addressId) =>{ //TODO: This is a memory leak
 
-      var _address = null;
+    var addressObservable = addressObservables[addressId];
 
-      var getAddressHttp = () =>{
-        axios.get(Environment.blockchainApiUrl + "/getAddress?address=" + addressId)
-        .then(res => res.data)
-        .then((address) => {
+    if (addressObservable == null)
+    {
+      addressObservable = Observable.create(function(observer) {
 
+  
+        var _address = null;
+        var blockCountSubscription = null;
+  
+        var processAddress = (address) => {
           if (_address == null || _address.balance != address.balance) //TODO: is this good enough
           {
             _address = address;
             observer.next(address);
           }
-          
+        };
+  
+        var _getAddress = () =>{
+          sendRequest({
+            op: "getAddress",
+            address:addressId
+          }).then(processAddress);
+        };
+        
+  
+        
+  
+        var webSocketSubscription = webSocket.subscribe(enabled =>{
+  
+          if (enabled == true)
+          {
+            if (blockCountSubscription != null) blockCountSubscription.unsubscribe();
+            blockCountSubscription = null;
+            _getAddress();
+            _websocket.send(JSON.stringify({op: "newAddressTransactionSubscribe", address:addressId}));//subscribe to event //TODO: should i really be using the web socket directly, if i use send request it throws an error as subcriptions are responded to
+          }
+          else
+          {
+            blockCountSubscription = BlockCount.subscribe(blockCount => _getAddress()); //TODO: this will trigger a getAddress straight away, even if block count hasnt changed
+          }
+  
         });
-      };
+  
+        
+        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+          if (message.op == "newAddressTransaction" && message.data.address==addressId) processAddress(message.data);
+        });
+        
+        
+  
+        return () => {
+            if (_websocket != null)_websocket.send(JSON.stringify({op: "newAddressTransactionUnsubscribe", address:addressId})); //TODO: this feels wrong
+            if(blockCountSubscription != null) blockCountSubscription.unsubscribe();
+            webSocketSubscription.unsubscribe();
+            websocketMessageSubscription.unsubscribe();
+        }
+      });
 
-      var blockCountSubscription = BlockCount.subscribe(blockCount => getAddressHttp());
-
-      return () => {
-        blockCountSubscription.unsubscribe();
-      }
-
-
-    });
+      addressObservables[addressId] = addressObservable;
+    }
+      
+     return addressObservable;
   }
 
   var getAddressTxs = (address, pos, rowsPerPage) => {
