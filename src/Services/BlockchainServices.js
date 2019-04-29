@@ -179,36 +179,46 @@ const BlockCount = Observable.create(function(observer) {
   }));
 
 
+  var blockObservables = {}
 
-  var getBlock = (blockId) =>{ //TODO: Cache the Observable so it can be shared
+  var getBlock = (blockId) =>{ 
 
-    return Observable.create(function(observer) {
+    var blockObservable = blockObservables[blockId];
 
-      var _block = null;
+    if (blockObservable == null){
+      blockObservable = Observable.create(function(observer) {
 
-      var getBlockHttp = () =>{
-        sendRequest({
-          op: "getBlock",
-          hash: blockId,
-          extended:true
-        })
-        .then((block) => {
+        var _block = null;
+  
+        var getBlockHttp = () =>{
+          sendRequest({
+            op: "getBlock",
+            hash: blockId,
+            extended:true
+          })
+          .then((block) => {
+            if (_block == null || _block.confirmations != block.confirmations)
+            {
+              _block = block;
+              observer.next(block);
+            }
+          });
+        };
+  
+        var blockCountSubscription = BlockCount.subscribe(blockCount => getBlockHttp());
+  
+        return () => {
+          blockCountSubscription.unsubscribe();
+        }
+      }).pipe(shareReplay({
+        bufferSize: 1,
+        refCount: true
+      }));
 
-          if (_block == null || _block.confirmations != block.confirmations)
-          {
-            _block = block;
-            observer.next(block);
-          }
-          
-        });
-      };
+      blockObservables[blockId] = blockObservable;
+    } 
 
-      var blockCountSubscription = BlockCount.subscribe(blockCount => getBlockHttp());
-
-      return () => {
-        blockCountSubscription.unsubscribe();
-      }
-    });
+    return blockObservable;
   }
 
   var getBlocks = (blockPos, rowsPerPage) => { //TODO: should this be an Observable, can the data change over time?
@@ -220,36 +230,43 @@ const BlockCount = Observable.create(function(observer) {
     })
   }
 
+  var transactionObservables = {}
 
-  var getTransaction = (txid) =>{ //TODO: Cache the Observable so it can be shared
+  var getTransaction = (txid) =>{
 
-    return Observable.create(function(observer) {
+    var transactionObservable = transactionObservables[txid];
 
-      var _tranaction = null;
+    if (transactionObservable == null)
+    {
+      transactionObservable = Observable.create(function(observer) {
 
-      var getTransactionHttp = () =>{
-        sendRequest({
-          op: "getTransaction",
-          txid: txid,
-          extended:true
-        })
-        .then((tranaction) => {
+        var _tranaction = null;
+  
+        var getTransactionHttp = () =>{
+          sendRequest({
+            op: "getTransaction",
+            txid: txid,
+            extended:true
+          })
+          .then((tranaction) => {
+            if (_tranaction == null || _tranaction.confirmations != tranaction.confirmations)
+            {
+              _tranaction = tranaction;
+              observer.next(tranaction);
+            }
+          });
+        };
+        
+        var blockCountSubscription = BlockCount.subscribe(blockCount => getTransactionHttp());
+  
+        return () => {
+          blockCountSubscription.unsubscribe();
+        }
+      });
+      transactionObservables[txid] = transactionObservable;
+    }
 
-          if (_tranaction == null || _tranaction.confirmations != tranaction.confirmations)
-          {
-            _tranaction = tranaction;
-            observer.next(tranaction);
-          }
-          
-        });
-      };
-
-      var blockCountSubscription = BlockCount.subscribe(blockCount => getTransactionHttp());
-
-      return () => {
-        blockCountSubscription.unsubscribe();
-      }
-    });
+     return transactionObservable;
   }
 
 
