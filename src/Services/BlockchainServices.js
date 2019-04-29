@@ -181,15 +181,17 @@ const BlockCount = Observable.create(function(observer) {
 
   var blockObservables = {}
 
-  var getBlock = (blockId) =>{ 
+  var getBlock = (blockId) =>{ //TODO: This is a memory leak
 
     var blockObservable = blockObservables[blockId];
+    
 
     if (blockObservable == null){
+
+      var _block = null;
+      var _blockCount = null;
       blockObservable = Observable.create(function(observer) {
 
-        var _block = null;
-  
         var getBlockHttp = () =>{
           sendRequest({
             op: "getBlock",
@@ -205,7 +207,14 @@ const BlockCount = Observable.create(function(observer) {
           });
         };
   
-        var blockCountSubscription = BlockCount.subscribe(blockCount => getBlockHttp());
+        var blockCountSubscription = BlockCount.subscribe(blockCount => {
+          if (_blockCount == null || _block == null || _blockCount != blockCount) {
+            getBlockHttp();
+            _blockCount = blockCount;
+          }else{
+            observer.next(_block);
+          }
+        });
   
         return () => {
           blockCountSubscription.unsubscribe();
@@ -232,7 +241,7 @@ const BlockCount = Observable.create(function(observer) {
 
   var transactionObservables = {}
 
-  var getTransaction = (txid) =>{
+  var getTransaction = (txid) =>{ //TODO: This is a memory leak
 
     var transactionObservable = transactionObservables[txid];
 
@@ -409,34 +418,43 @@ const BlockCount = Observable.create(function(observer) {
   }));
 
 
-  var getMasternode = (output) =>{ //TODO: Cache the Observable so it can be shared
-    return Observable.create(function(observer) {
+  var masternodeObservables = {}
+  var getMasternode = (output) =>{  //TODO: This is a memory leak
 
-      var _masternode = null;
-  
-      var getMasternodeHttp = () =>{
-        sendRequest({
-          op: "getMasternode",
-          output: output,
-          extended: true
-        })
-        .then((masternode) => {
-          _masternode = masternode;
-          observer.next(masternode);
-        });
-      };
-  
-      var intervalId = setInterval(getMasternodeHttp, 30000);
-      getMasternodeHttp();
-  
-      return () => {
-          clearInterval(intervalId);
-      }
+    var masternodeObservable = masternodeObservables[output]
+
+    if (masternodeObservable == null)
+    {
+      masternodeObservable = Observable.create(function(observer) {
+
+        var _masternode = null;
     
-    }).pipe(shareReplay({
-      bufferSize: 1,
-      refCount: true
-    }));
+        var getMasternodeHttp = () =>{
+          sendRequest({
+            op: "getMasternode",
+            output: output,
+            extended: true
+          })
+          .then((masternode) => {
+            _masternode = masternode;
+            observer.next(masternode);
+          });
+        };
+    
+        var intervalId = setInterval(getMasternodeHttp, 30000);
+        getMasternodeHttp();
+    
+        return () => {
+            clearInterval(intervalId);
+        }
+      
+      }).pipe(shareReplay({
+        bufferSize: 1,
+        refCount: true
+      }));
+    } 
+
+    return masternodeObservable;
   }
 
   var getMasternodeEvents = (output, pos, rowsPerPage) => { //TODO: should this be an Observable, can the data change over time?
