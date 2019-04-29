@@ -306,7 +306,10 @@ const BlockCount = Observable.create(function(observer) {
             webSocketSubscription.unsubscribe();
             websocketMessageSubscription.unsubscribe();
         }
-      });
+      }).pipe(shareReplay({
+        bufferSize: 1,
+        refCount: true
+      }));
 
       addressObservables[addressId] = addressObservable;
     }
