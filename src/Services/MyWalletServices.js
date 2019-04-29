@@ -131,15 +131,22 @@ const myAddresses = Observable.create(function(observer) {
 
 const myMasternodes = Observable.create(function(observer) {
 
-    var _masternodes = null;
+    var _response = null;
 
     var listMasternodes = () =>{
         sendWalletWorkerRequest({
             op:"listMasternodes"
         })
-        .then(masternodes =>{
-            _masternodes = masternodes;
-            observer.next(masternodes);
+        .then(response =>{
+            debugger;
+            if (response.success)
+            {
+                if (_response == null || _response.data.length != response.data.length)
+                {
+                    _response = response;
+                    observer.next(response.data)
+                }
+            }
         })
         .catch(err => observer.error(err));
     };
