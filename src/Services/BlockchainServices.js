@@ -180,15 +180,18 @@ const BlockCount = Observable.create(function(observer) {
 
 
 
-  var getBlock = (blockId) =>{
+  var getBlock = (blockId) =>{ //TODO: Cache the Observable so it can be shared
 
     return Observable.create(function(observer) {
 
       var _block = null;
 
       var getBlockHttp = () =>{
-        axios.get(Environment.blockchainApiUrl + "/getBlock?hash=" + blockId + "&extended=true")
-        .then(res => res.data)
+        sendRequest({
+          op: "getBlock",
+          hash: blockId,
+          extended:true
+        })
         .then((block) => {
 
           if (_block == null || _block.confirmations != block.confirmations)
@@ -208,21 +211,28 @@ const BlockCount = Observable.create(function(observer) {
     });
   }
 
-  var getBlocks = (blockPos, rowsPerPage) => {
-    return axios.get(`${Environment.blockchainApiUrl}/getBlocks?blockId=${blockPos}&pageSize=${rowsPerPage}&extended=true`)
-    .then(res => res.data);
+  var getBlocks = (blockPos, rowsPerPage) => { //TODO: should this be an Observable, can the data change over time?
+    return sendRequest({
+      op: "getBlocks",
+      blockId: blockPos,
+      pageSize: rowsPerPage,
+      extended:true
+    })
   }
 
 
-  var getTransaction = (txid) =>{
+  var getTransaction = (txid) =>{ //TODO: Cache the Observable so it can be shared
 
     return Observable.create(function(observer) {
 
       var _tranaction = null;
 
       var getTransactionHttp = () =>{
-        axios.get(Environment.blockchainApiUrl + "/getTransaction?txid=" + txid + "&extended=true")
-        .then(res => res.data)
+        sendRequest({
+          op: "getTransaction",
+          txid: txid,
+          extended:true
+        })
         .then((tranaction) => {
 
           if (_tranaction == null || _tranaction.confirmations != tranaction.confirmations)
@@ -239,8 +249,6 @@ const BlockCount = Observable.create(function(observer) {
       return () => {
         blockCountSubscription.unsubscribe();
       }
-
-
     });
   }
 
@@ -317,9 +325,14 @@ const BlockCount = Observable.create(function(observer) {
      return addressObservable;
   }
 
-  var getAddressTxs = (address, pos, rowsPerPage) => {
-    return axios.get(`${Environment.blockchainApiUrl}/getAddressTxs?address=${address}&pos=${pos}&pageSize=${rowsPerPage}&extended=true`)
-      .then(res => res.data);
+  var getAddressTxs = (address, pos, rowsPerPage) => { //TODO: should this be an Observable, can the data change over time?
+    return sendRequest({
+      op: "getAddressTxs",
+      address:address,
+      pos:pos,
+      pageSize: rowsPerPage,
+      extended:true
+    });
   }
 
   var masternodeCount = Observable.create(function(observer) {
@@ -327,8 +340,10 @@ const BlockCount = Observable.create(function(observer) {
     var _masternodeCount = null;
 
     var getMasternodeCountHttp = () =>{
-      axios.get(Environment.blockchainApiUrl + "/getMasternodeCount")
-      .then(res => res.data)
+
+      sendRequest({
+        op: "getMasternodeCount",
+      })
       .then((masternodeCount) => {
         _masternodeCount = masternodeCount;
         observer.next(masternodeCount);
@@ -355,8 +370,9 @@ const BlockCount = Observable.create(function(observer) {
     var _masternodeList = null;
 
     var getMasternodeListHttp = () =>{
-      axios.get(Environment.blockchainApiUrl + "/getMasternodeList")
-      .then(res => res.data)
+      sendRequest({
+        op: "getMasternodeList",
+      })
       .then((masternodeList) => {
         _masternodeList = masternodeList;
         observer.next(masternodeList);
@@ -382,8 +398,11 @@ const BlockCount = Observable.create(function(observer) {
       var _masternode = null;
   
       var getMasternodeHttp = () =>{
-        axios.get(Environment.blockchainApiUrl + `/getMasternode?output=${output}&extended=true`)
-        .then(res => res.data)
+        sendRequest({
+          op: "getMasternode",
+          output: output,
+          extended: true
+        })
         .then((masternode) => {
           _masternode = masternode;
           observer.next(masternode);
@@ -403,16 +422,21 @@ const BlockCount = Observable.create(function(observer) {
     }));
   }
 
-  var getMasternodeEvents = (output, pos, rowsPerPage) => {
-    return axios.get(`${Environment.blockchainApiUrl}/getMasternodeEvents?output=${output}&pos=${pos}&pageSize=${rowsPerPage}&extended=true`)
-      .then(res => res.data);
+  var getMasternodeEvents = (output, pos, rowsPerPage) => { //TODO: should this be an Observable, can the data change over time?
+    return sendRequest({
+      op: "getMasternodeEvents",
+      output: output,
+      pos: pos,
+      pageSize: rowsPerPage
+    })
   }
   
   var masternodeWinners = Observable.create(function(observer) {
 
     var getMasternodeWinnersHttp = () =>{
-      axios.get(Environment.blockchainApiUrl + "/getMasternodeWinners?")
-      .then(res => res.data)
+      sendRequest({
+        op: "getMasternodeWinners"
+      })
       .then((masternodeWinners) => {
         observer.next(masternodeWinners);
       });
@@ -423,15 +447,20 @@ const BlockCount = Observable.create(function(observer) {
     return () => {
       blockCountSubscription.unsubscribe();
     }
-  });
+  }).pipe(shareReplay({
+    bufferSize: 1,
+    refCount: false
+  }));
+  
 
   var memPoolInfo = Observable.create(function(observer) { 
 
     var _memPoolInfo = null;
 
     var getMemPoolHttp = () =>{
-      axios.get(Environment.blockchainApiUrl + "/getMemPoolInfo")
-      .then(res => res.data)
+      sendRequest({
+        op: "getMemPoolInfo"
+      })
       .then((memPoolInfo) => {
 
         if (_memPoolInfo == null || _memPoolInfo.size != memPoolInfo.size || _memPoolInfo.bytes != memPoolInfo.bytes)
@@ -453,7 +482,11 @@ const BlockCount = Observable.create(function(observer) {
       blockCountSubscription.unsubscribe();
       clearInterval(intervalId);
     }
-  });
+  }).pipe(shareReplay({
+    bufferSize: 1,
+    refCount: false
+  }));
+  
 
 
   var rawMemPool = Observable.create(function(observer) { 
@@ -461,8 +494,10 @@ const BlockCount = Observable.create(function(observer) {
     var _rawMemPool = null;
 
     var getMemPoolHttp = () =>{
-      axios.get(Environment.blockchainApiUrl + "/getRawMemPool?extended=true")
-      .then(res => res.data)
+      sendRequest({
+        op: "getRawMemPool",
+        extended: true
+      })
       .then((rawMemPool) => {
 
         _rawMemPool= rawMemPool;
@@ -476,7 +511,11 @@ const BlockCount = Observable.create(function(observer) {
     return () => {
       memPoolInfoSubscription.unsubscribe();
     }
-  });
+  }).pipe(shareReplay({
+    bufferSize: 1,
+    refCount: false
+  }));
+  
 
 
   var richListCount = Observable.create(function(observer) {
@@ -484,8 +523,10 @@ const BlockCount = Observable.create(function(observer) {
     var _richList = null;
 
     var getAddressHttp = () =>{
-      axios.get(Environment.blockchainApiUrl + "/getRichListCount")
-      .then(res => res.data)
+      sendRequest({
+        op: "getRichListCount",
+        extended: true
+      })
       .then((richList) => {
 
         if (_richList == null || _richList != richList) 
@@ -502,18 +543,27 @@ const BlockCount = Observable.create(function(observer) {
     return () => {
       blockCountSubscription.unsubscribe();
     }
-  });
+  }).pipe(shareReplay({
+    bufferSize: 1,
+    refCount: false
+  }));
+  
 
-  var getRichList = (pos, rowsPerPage) => {
-    return axios.get(`${Environment.blockchainApiUrl}/getRichList?pos=${pos}&pageSize=${rowsPerPage}&extended=true`)
-      .then(res => res.data);
+  var getRichList = (pos, rowsPerPage) => { //TODO: should this be an Observable, can the data change over time?
+    return sendRequest({
+      op: "getRichList",
+      pos: pos,
+      pageSize: rowsPerPage,
+      extended: true
+    });
   }
 
 
   var txOutSetInfo = Observable.create(function(observer) {
     var getTxOutSetInfoHttp = () =>{
-      axios.get(Environment.blockchainApiUrl + "/getTxOutSetInfo?")
-      .then(res => res.data)
+      sendRequest({
+        op: "getTxOutSetInfo",
+      })
       .then((txOutSetInfo) => {
         observer.next(txOutSetInfo);
       });
@@ -524,13 +574,18 @@ const BlockCount = Observable.create(function(observer) {
     return () => {
       blockCountSubscription.unsubscribe();
     }
-  });
+  }).pipe(shareReplay({
+    bufferSize: 1,
+    refCount: false
+  }));
+  
 
 
   var networkHashps = Observable.create(function(observer) {
     var getNetworkHashpsHttp = () =>{
-      axios.get(Environment.blockchainApiUrl + "/getNetworkHashps?")
-      .then(res => res.data)
+      sendRequest({
+        op: "getNetworkHashps",
+      })
       .then((txOutSetInfo) => {
         observer.next(txOutSetInfo);
       });
@@ -541,7 +596,11 @@ const BlockCount = Observable.create(function(observer) {
     return () => {
       blockCountSubscription.unsubscribe();
     }
-  });
+  }).pipe(shareReplay({
+    bufferSize: 1,
+    refCount: false
+  }));
+  
 
 
   var validateAddress = (address) =>{
