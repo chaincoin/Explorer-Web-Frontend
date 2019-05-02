@@ -30,7 +30,8 @@ class MasternodeDetailsGraph extends React.Component {
   render(){
     const { classes, masternode } = this.props;
 
-    var addresses = [masternode.payee];
+    var addresses = [];
+    if (masternode != null) addresses.push(masternode.payee);
 
     return (
     <div>
