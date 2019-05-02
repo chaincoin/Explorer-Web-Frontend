@@ -29,6 +29,9 @@ class MasternodeDetailsGraph extends React.Component {
 
   render(){
     const { classes, masternode } = this.props;
+
+    var addresses = [masternode.payee];
+
     return (
     <div>
       <Card>
@@ -40,7 +43,7 @@ class MasternodeDetailsGraph extends React.Component {
           <Paper className={classes.paper}>
           {
             masternode != null ? 
-            <Graph address={masternode.payee} /> :
+            <Graph addresses={addresses} payOutType="masternode" /> :
             ""
           }
           </Paper>
