@@ -34,25 +34,55 @@ class PayOutGraph extends React.Component {
   componentWillUnmount() {
   }
   
-  onUnitChange(event){
-    this.setState({unit: event.target.value});
+  onUnitChange = (event) =>{
+    this.setState({unit: event.target.value}, this.getGraphData);
 
     this.getGraphData();
   }
 
-  onValueChange(event){
-    this.setState({value: event.target.value});
+  onValueChange = (event) => {
+    this.setState({value: event.target.value},this.getGraphData);
 
-    this.getGraphData();
+ 
   }
 
   getGraphData(){
     this.setState({loading: true});
     
+    var { addresses, payOutType} = this.props;
+    var { unit, value } = this.state;
 
-    BlockchainServices.getPayoutStats(this.props.address, "masternode", this.state.unit).then(stats =>{
+
+    var promises = addresses.map(address => BlockchainServices.getPayoutStats(address, payOutType, unit));
+
+    Promise.all(promises).then((addressStates) => {
+
       debugger;
-      var p = PayOutStatsToDataSetData(stats,this.state.unit, this.state.value);
+      var datasets = addressStates.map((stats,i) => {
+        return {
+          label: addresses[i],
+          backgroundColor: "rgba(255, 99, 132,0.5)",
+          borderColor: "rgb(255, 99, 132)",
+          fill: false,
+          data: PayOutStatsToDataSetData(stats,unit, value),
+        };
+      });
+
+      this.setState(
+      {
+        data:
+        {
+          //labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+          datasets :datasets
+        }
+      })
+
+
+
+    });
+    /*BlockchainServices.getPayoutStats(address, payOutType, unit).then(stats =>{
+      debugger;
+      var p = PayOutStatsToDataSetData(stats,unit, value);
 
       this.setState(
       {
@@ -69,7 +99,7 @@ class PayOutGraph extends React.Component {
           }]
         }
       });
-    });
+    });*/
   }
 
 
@@ -79,6 +109,12 @@ class PayOutGraph extends React.Component {
 
     var graphUnit = "week";
 
+    if (unit == "daily") graphUnit = "day";
+    if (unit == "weekly") graphUnit = "week";
+    if (unit == "monthly") graphUnit = "month";
+    if (unit == "yearly") graphUnit = "year";
+
+
     var options = {
       title: {
         text: 'Maternode Payouts'
@@ -87,7 +123,7 @@ class PayOutGraph extends React.Component {
           xAxes: [{
               type: 'time',
               time: {
-                  unit: 'day'
+                  unit: graphUnit
               }
           }],
           yAxes: [{
@@ -138,7 +174,8 @@ class PayOutGraph extends React.Component {
 
 PayOutGraph.propTypes = {
   classes: PropTypes.object.isRequired,
-  address: PropTypes.string.isRequired,
+  addresses: PropTypes.array.isRequired,
+  payOutType: PropTypes.string.isRequired
 };
 
 export default withStyles(styles)(PayOutGraph);
@@ -177,7 +214,7 @@ var PayOutStatsToDataSetData = (stats, unit, value) =>{
 
         while (current < date) {
             data.push({
-                x: current.toDateString(),
+                x: current,
                 y: 0
             });
 
@@ -190,7 +227,7 @@ var PayOutStatsToDataSetData = (stats, unit, value) =>{
     }
 
     data.push({
-        x: date.toDateString(),
+        x: date,
         y: value == "sum" ? stat.value : stat.count
     });
 
