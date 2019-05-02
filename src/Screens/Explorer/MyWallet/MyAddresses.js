@@ -16,6 +16,7 @@ import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import { Link } from "react-router-dom";
 
 import TablePaginationActions from '../../../Components/TablePaginationActions';
+import MyAddressesGraph from './MyAddressesGraph';
 
 import BlockchainServices from '../../../Services/BlockchainServices';
 import MyWalletServices from '../../../Services/MyWalletServices';
@@ -175,86 +176,89 @@ class MyAddresses extends React.Component {
 
 
     return (
-      <Card>
-        <CardHeader>
-          My Addresses
-        </CardHeader>
-        <CardBody>
+      <div>
+        <Card>
+          <CardHeader>
+            My Addresses
+          </CardHeader>
+          <CardBody>
 
-        <Button variant="contained" color="primary" className={classes.button} onClick={this.handleCreateAddress}>
-          Create Address
-        </Button>
+          <Button variant="contained" color="primary" className={classes.button} onClick={this.handleCreateAddress}>
+            Create Address
+          </Button>
 
-        <Button variant="contained" color="primary" className={classes.button} onClick={this.handleWatchAddress}>
-          Watch Address
-        </Button>
+          <Button variant="contained" color="primary" className={classes.button} onClick={this.handleWatchAddress}>
+            Watch Address
+          </Button>
 
-        <Button variant="contained" color="primary" className={classes.button} onClick={this.handleImportAddress}>
-          Import Address
-        </Button>
-        
-          <Paper>
-            <Table className={classes.table}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Address</TableCell>
-                  <TableCell>Balance (CHC)</TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
-                  <TableRow >
-                    <TableCell>
-                      {row.name}
-                    </TableCell>
-                    <TableCell component="th" scope="row"><Link to={"/Explorer/Address/" + row.address}>{row.address}</Link></TableCell>
-                    <TableCell>
-                      {
-                        row.data != null ? 
-                        row.data.balance :
-                        "0"
-                      }
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="contained" color="secondary" className={classes.button} onClick={this.handleDeleteAddress(row.address)}>
-                        Remove
-                      </Button>
-                      <Button variant="contained" color="primary" className={classes.button} onClick={this.handleExportWif(row.WIF)} disabled={row.WIF == null}>
-                        WIF
-                      </Button>
-                    </TableCell>
+          <Button variant="contained" color="primary" className={classes.button} onClick={this.handleImportAddress}>
+            Import Address
+          </Button>
+          
+            <Paper>
+              <Table className={classes.table}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Address</TableCell>
+                    <TableCell>Balance (CHC)</TableCell>
+                    <TableCell></TableCell>
                   </TableRow>
-                ))}
-                {emptyRows > 0 && (
-                  <TableRow style={{ height: 48 * emptyRows }}>
-                    <TableCell colSpan={6} />
+                </TableHead>
+                <TableBody>
+                  {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
+                    <TableRow >
+                      <TableCell>
+                        {row.name}
+                      </TableCell>
+                      <TableCell component="th" scope="row"><Link to={"/Explorer/Address/" + row.address}>{row.address}</Link></TableCell>
+                      <TableCell>
+                        {
+                          row.data != null ? 
+                          row.data.balance :
+                          "0"
+                        }
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="contained" color="secondary" className={classes.button} onClick={this.handleDeleteAddress(row.address)}>
+                          Remove
+                        </Button>
+                        <Button variant="contained" color="primary" className={classes.button} onClick={this.handleExportWif(row.WIF)} disabled={row.WIF == null}>
+                          WIF
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {emptyRows > 0 && (
+                    <TableRow style={{ height: 48 * emptyRows }}>
+                      <TableCell colSpan={6} />
+                    </TableRow>
+                  )}
+                </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    <TablePagination
+                      rowsPerPageOptions={[5, 10, 25]}
+                      colSpan={5}
+                      count={rows.length}
+                      rowsPerPage={rowsPerPage}
+                      page={page}
+                      SelectProps={{
+                        native: true,
+                      }}
+                      onChangePage={this.handleChangePage}
+                      onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                      ActionsComponent={TablePaginationActions}
+                    />
                   </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    colSpan={5}
-                    count={rows.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    SelectProps={{
-                      native: true,
-                    }}
-                    onChangePage={this.handleChangePage}
-                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                    ActionsComponent={TablePaginationActions}
-                  />
-                </TableRow>
-              </TableFooter>
-            </Table>
-          </Paper>
-        </CardBody>
-      </Card>
-      
+                </TableFooter>
+              </Table>
+            </Paper>
+          </CardBody>
+        </Card>
+
+        <MyAddressesGraph />
+      </div>
     );
   }
 }
