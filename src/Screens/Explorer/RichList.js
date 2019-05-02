@@ -12,6 +12,9 @@ import Paper from '@material-ui/core/Paper';
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import { Link } from "react-router-dom";
 
+
+import AddressMenu from '../../Components/AddressMenu';
+
 import TablePaginationActions from '../../Components/TablePaginationActions';
 
 import BlockchainServices from '../../Services/BlockchainServices';
@@ -128,6 +131,7 @@ class RichList extends React.Component {
                   <TableCell>Address</TableCell>
                   <TableCell>Last Activity</TableCell>
                   <TableCell>Balance (CHC)</TableCell>
+                  <TableCell></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -136,11 +140,12 @@ class RichList extends React.Component {
                     <TableCell component="th" scope="row"><Link to={"/Explorer/Address/" + row.address}>{row.address}</Link></TableCell>
                     <TableCell>{TimeToString(row.lastActivity)}</TableCell>
                     <TableCell>{row.balance}</TableCell>
+                    <TableCell><AddressMenu address={row.address} /></TableCell>
                   </TableRow>
                 ))}
                 {emptyRows > 0 && (
                   <TableRow style={{ height: 48 * emptyRows }}>
-                    <TableCell colSpan={6} />
+                    <TableCell colSpan={4} />
                   </TableRow>
                 )}
               </TableBody>
@@ -148,7 +153,7 @@ class RichList extends React.Component {
                 <TableRow>
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
-                    colSpan={5}
+                    colSpan={4}
                     count={richListCount}
                     rowsPerPage={rowsPerPage}
                     page={page}

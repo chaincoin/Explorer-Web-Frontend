@@ -5,10 +5,14 @@ import { withStyles } from '@material-ui/core/styles';
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import Grid from '@material-ui/core/Grid';
 
+import AddressMenu from '../../../Components/AddressMenu'
 
 const styles = {
   root: {
     
+  },
+  menuButton:{
+    float:"right"
   }
 };
 
@@ -31,6 +35,9 @@ class AddressDetailsHeader extends React.Component {
       <Card>
         <CardHeader>
         Address: {address.address}
+        <div className={classes.menuButton}>
+          <AddressMenu address={address} hideViewAddress={true} />
+        </div>
         </CardHeader>
         <CardBody>
           <Grid container spacing={24}>
