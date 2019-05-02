@@ -11,10 +11,26 @@
 
 
 
-.center, route-area {
+.center{
     display: table;
     margin: 0 auto;
 }
+
+
+
+.Content {
+    width: 100%;
+    display: table;
+    margin: 0 auto;
+}
+
+
+@media (min-width: 768px){
+    .Content {
+        width: 90%;
+    }
+}
+
 
 
 

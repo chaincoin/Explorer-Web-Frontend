@@ -149,29 +149,33 @@ const styles = theme => ({
         <NavBar />
         <Header/>
 
-        <Route exact path="/" component={BlockList} />
-        <Route exact path="/Explorer" component={BlockList} />
-        <Route exact path="/Explorer/Block/:blockId" component={BlockDetails} />
-        <Route exact path="/Explorer/Transaction/:txid" component={TransactionDetails} />
-        <Route exact path="/Explorer/Address/:addressId" component={AddressDetails} />
-        <Route exact path="/Explorer/MasternodeList/" component={MasternodeList} />
-        <Route exact path="/Explorer/MasternodeList/:output" component={MasternodeDetails} />
-        <Route exact path="/Explorer/MasternodeWinnersList" component={MasternodeWinnersList} />
-        
-        <Route exact path="/Explorer/MemPool" component={MemPool} />
-        <Route exact path="/Explorer/RichList" component={RichList} />
+        <div className="Content">
+            
+          <Route exact path="/" component={BlockList} />
+          <Route exact path="/Explorer" component={BlockList} />
+          <Route exact path="/Explorer/Block/:blockId" component={BlockDetails} />
+          <Route exact path="/Explorer/Transaction/:txid" component={TransactionDetails} />
+          <Route exact path="/Explorer/Address/:addressId" component={AddressDetails} />
+          <Route exact path="/Explorer/MasternodeList/" component={MasternodeList} />
+          <Route exact path="/Explorer/MasternodeList/:output" component={MasternodeDetails} />
+          <Route exact path="/Explorer/MasternodeWinnersList" component={MasternodeWinnersList} />
+          
+          <Route exact path="/Explorer/MemPool" component={MemPool} />
+          <Route exact path="/Explorer/RichList" component={RichList} />
 
-        
-        <Route exact path="/Explorer/MyWallet/MyAddresses" component={MyAddresses} />
-        <Route exact path="/Explorer/MyWallet/MyMasternodes" component={MyMasternodes} />
-        
+          
+          <Route exact path="/Explorer/MyWallet/MyAddresses" component={MyAddresses} />
+          <Route exact path="/Explorer/MyWallet/MyMasternodes" component={MyMasternodes} />
+          
 
-        <Route exact path="/BountyList" component={BountyList} />
+          <Route exact path="/BountyList" component={BountyList} />
 
-        <Route exact path="/Api" component={Api} />
-        <Route exact path="/News" component={News} />
-        <Route exact path="/Tutorials" component={Tutorial} />
-        <Route exact path="/ContactMe" component={ContactMe} />
+          <Route exact path="/Api" component={Api} />
+          <Route exact path="/News" component={News} />
+          <Route exact path="/Tutorials" component={Tutorial} />
+          <Route exact path="/ContactMe" component={ContactMe} />
+        
+        </div>
       </div>
     </Router>;
   }
