@@ -14,15 +14,7 @@ import MyWalletServices from '../Services/MyWalletServices';
 
 const styles = theme => ({
   root: {
-    width: '100%',
-    marginTop: theme.spacing.unit * 3,
-  },
-  table: {
-    minWidth: 500,
-  },
-  tableWrapper: {
-    overflowX: 'auto',
-  },
+  }
 });
 
 class MasternodeMenu extends React.Component {
@@ -43,7 +35,7 @@ class MasternodeMenu extends React.Component {
   };
 
   
-  handleMenuAddToMyMNs = (output) => {
+  handleMenuAddToMyMNs = () => {
     this.handleMenuClose();
       var name = prompt("Please enter a name for the masternode");
       if (name == null) return;
@@ -92,7 +84,7 @@ class MasternodeMenu extends React.Component {
     
 
     return (
-      <div>
+      <div className={classes.root}>
         <Button variant="contained" color="primary" aria-owns={menuAnchorEl ? 'simple-menu' : undefined} aria-haspopup="true" onClick={this.handleMenuClick}>
           Menu
         </Button>
