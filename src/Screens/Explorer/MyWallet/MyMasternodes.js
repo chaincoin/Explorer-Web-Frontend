@@ -16,6 +16,7 @@ import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import { Link } from "react-router-dom";
 
 import TablePaginationActions from '../../../Components/TablePaginationActions';
+import MyMasternodesGraph from './MyMasternodesGraph';
 
 import BlockchainServices from '../../../Services/BlockchainServices';
 import MyWalletServices from '../../../Services/MyWalletServices';
@@ -129,87 +130,89 @@ class MyMasternodes extends React.Component {
 
 
     return (
-      <Card>
-        <CardHeader>
-          My Masternodes
-        </CardHeader>
-        <CardBody>
+        <div>
+        <Card>
+          <CardHeader>
+            My Masternodes
+          </CardHeader>
+          <CardBody>
 
-        <Button variant="contained" color="primary" className={classes.button} onClick={this.handleAddMasternode}>
-          Add Masternode
-        </Button>
-        
-          <Paper>
-            <Table className={classes.table}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Last Seen</TableCell>
-                  <TableCell>Last Paid</TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
-                  <TableRow >
-                    <TableCell component="th" scope="row"><Link to={"/Explorer/MasternodeList/" + row.output}>{row.name}</Link></TableCell>
-                    <TableCell>
-                      {
-                        row.mn != null ? 
-                        row.mn.status :
-                        "Not Found"
-                      }
-                    </TableCell>
-                    <TableCell>
-                      {
-                        row.mn != null ? 
-                        TimeToString(row.mn.lastseen) :
-                        "Not Found"
-                      }
-                    </TableCell>
-                    <TableCell>
-                      {
-                        row.mn != null ? 
-                        TimeToString(row.mn.lastpaidtime) :
-                        "Not Found"
-                      }
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="contained" color="secondary" className={classes.button} onClick={this.handleDeleteMasternode(row.output,MyWalletServices)}>
-                        Remove
-                      </Button>
-                    </TableCell>
+          <Button variant="contained" color="primary" className={classes.button} onClick={this.handleAddMasternode}>
+            Add Masternode
+          </Button>
+          
+            <Paper>
+              <Table className={classes.table}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Last Seen</TableCell>
+                    <TableCell>Last Paid</TableCell>
+                    <TableCell></TableCell>
                   </TableRow>
-                ))}
-                {emptyRows > 0 && (
-                  <TableRow style={{ height: 48 * emptyRows }}>
-                    <TableCell colSpan={6} />
+                </TableHead>
+                <TableBody>
+                  {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
+                    <TableRow >
+                      <TableCell component="th" scope="row"><Link to={"/Explorer/MasternodeList/" + row.output}>{row.name}</Link></TableCell>
+                      <TableCell>
+                        {
+                          row.mn != null ? 
+                          row.mn.status :
+                          "Not Found"
+                        }
+                      </TableCell>
+                      <TableCell>
+                        {
+                          row.mn != null ? 
+                          TimeToString(row.mn.lastseen) :
+                          "Not Found"
+                        }
+                      </TableCell>
+                      <TableCell>
+                        {
+                          row.mn != null ? 
+                          TimeToString(row.mn.lastpaidtime) :
+                          "Not Found"
+                        }
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="contained" color="secondary" className={classes.button} onClick={this.handleDeleteMasternode(row.output,MyWalletServices)}>
+                          Remove
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {emptyRows > 0 && (
+                    <TableRow style={{ height: 48 * emptyRows }}>
+                      <TableCell colSpan={6} />
+                    </TableRow>
+                  )}
+                </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    <TablePagination
+                      rowsPerPageOptions={[5, 10, 25]}
+                      colSpan={5}
+                      count={rows.length}
+                      rowsPerPage={rowsPerPage}
+                      page={page}
+                      SelectProps={{
+                        native: true,
+                      }}
+                      onChangePage={this.handleChangePage}
+                      onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                      ActionsComponent={TablePaginationActions}
+                    />
                   </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    colSpan={5}
-                    count={rows.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    SelectProps={{
-                      native: true,
-                    }}
-                    onChangePage={this.handleChangePage}
-                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                    ActionsComponent={TablePaginationActions}
-                  />
-                </TableRow>
-              </TableFooter>
-            </Table>
-          </Paper>
-        </CardBody>
-      </Card>
-      
+                </TableFooter>
+              </Table>
+            </Paper>
+          </CardBody>
+        </Card>
+        <MyMasternodesGraph />
+      </div>
     );
   }
 }
