@@ -49,7 +49,7 @@ class PayOutGraph extends React.Component {
   getGraphData(){
     this.setState({loading: true});
     
-    var { addresses, payOutType} = this.props;
+    var { addresses, names, payOutType} = this.props;
     var { unit, value } = this.state;
 
 
@@ -60,7 +60,7 @@ class PayOutGraph extends React.Component {
       debugger;
       var datasets = addressStates.map((stats,i) => {
         return {
-          label: addresses[i],
+          label: names == null ? addresses[i] : names[i],
           backgroundColor: "rgba(255, 99, 132,0.5)",
           borderColor: "rgb(255, 99, 132)",
           fill: false,
