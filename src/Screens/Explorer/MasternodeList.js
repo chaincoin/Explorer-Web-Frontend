@@ -10,13 +10,19 @@ import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import { Link } from "react-router-dom";
 
 import TablePaginationActions from '../../Components/TablePaginationActions';
 
+import MasternodeMenu from '../../Components/MasternodeMenu'
+
 import BlockchainServices from '../../Services/BlockchainServices';
+import MyWalletServices from '../../Services/MyWalletServices';
 
 
 
@@ -44,7 +50,9 @@ class MasternodeList extends React.Component {
     windowWidth: 0,
     error: null,
 
-    searchInput: ""
+    searchInput: "",
+
+    menuAnchorEl: []
   };
 
   masternodeListSubscription = null;
@@ -56,6 +64,39 @@ class MasternodeList extends React.Component {
 
   handleChangeRowsPerPage = event => {
     this.setState({ page: 0, rowsPerPage: parseInt(event.target.value) });
+  };
+
+  handleMenuClick = (rowPos) => {
+    return (event) =>{
+      var menuAnchorEls = [];
+      menuAnchorEls[rowPos] = event.currentTarget;
+      this.setState({ menuAnchorEl: menuAnchorEls });
+    }
+  };
+
+  handleMenuClose = () => {
+    this.setState({ menuAnchorEl: [] });
+  };
+
+  
+  handleMenuAddToMyMNs = (output) => {
+    return () =>{
+      this.handleMenuClose();
+      var name = prompt("Please enter a name for the masternode");
+      if (name == null) return;
+
+      MyWalletServices.addMyMasternode(name, output); //TODO: handle error
+    }
+  };
+
+  handleMenuRemoveFromMyMns = (output) => {
+    return () =>{
+      this.handleMenuClose();
+
+      if (window.confirm("Are you sure?") == false) return;
+      MyWalletServices.deleteMyMasternode(output); //TODO: handle error
+      
+    }
   };
 
   componentDidMount() {
@@ -77,7 +118,7 @@ class MasternodeList extends React.Component {
   }
 
 
-  updateDimensions() {
+  updateDimensions = () => {
     this.setState({windowWidth: window.innerWidth});
   }
 
@@ -88,7 +129,7 @@ class MasternodeList extends React.Component {
  
   render() {
     const { classes } = this.props;
-    const { rowsPerPage, page } = this.state;
+    const { rowsPerPage, page, menuAnchorEl } = this.state;
     var { rows, searchInput } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
@@ -126,24 +167,28 @@ class MasternodeList extends React.Component {
             <Table className={classes.table}>
               <TableHead>
                 <TableRow>
-                  <TableCell>Payee</TableCell>
                   <TableCell>Address</TableCell>
+                  <TableCell>Payee</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Last Seen</TableCell>
+                  <TableCell></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
+                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowPos) => (
                   <TableRow >
-                    <TableCell component="th" scope="row"><Link to={"/Explorer/MasternodeList/" + row[0]}>{row[1].payee}</Link></TableCell>
-                    <TableCell>{row[1].address}</TableCell>
+                    <TableCell component="th" scope="row"><Link to={"/Explorer/MasternodeList/" + row[0]}>{row[1].address}</Link></TableCell>
+                    <TableCell><Link to={"/Explorer/Address/" + row[1].payee}>{row[1].payee}</Link></TableCell>
                     <TableCell>{row[1].status}</TableCell>
                     <TableCell>{TimeToString(row[1].lastseen)}</TableCell>
+                    <TableCell>
+                      <MasternodeMenu output={row[0]} payee={row[1].payee} />
+                    </TableCell>
                   </TableRow>
                 ))}
                 {emptyRows > 0 && (
                   <TableRow style={{ height: 48 * emptyRows }}>
-                    <TableCell colSpan={6} />
+                    <TableCell colSpan={7} />
                   </TableRow>
                 )}
               </TableBody>
@@ -151,7 +196,7 @@ class MasternodeList extends React.Component {
                 <TableRow>
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
-                    colSpan={5}
+                    colSpan={7}
                     count={rows.length}
                     rowsPerPage={rowsPerPage}
                     page={page}

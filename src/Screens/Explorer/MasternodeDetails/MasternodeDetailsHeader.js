@@ -6,10 +6,15 @@ import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import Grid from '@material-ui/core/Grid';
 import { Link } from "react-router-dom";
 
+import MasternodeMenu from '../../../Components/MasternodeMenu'
+import { Menu } from '@material-ui/core';
 
 const styles = {
   root: {
     
+  },
+  menuButton:{
+    float:"right"
   }
 };
 
@@ -31,7 +36,7 @@ class MasternodeDetailsHeader extends React.Component {
     <div>
       <Card>
         <CardHeader>
-        Output: {output}
+        Output: {output} <div className={classes.menuButton}><MasternodeMenu output={output} payee={masternode.payee} hideViewMasternode={true} /></div>
         </CardHeader>
         <CardBody>
           <Grid container spacing={24}>
