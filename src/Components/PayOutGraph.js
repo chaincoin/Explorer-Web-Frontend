@@ -66,7 +66,7 @@ class PayOutGraph extends React.Component {
 
     Promise.all(promises).then((addressStates) => {
 
-      debugger;
+
       var datasets = addressStates.map((stats,i) => {
         return {
           label: names == null ? addresses[i] : names[i],

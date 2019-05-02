@@ -78,7 +78,7 @@ const myAddresses = Observable.create(function(observer) {
             op:"listAddresses"
         })
         .then(response =>{
-            debugger;
+  
             if (response.success)
             {
                 if (_response == null || _response.data.length != response.data.length)
@@ -138,7 +138,7 @@ const myMasternodes = Observable.create(function(observer) {
             op:"listMasternodes"
         })
         .then(response =>{
-            debugger;
+
             if (response.success)
             {
                 if (_response == null || _response.data.length != response.data.length)
