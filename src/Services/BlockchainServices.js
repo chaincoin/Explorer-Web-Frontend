@@ -368,6 +368,7 @@ const BlockCount = Observable.create(function(observer) {
       extended:true
     });
   }
+  
 
   var masternodeCount = Observable.create(function(observer) {
 
@@ -471,6 +472,15 @@ const BlockCount = Observable.create(function(observer) {
       output: output,
       pos: pos,
       pageSize: rowsPerPage
+    })
+  }
+
+  var getPayoutStats = (address, type, unit) => { //TODO: should this be an Observable, can the data change over time?
+    return sendRequest({
+      op: "getPayoutStats",
+      address: address,
+      type: type,
+      unit: unit
     })
   }
   
@@ -677,5 +687,6 @@ const BlockCount = Observable.create(function(observer) {
     txOutSetInfo,
     networkHashps,
 
-    validateAddress
+    validateAddress,
+    getPayoutStats
   }
