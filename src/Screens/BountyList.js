@@ -118,7 +118,11 @@ class BountyList extends React.Component {
                   <TableRow >
                     <TableCell>{row.name}</TableCell>
                     <TableCell>{TimeToString(row.created)}</TableCell>
-                    <TableCell>{row.value}</TableCell>
+                    <TableCell>
+                      <Link to={"/Explorer/Address/" + row.address}>
+                        {row.value}
+                      </Link>
+                    </TableCell>
                     <TableCell>{row.notes}</TableCell>
                   </TableRow>
                 ))}
