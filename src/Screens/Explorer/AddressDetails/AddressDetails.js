@@ -4,6 +4,7 @@ import { withStyles } from '@material-ui/core/styles';
 
 import Header from './AddressDetailsHeader';
 import Transactions from './AddressDetailsTransactions';
+import Graph from './AddressDetailsGraph';
 
 import BlockchainServices from '../../../Services/BlockchainServices';
 
@@ -57,6 +58,7 @@ class AddressDetails extends React.Component {
     <div>
       <Header address={address}/>
       <Transactions address={address}/>
+      <Graph address={address} />
     </div>
       
     );
