@@ -4,6 +4,7 @@ import { withStyles } from '@material-ui/core/styles';
 
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import Grid from '@material-ui/core/Grid';
+import { Link } from "react-router-dom";
 
 
 const styles = {
@@ -39,7 +40,9 @@ class MasternodeDetailsHeader extends React.Component {
                 Payee
               </div>
               <div>
+              <Link to={"/Explorer/Address/" + masternode.payee}>
                 {masternode.payee}
+              </Link>
               </div>
             </Grid>
             <Grid item xs={12} sm={4}>
