@@ -4,6 +4,7 @@ import { withStyles } from '@material-ui/core/styles';
 
 import Header from './MasternodeDetailsHeader';
 import Events from './MasternodeDetailsEvents';
+import Graph from './MasternodeDetailsGraph';
 
 import BlockchainServices from '../../../Services/BlockchainServices';
 
@@ -58,7 +59,7 @@ class MasternodeDetails extends React.Component {
     <div>
       <Header output={output} masternode={masternode}/>
       <Events output={output} masternode={masternode}/>
-      
+      <Graph masternode={masternode} />
     </div>
       
     );
