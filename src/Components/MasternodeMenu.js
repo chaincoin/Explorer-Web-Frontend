@@ -29,10 +29,37 @@ class MasternodeMenu extends React.Component {
  
 
   handleMenuClick = (event) =>{
+    this.subscription = combineLatest(MyWalletServices.myMasternodes, MyWalletServices.myAddresses).subscribe(
+      ([myMasternodes, myAddresses]) =>{
+
+        var addToMyMns = true;
+        if (myMasternodes != null)
+        {
+          myMasternodes.forEach(myMn =>{
+            if (myMn.output == this.props.output) addToMyMns = false;
+          });
+        }
+        
+        var addToMyAddresses = true;
+        if (myAddresses != null)
+        {
+          myAddresses.forEach(myAddress =>{
+            if (myAddress.address == this.props.payee) addToMyAddresses = false;
+          });
+        }
+        
+
+        this.setState({
+          addToMyMns: addToMyMns,
+          addToMyAddresses:addToMyAddresses
+        });
+    });
+    
     this.setState({ menuAnchorEl: event.currentTarget });
   };
 
   handleMenuClose = () => {
+    if (this.subscription != null) this.subscription.unsubscribe();
     this.setState({ menuAnchorEl: null });
   };
 
@@ -98,7 +125,7 @@ class MasternodeMenu extends React.Component {
   }
 
   componentWillUnmount = () => {
-    this.subscription.unsubscribe();
+    if (this.subscription != null) this.subscription.unsubscribe();
   }
 
 
