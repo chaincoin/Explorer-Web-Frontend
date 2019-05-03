@@ -1,4 +1,5 @@
 import React from 'react';
+import { combineLatest } from 'rxjs';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -7,7 +8,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { Link } from "react-router-dom";
 
 
-import BlockchainServices from '../Services/BlockchainServices';
+
 import MyWalletServices from '../Services/MyWalletServices';
 
 
@@ -20,7 +21,8 @@ const styles = theme => ({
 class MasternodeMenu extends React.Component {
   state = {
     menuAnchorEl: null,
-    addToMyMns: true
+    addToMyMns: true,
+    addToMyAddresses: true
   };
 
   subscription = null
@@ -50,19 +52,46 @@ class MasternodeMenu extends React.Component {
     MyWalletServices.deleteMyMasternode(this.props.output); //TODO: handle error
   };
 
+  handleMenuAddToMyAddresses = () => {
+    this.handleMenuClose();
+      var name = prompt("Please enter a name for the address");
+      if (name == null) return;
+
+      MyWalletServices.addMyAddress(name, this.props.payee); //TODO: handle error
+  };
+
+  handleMenuRemoveFromMyAddresses = () => {
+    this.handleMenuClose();
+
+    if (window.confirm("Are you sure?") == false) return;
+    MyWalletServices.deleteMyAddress(this.props.payee); //TODO: handle error
+  };
+
   componentDidMount() {
 
-    this.subscription = MyWalletServices.myMasternodes.subscribe(
-      (myMasternodes) =>{
+    this.subscription = combineLatest(MyWalletServices.myMasternodes, MyWalletServices.myAddresses).subscribe(
+      ([myMasternodes, myAddresses]) =>{
 
         var addToMyMns = true;
-
-        myMasternodes.forEach(myMn =>{
-          if (myMn.output == this.props.output) addToMyMns = false;
-        });
+        if (myMasternodes != null)
+        {
+          myMasternodes.forEach(myMn =>{
+            if (myMn.output == this.props.output) addToMyMns = false;
+          });
+        }
+        
+        var addToMyAddresses = true;
+        if (myAddresses != null)
+        {
+          myAddresses.forEach(myAddress =>{
+            if (myAddress.address == this.props.payee) addToMyAddresses = false;
+          });
+        }
+        
 
         this.setState({
-          addToMyMns: addToMyMns
+          addToMyMns: addToMyMns,
+          addToMyAddresses:addToMyAddresses
         });
     });
 
@@ -79,7 +108,7 @@ class MasternodeMenu extends React.Component {
  
   render() {
     const { classes, payee, output, hideViewMasternode } = this.props;
-    const { menuAnchorEl, addToMyMns } = this.state;
+    const { menuAnchorEl, addToMyMns, addToMyAddresses } = this.state;
 
     
 
@@ -104,6 +133,11 @@ class MasternodeMenu extends React.Component {
             addToMyMns == true?
             <MenuItem onClick={this.handleMenuAddToMyMNs}>Add to My Masternodes</MenuItem> :
             <MenuItem onClick={this.handleMenuRemoveFromMyMns}>Remove from My Masternodes</MenuItem>
+          }
+           {
+            addToMyAddresses == true?
+            <MenuItem onClick={this.handleMenuAddToMyAddresses}>Add to My Addresses</MenuItem> :
+            <MenuItem onClick={this.handleMenuRemoveFromMyAddresses}>Remove from My Addresses</MenuItem>
           }
         </Menu>
       </div>
