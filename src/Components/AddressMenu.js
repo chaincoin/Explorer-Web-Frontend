@@ -33,10 +33,24 @@ class AddressMenu extends React.Component {
  
 
   handleMenuClick = (event) =>{
+    this.subscription = MyWalletServices.myAddresses.subscribe(
+      (myAddresses) =>{
+
+        var addToMyAddresses = true;
+
+        myAddresses.forEach(myMn =>{
+          if (myMn.address == this.props.address) addToMyAddresses = false;
+        });
+
+        this.setState({
+          addToMyAddresses: addToMyAddresses
+        });
+    });
     this.setState({ menuAnchorEl: event.currentTarget });
   };
 
   handleMenuClose = () => {
+    if (this.subscription != null) this.subscription.unsubscribe();
     this.setState({ menuAnchorEl: null });
   };
 
@@ -58,24 +72,12 @@ class AddressMenu extends React.Component {
 
   componentDidMount() {
 
-    this.subscription = MyWalletServices.myAddresses.subscribe(
-      (myAddresses) =>{
-
-        var addToMyAddresses = true;
-
-        myAddresses.forEach(myMn =>{
-          if (myMn.address == this.props.address) addToMyAddresses = false;
-        });
-
-        this.setState({
-          addToMyAddresses: addToMyAddresses
-        });
-    });
+    
 
   }
 
   componentWillUnmount = () => {
-    this.subscription.unsubscribe();
+    if (this.subscription != null) this.subscription.unsubscribe();
   }
 
 
