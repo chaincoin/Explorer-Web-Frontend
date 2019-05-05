@@ -67,7 +67,7 @@ class BlockDetailsTransactions extends React.Component {
                 <TableBody>
                   {block.tx.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(tx => (
                     <TableRow key={tx.id}>
-                      <TableCell><Link to={"/Explorer/Transaction/" + (tx.extended == true ? tx.txid : tx)}>{(tx.extended == true ? tx.txid : tx)}</Link></TableCell>
+                      <TableCell><Link to={"/Explorer/Transaction/" + (block.extended == true ? tx.txid : tx)}>{(block.extended == true ? tx.txid : tx)}</Link></TableCell>
                       <TableCell>{tx.recipients}</TableCell>
                       <TableCell>{tx.value}</TableCell>
                     </TableRow>
