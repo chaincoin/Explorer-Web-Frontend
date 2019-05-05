@@ -7,6 +7,7 @@ import { withStyles } from '@material-ui/core/styles';
 import ChaincoinIndexerServiceList from './Screens/ChaincoinIndexerServiceList'
 import NavBar from './Components/NavBar'
 import Header from './Components/Header/Header'
+import Footer from './Components/Footer/Footer'
 
 import HomeScreen from './Screens/HomeScreen'
 
@@ -176,6 +177,7 @@ const styles = theme => ({
           <Route exact path="/ContactMe" component={ContactMe} />
         
         </div>
+        <Footer/>
       </div>
     </Router>;
   }
