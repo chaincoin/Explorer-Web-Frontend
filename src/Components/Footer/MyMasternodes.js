@@ -9,7 +9,9 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import SendIcon from '@material-ui/icons/Send';
+
+import CheckIcon from '@material-ui/icons/Check';
+import CloseIcon from '@material-ui/icons/Close';
 
 import { Link } from "react-router-dom";
 
@@ -104,7 +106,11 @@ class MyMasternodes extends React.Component {
               <Link to={"/Explorer/MasternodeList/" + myMn.output}>
                 <MenuItem className={classes.menuItem} onClick={this.handleClose}>
                   <ListItemIcon className={classes.icon}>
-                    <SendIcon />
+                    {
+                      myMn.mn != null && myMn.mn.status == "ENABLED" ? 
+                      (<CheckIcon />):
+                      (<CloseIcon/>)
+                    }
                   </ListItemIcon>
                   <ListItemText classes={{ primary: classes.primary }} inset primary={myMn.name} />
                 </MenuItem>
