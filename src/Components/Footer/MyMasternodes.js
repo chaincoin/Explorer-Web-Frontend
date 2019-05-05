@@ -126,6 +126,11 @@ class MyMasternodes extends React.Component {
             )
           )
         }
+        <Link to={"/Explorer/MyWallet/MyMasternodes"}>
+          <MenuItem onClick={this.handleClose}>
+            My Masternodes
+          </MenuItem>
+        </Link>
       </Menu>
     </div>
       

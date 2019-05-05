@@ -127,6 +127,11 @@ class MyAddresses extends React.Component {
             )
           )
         }
+        <Link to={"/Explorer/MyWallet/MyAddresses"}>
+          <MenuItem onClick={this.handleClose}>
+            My Addresses
+          </MenuItem>
+        </Link>
       </Menu>
     </div>
       
