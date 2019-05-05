@@ -7,11 +7,11 @@ import { combineLatest } from 'rxjs';
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-
 import SendIcon from '@material-ui/icons/Send';
+
+import { Link } from "react-router-dom";
 
 import BlockchainServices from '../../Services/BlockchainServices';
 import MyWalletServices from '../../Services/MyWalletServices';
@@ -19,6 +19,9 @@ import MyWalletServices from '../../Services/MyWalletServices';
 const styles = theme => ({
   root: {
    display:"inline"
+  },
+  button:{
+    "text-transform": "initial"
   },
   menuItem: {
     
@@ -83,12 +86,12 @@ class MyMasternodes extends React.Component {
 
     return (
     <div className={classes.root}>
-      <Button variant="contained" color="primary" aria-owns={anchorEl ? 'simple-menu' : undefined} aria-haspopup="true" onClick={this.handleClick}>
-        My MNs: {
+      <Button className={classes.button} variant="contained" color="primary" aria-owns={anchorEl ? 'simple-menu' : undefined} aria-haspopup="true" onClick={this.handleClick}>
+        {
           myMasternodes == null ? 
           "loading" :
           myMasternodes.length - mnProblems + "/" + myMasternodes.length
-        }
+        } My MNs
       </Button>
 
       <Menu id="simple-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={this.handleClose}>
@@ -98,12 +101,14 @@ class MyMasternodes extends React.Component {
           "" :
           myMasternodes.map(myMn =>
             (
-              <MenuItem className={classes.menuItem} onClick={this.handleClose}>
-                <ListItemIcon className={classes.icon}>
-                  <SendIcon />
-                </ListItemIcon>
-                <ListItemText classes={{ primary: classes.primary }} inset primary={myMn.name} />
-              </MenuItem>
+              <Link to={"/Explorer/MasternodeList/" + myMn.output}>
+                <MenuItem className={classes.menuItem} onClick={this.handleClose}>
+                  <ListItemIcon className={classes.icon}>
+                    <SendIcon />
+                  </ListItemIcon>
+                  <ListItemText classes={{ primary: classes.primary }} inset primary={myMn.name} />
+                </MenuItem>
+              </Link>
             )
           )
         }

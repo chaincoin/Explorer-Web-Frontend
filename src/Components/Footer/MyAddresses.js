@@ -9,6 +9,7 @@ import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 
+import { Link } from "react-router-dom";
 
 
 import BlockchainServices from '../../Services/BlockchainServices';
@@ -17,6 +18,9 @@ import MyWalletServices from '../../Services/MyWalletServices';
 const styles = {
   root: {
    display:"inline"
+  },
+  button:{
+    "text-transform": "initial"
   }
 };
 
@@ -46,6 +50,7 @@ class MyAddresses extends React.Component {
   handleClose = () => {
     this.setState({ anchorEl: null });
   };
+
 
   componentDidMount() {
 
@@ -100,11 +105,11 @@ class MyAddresses extends React.Component {
 
     return (
     <div className={classes.root}>
-      <Button variant="contained" color="primary" aria-owns={anchorEl ? 'simple-menu' : undefined} aria-haspopup="true" onClick={this.handleClick}>
+      <Button className={classes.button} variant="contained" color="primary" aria-owns={anchorEl ? 'simple-menu' : undefined} aria-haspopup="true" onClick={this.handleClick}>
         {
           totalBalance == null ? 
-          "Balance: Loading ":
-          "Balance: " + Math.round(totalBalance) + " chc"
+          "Loading ":
+          Math.round(totalBalance) + " chc"
         }
       </Button>
 
@@ -113,7 +118,13 @@ class MyAddresses extends React.Component {
           myAddresses == null ? 
           "" :
           myAddresses.map(myAddress =>
-            (<MenuItem onClick={this.handleClose}>{myAddress.name}: {myAddress.data == null ? "loading" : Math.round(myAddress.data.balance) + " chc"}</MenuItem>)
+            (
+              <Link to={"/Explorer/Address/" + myAddress.address}>
+                <MenuItem onClick={this.handleClose}>
+                  {myAddress.name}: {myAddress.data == null ? "loading" : Math.round(myAddress.data.balance) + " chc"}
+                </MenuItem>
+              </Link>
+            )
           )
         }
       </Menu>
