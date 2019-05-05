@@ -30,6 +30,8 @@ const styles = theme => ({
   },
   primary: {},
   icon: {},
+  checkIcon: {color:"green"},
+  closeIcon: {color:"red"}
 });
 
 class MyMasternodes extends React.Component {
@@ -90,6 +92,12 @@ class MyMasternodes extends React.Component {
     <div className={classes.root}>
       <Button className={classes.button} variant="contained" color="primary" aria-owns={anchorEl ? 'simple-menu' : undefined} aria-haspopup="true" onClick={this.handleClick}>
         {
+          mnProblems == false ? 
+          (<CheckIcon className={classes.checkIcon}/>):
+          (<CloseIcon className={classes.closeIcon}/>)
+        }
+        
+        {
           myMasternodes == null ? 
           "loading" :
           myMasternodes.length - mnProblems + "/" + myMasternodes.length
@@ -108,8 +116,8 @@ class MyMasternodes extends React.Component {
                   <ListItemIcon className={classes.icon}>
                     {
                       myMn.mn != null && myMn.mn.status == "ENABLED" ? 
-                      (<CheckIcon />):
-                      (<CloseIcon/>)
+                      (<CheckIcon className={classes.checkIcon}/>):
+                      (<CloseIcon className={classes.closeIcon}/>)
                     }
                   </ListItemIcon>
                   <ListItemText classes={{ primary: classes.primary }} inset primary={myMn.name} />
