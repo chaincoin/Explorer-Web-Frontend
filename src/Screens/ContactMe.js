@@ -37,6 +37,18 @@ class ContactMe extends React.Component {
           </CardText>
         </CardBody>
       </Card>
+
+      <Card>
+        <CardHeader>
+        Development 
+        </CardHeader>
+        <CardBody>
+          <CardText>
+          GitHub: <a href="https://github.com/chaincoin/explorer-web-frontend" >https://github.com/chaincoin/explorer-web-frontend</a> <br/>
+          Trello: <a href="https://trello.com/b/iTzX91yq/chaincoinexplorercouk" >https://trello.com/b/iTzX91yq/chaincoinexplorercouk</a> <br/>
+          </CardText>
+        </CardBody>
+      </Card>
     </div>
       
     );
