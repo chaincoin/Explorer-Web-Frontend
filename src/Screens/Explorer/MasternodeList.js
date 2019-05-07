@@ -10,9 +10,7 @@ import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
+
 
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import { Link } from "react-router-dom";
@@ -52,7 +50,6 @@ class MasternodeList extends React.Component {
 
     searchInput: "",
 
-    menuAnchorEl: []
   };
 
   masternodeListSubscription = null;
@@ -66,38 +63,10 @@ class MasternodeList extends React.Component {
     this.setState({ page: 0, rowsPerPage: parseInt(event.target.value) });
   };
 
-  handleMenuClick = (rowPos) => {
-    return (event) =>{
-      var menuAnchorEls = [];
-      menuAnchorEls[rowPos] = event.currentTarget;
-      this.setState({ menuAnchorEl: menuAnchorEls });
-    }
-  };
 
-  handleMenuClose = () => {
-    this.setState({ menuAnchorEl: [] });
-  };
 
-  
-  handleMenuAddToMyMNs = (output) => {
-    return () =>{
-      this.handleMenuClose();
-      var name = prompt("Please enter a name for the masternode");
-      if (name == null) return;
 
-      MyWalletServices.addMyMasternode(name, output); //TODO: handle error
-    }
-  };
 
-  handleMenuRemoveFromMyMns = (output) => {
-    return () =>{
-      this.handleMenuClose();
-
-      if (window.confirm("Are you sure?") == false) return;
-      MyWalletServices.deleteMyMasternode(output); //TODO: handle error
-      
-    }
-  };
 
   componentDidMount() {
 
@@ -129,7 +98,7 @@ class MasternodeList extends React.Component {
  
   render() {
     const { classes } = this.props;
-    const { rowsPerPage, page, menuAnchorEl } = this.state;
+    const { rowsPerPage, page } = this.state;
     var { rows, searchInput } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
