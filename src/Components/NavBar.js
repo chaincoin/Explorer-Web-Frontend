@@ -81,6 +81,11 @@ class ChaincoinExplorerNavBar extends React.Component {
                   Rich List
                   </DropdownItem>
                 </Link>
+                <Link to="/Explorer/PeerList">
+                  <DropdownItem>
+                  Peer List
+                  </DropdownItem>
+                </Link>
                 <Link to="/Explorer/MemPool">
                   <DropdownItem>
                   Mem Pool

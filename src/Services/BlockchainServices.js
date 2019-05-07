@@ -570,6 +570,32 @@ const BlockCount = Observable.create(function(observer) {
   }));
   
 
+  var peerInfo = Observable.create(function(observer) {
+
+    var _peerInfo = null;
+
+    var getPeerInfoHttp = () =>{
+      sendRequest({
+        op: "getPeerInfo",
+      })
+      .then((peerInfo) => {
+        _peerInfo = peerInfo;
+        observer.next(peerInfo);
+      });
+    };
+
+    var intervalId = setInterval(getPeerInfoHttp, 30000);
+    getPeerInfoHttp();
+
+    return () => {
+        clearInterval(intervalId);
+    }
+  
+  }).pipe(shareReplay({
+    bufferSize: 1,
+    refCount: true
+  }));
+
 
   var richListCount = Observable.create(function(observer) {
 
@@ -677,8 +703,9 @@ const BlockCount = Observable.create(function(observer) {
     getMasternodeEvents,
     masternodeWinners,
 
+    peerInfo,
+
     memPoolInfo,
-  
     rawMemPool,
 
     richListCount,
