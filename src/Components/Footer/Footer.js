@@ -40,18 +40,16 @@ class ChaincoinExplorerFooter extends React.Component {
     return (
     <div className={classes.root}>
 
-      <Grid container spacing={24}>
-        <Hidden xsDown>
-          <Grid item xs={0} sm={4} lg={4}>
+      <Grid container >
+        <Grid item sm={4} lg={4} classes="hide-xs">
 
-          </Grid>
-        </Hidden>
-        <Grid item xs={12} sm={4} lg={4}>
+        </Grid>
+        <Grid item xs={6} sm={4} lg={4}>
           <div className={classes.poweredBy}>
             Powered By Mcna
           </div>
         </Grid>
-        <Grid item xs={12} sm={4} lg={4}>
+        <Grid item xs={6} sm={4} lg={4}>
           <span className={classes.controls}>
             <MyAddresses />
             <MyMasternodes />
