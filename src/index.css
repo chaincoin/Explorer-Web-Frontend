@@ -14,12 +14,3 @@ code {
 }
 
 
-
-
-@media (min-width: 600px)
-{
-  .hide-xs {
-      display: none;
-
-  }
-}

@@ -22,6 +22,7 @@
     width: 100%;
     display: table;
     margin: 0 auto;
+    padding-bottom: 40px;
 }
 
 
@@ -32,6 +33,17 @@
 }
 
 
+
+
+
+
+@media (min-width: 600px)
+{
+  .hide-xs {
+      display: none;
+
+  }
+}
 
 
 
