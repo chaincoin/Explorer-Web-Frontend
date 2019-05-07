@@ -114,6 +114,11 @@ class MyAddresses extends React.Component {
       </Button>
 
       <Menu id="simple-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={this.handleClose}>
+        <Link to={"/Explorer/MyWallet/MyAddresses"}>
+          <MenuItem onClick={this.handleClose}>
+            My Addresses
+          </MenuItem>
+        </Link>
         {
           myAddresses == null ? 
           "" :
@@ -127,11 +132,7 @@ class MyAddresses extends React.Component {
             )
           )
         }
-        <Link to={"/Explorer/MyWallet/MyAddresses"}>
-          <MenuItem onClick={this.handleClose}>
-            My Addresses
-          </MenuItem>
-        </Link>
+        
       </Menu>
     </div>
       

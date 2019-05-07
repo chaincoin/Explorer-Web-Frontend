@@ -101,11 +101,15 @@ class MyMasternodes extends React.Component {
           myMasternodes == null ? 
           "loading" :
           myMasternodes.length - mnProblems + "/" + myMasternodes.length
-        } My MNs
+        }
       </Button>
 
       <Menu id="simple-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={this.handleClose}>
-
+        <Link to={"/Explorer/MyWallet/MyMasternodes"}>
+          <MenuItem onClick={this.handleClose}>
+            My Masternodes
+          </MenuItem>
+        </Link>
         {
           myMasternodes == null ?
           "" :
@@ -126,11 +130,7 @@ class MyMasternodes extends React.Component {
             )
           )
         }
-        <Link to={"/Explorer/MyWallet/MyMasternodes"}>
-          <MenuItem onClick={this.handleClose}>
-            My Masternodes
-          </MenuItem>
-        </Link>
+        
       </Menu>
     </div>
       
