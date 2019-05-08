@@ -66,27 +66,21 @@ class PeerList extends React.Component {
     this.setState({ page: 0, rowsPerPage: parseInt(event.target.value) });
   };
 
- 
-
-
   componentDidMount() {
-
-
-
     this.subscription = BlockchainServices.peerInfo.subscribe((peerInfo) =>{
       this.setState({
         rows: peerInfo
       });
     });
-
   }
 
   componentWillUnmount = () => {
-
     this.subscription.unsubscribe();
   }
 
-
+  labelDisplayedRows(){
+    return "";
+  }
  
   render() {
     const { classes } = this.props;
@@ -95,57 +89,53 @@ class PeerList extends React.Component {
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
 
-
-    
-
     return (
       <Card>
         <CardHeader>
           Peers
         </CardHeader>
         <CardBody>
-
           <Paper>
-            <Table className={classes.table}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Address</TableCell>
-                  <TableCell>Connection Time</TableCell>
-                  <TableCell>Version</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowPos) => (
-                  <TableRow >
-                    <TableCell component="th" scope="row">{row.addr}</TableCell>
-                    <TableCell>{TimeToString(row.conntime)}</TableCell>
-                    <TableCell>{row.version}</TableCell>
+            <div className={classes.tableWrapper}>
+              <Table className={classes.table}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Address</TableCell>
+                    <TableCell>Connection Time</TableCell>
+                    <TableCell>Version</TableCell>
                   </TableRow>
-                ))}
-                {emptyRows > 0 && (
-                  <TableRow style={{ height: 48 * emptyRows }}>
-                    <TableCell colSpan={2} />
-                  </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    colSpan={2}
-                    count={rows.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    SelectProps={{
-                      native: true,
-                    }}
-                    onChangePage={this.handleChangePage}
-                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                    ActionsComponent={TablePaginationActions}
-                  />
-                </TableRow>
-              </TableFooter>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowPos) => (
+                    <TableRow >
+                      <TableCell component="th" scope="row">{row.addr}</TableCell>
+                      <TableCell>{TimeToString(row.conntime)}</TableCell>
+                      <TableCell>{row.version}</TableCell>
+                    </TableRow>
+                  ))}
+                  {emptyRows > 0 && (
+                    <TableRow style={{ height: 48 * emptyRows }}>
+                      <TableCell colSpan={2} />
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <TablePagination
+              labelRowsPerPage=""
+              rowsPerPageOptions={[]}
+              labelDisplayedRows={this.labelDisplayedRows}
+              colSpan={2}
+              count={rows.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              SelectProps={{
+                native: true,
+              }}
+              onChangePage={this.handleChangePage}
+              onChangeRowsPerPage={this.handleChangeRowsPerPage}
+              ActionsComponent={TablePaginationActions}
+            />
           </Paper>
         </CardBody>
       </Card>

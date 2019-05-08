@@ -42,6 +42,10 @@ class BlockDetailsTransactions extends React.Component {
     this.setState({ page: 0, rowsPerPage: event.target.value });
   };
 
+  labelDisplayedRows(){
+    return "";
+  }
+
   render() {
     const { classes } = this.props;
     const { rowsPerPage, page } = this.state;
@@ -78,25 +82,23 @@ class BlockDetailsTransactions extends React.Component {
                     </TableRow>
                   )}
                 </TableBody>
-                <TableFooter>
-                  <TableRow>
-                    <TablePagination
-                      rowsPerPageOptions={[5, 10, 25]}
-                      colSpan={3}
-                      count={block.tx.length}
-                      rowsPerPage={rowsPerPage}
-                      page={page}
-                      SelectProps={{
-                        native: true,
-                      }}
-                      onChangePage={this.handleChangePage}
-                      onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                      ActionsComponent={TablePaginationActions}
-                    />
-                  </TableRow>
-                </TableFooter>
               </Table>
             </div>
+            <TablePagination
+              labelRowsPerPage=""
+              rowsPerPageOptions={[]}
+              labelDisplayedRows={this.labelDisplayedRows}
+              colSpan={3}
+              count={block.tx.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              SelectProps={{
+                native: true,
+              }}
+              onChangePage={this.handleChangePage}
+              onChangeRowsPerPage={this.handleChangeRowsPerPage}
+              ActionsComponent={TablePaginationActions}
+            />
           </Paper>
         </CardBody>
       </Card>

@@ -49,7 +49,6 @@ class MyAddresses extends React.Component {
     page: 0,
     rowsPerPage: 10,
     loading: true,
-    windowWidth: 0,
     error: null,
 
   };
@@ -68,44 +67,32 @@ class MyAddresses extends React.Component {
   };
 
   componentDidMount() {
-
-    window.addEventListener("resize", this.updateDimensions);
-    this.setState({windowWidth: window.innerWidth});
-
-
     this.myAddressesSubscription = MyWalletServices.myAddresses.subscribe(myAddresses =>{ //TODO: this could be done better
 
-        this.addressSubscriptions.forEach(v => v.unsubscribe());
-        this.setState({
-          rows: myAddresses 
-        }, () =>{
+      this.addressSubscriptions.forEach(v => v.unsubscribe());
+      this.setState({
+        rows: myAddresses 
+      }, () =>{
 
-          this.addressSubscriptions = myAddresses.map((address, index) => {
-            return BlockchainServices.getAddress(address.address).subscribe(address =>{
-              this.setState({
-                rows: update(this.state.rows, {[index]: {data: {$set: address}}})
-              })
-  
-            });
+        this.addressSubscriptions = myAddresses.map((address, index) => {
+          return BlockchainServices.getAddress(address.address).subscribe(address =>{
+            this.setState({
+              rows: update(this.state.rows, {[index]: {data: {$set: address}}})
+            })
+
           });
-
         });
+
       });
+    });
   }
 
   componentWillUnmount() {
-    window.removeEventListener("resize", this.updateDimensions); 
     this.myAddressesSubscription.unsubscribe();
     this.addressSubscriptions.forEach(v => v.unsubscribe());
 
   }
 
-
-  updateDimensions = () => {
-    this.setState({windowWidth: window.innerWidth});
-  }
-
-  
 
   handleCreateAddress(){
     var name = prompt("Please enter a name for the address");
@@ -166,14 +153,16 @@ class MyAddresses extends React.Component {
       alert(WIF);
     }
   }
+
+  labelDisplayedRows(){
+    return "";
+  }
  
   render() {
     const { classes } = this.props;
     const { rowsPerPage, page } = this.state;
     var { rows } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
-
-
 
     return (
       <div>
@@ -196,63 +185,63 @@ class MyAddresses extends React.Component {
           </Button>
           
             <Paper>
-              <Table className={classes.table}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Address</TableCell>
-                    <TableCell>Balance (CHC)</TableCell>
-                    <TableCell></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
-                    <TableRow >
-                      <TableCell>
-                        {row.name}
-                      </TableCell>
-                      <TableCell component="th" scope="row"><Link to={"/Explorer/Address/" + row.address}>{row.address}</Link></TableCell>
-                      <TableCell>
-                        {
-                          row.data != null ? 
-                          row.data.balance :
-                          "0"
-                        }
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="contained" color="secondary" className={classes.button} onClick={this.handleDeleteAddress(row.address)}>
-                          Remove
-                        </Button>
-                        <Button variant="contained" color="primary" className={classes.button} onClick={this.handleExportWif(row.WIF)} disabled={row.WIF == null}>
-                          WIF
-                        </Button>
-                      </TableCell>
+              <div className={classes.tableWrapper}>
+                <Table className={classes.table}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Name</TableCell>
+                      <TableCell>Address</TableCell>
+                      <TableCell>Balance (CHC)</TableCell>
+                      <TableCell></TableCell>
                     </TableRow>
-                  ))}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 48 * emptyRows }}>
-                      <TableCell colSpan={6} />
-                    </TableRow>
-                  )}
-                </TableBody>
-                <TableFooter>
-                  <TableRow>
-                    <TablePagination
-                      rowsPerPageOptions={[5, 10, 25]}
-                      colSpan={5}
-                      count={rows.length}
-                      rowsPerPage={rowsPerPage}
-                      page={page}
-                      SelectProps={{
-                        native: true,
-                      }}
-                      onChangePage={this.handleChangePage}
-                      onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                      ActionsComponent={TablePaginationActions}
-                    />
-                  </TableRow>
-                </TableFooter>
-              </Table>
+                  </TableHead>
+                  <TableBody>
+                    {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
+                      <TableRow >
+                        <TableCell>
+                          {row.name}
+                        </TableCell>
+                        <TableCell component="th" scope="row"><Link to={"/Explorer/Address/" + row.address}>{row.address}</Link></TableCell>
+                        <TableCell>
+                          {
+                            row.data != null ? 
+                            row.data.balance :
+                            "0"
+                          }
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="contained" color="secondary" className={classes.button} onClick={this.handleDeleteAddress(row.address)}>
+                            Remove
+                          </Button>
+                          <Button variant="contained" color="primary" className={classes.button} onClick={this.handleExportWif(row.WIF)} disabled={row.WIF == null}>
+                            WIF
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {emptyRows > 0 && (
+                      <TableRow style={{ height: 48 * emptyRows }}>
+                        <TableCell colSpan={6} />
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              <TablePagination
+                labelRowsPerPage=""
+                rowsPerPageOptions={[]}
+                labelDisplayedRows={this.labelDisplayedRows}
+                colSpan={5}
+                count={rows.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                SelectProps={{
+                  native: true,
+                }}
+                onChangePage={this.handleChangePage}
+                onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                ActionsComponent={TablePaginationActions}
+              />
             </Paper>
           </CardBody>
         </Card>

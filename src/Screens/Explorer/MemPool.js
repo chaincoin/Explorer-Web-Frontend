@@ -59,32 +59,24 @@ class MemPoolList extends React.Component {
   };
 
   componentDidMount() {
-
-    window.addEventListener("resize", this.updateDimensions);
-    this.setState({windowWidth: window.innerWidth});
-
     this.rawMemPoolSubscription = BlockchainServices.rawMemPool.subscribe((memPool) =>{
       this.setState({
         rows: memPool
       });
     });
-
   }
 
   componentWillUnmount() {
-    window.removeEventListener("resize", this.updateDimensions); 
     this.rawMemPoolSubscription.unsubscribe();
-  }
-
-
-  updateDimensions = () => {
-    this.setState({windowWidth: window.innerWidth});
   }
 
   handleSearch = (event) => {
     this.setState({ searchInput: event.target.value });
   }
   
+  labelDisplayedRows(){
+    return "";
+  }
  
   render() {
     const { classes } = this.props;
@@ -116,44 +108,44 @@ class MemPoolList extends React.Component {
             fullWidth
           />
           <Paper>
-            <Table className={classes.table}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Hash</TableCell>
-                  <TableCell>Recipients</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
-                  <TableRow >
-                    <TableCell><Link to={"/Explorer/Transaction/" + row.txid}>{row.txid}</Link></TableCell>
-                    <TableCell>{row.vout.length}</TableCell>
+            <div className={classes.tableWrapper}>
+              <Table className={classes.table}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Hash</TableCell>
+                    <TableCell>Recipients</TableCell>
                   </TableRow>
-                ))}
-                {emptyRows > 0 && (
-                  <TableRow style={{ height: 48 * emptyRows }}>
-                    <TableCell colSpan={2} />
-                  </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    colSpan={2}
-                    count={rows.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    SelectProps={{
-                      native: true,
-                    }}
-                    onChangePage={this.handleChangePage}
-                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                    ActionsComponent={TablePaginationActions}
-                  />
-                </TableRow>
-              </TableFooter>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
+                    <TableRow >
+                      <TableCell><Link to={"/Explorer/Transaction/" + row.txid}>{row.txid}</Link></TableCell>
+                      <TableCell>{row.vout.length}</TableCell>
+                    </TableRow>
+                  ))}
+                  {emptyRows > 0 && (
+                    <TableRow style={{ height: 48 * emptyRows }}>
+                      <TableCell colSpan={2} />
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <TablePagination
+              labelRowsPerPage=""
+              rowsPerPageOptions={[]}
+              labelDisplayedRows={this.labelDisplayedRows}
+              colSpan={2}
+              count={rows.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              SelectProps={{
+                native: true,
+              }}
+              onChangePage={this.handleChangePage}
+              onChangeRowsPerPage={this.handleChangeRowsPerPage}
+              ActionsComponent={TablePaginationActions}
+            />
           </Paper>
         </CardBody>
       </Card>

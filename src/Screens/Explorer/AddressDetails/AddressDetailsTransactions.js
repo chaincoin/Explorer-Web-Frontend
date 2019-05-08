@@ -23,7 +23,6 @@ const styles = theme => ({
     marginTop: theme.spacing.unit * 3,
   },
   table: {
-    minWidth: 500,
   },
   tableWrapper: {
     overflowX: 'auto',
@@ -76,6 +75,10 @@ class AddressDetailsTransactions extends React.Component {
       )
   }
 
+  labelDisplayedRows(){
+    return "";
+  }
+
   render() {
     const { classes } = this.props;
     const { rows, rowsPerPage, page } = this.state;
@@ -112,25 +115,23 @@ class AddressDetailsTransactions extends React.Component {
                     </TableRow>
                   )}
                 </TableBody>
-                <TableFooter>
-                  <TableRow>
-                    <TablePagination
-                      rowsPerPageOptions={[5, 10, 25]}
-                      colSpan={3}
-                      count={address.txCount}
-                      rowsPerPage={rowsPerPage}
-                      page={page}
-                      SelectProps={{
-                        native: true,
-                      }}
-                      onChangePage={this.handleChangePage}
-                      onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                      ActionsComponent={TablePaginationActions}
-                    />
-                  </TableRow>
-                </TableFooter>
               </Table>
             </div>
+            <TablePagination
+              labelRowsPerPage=""
+              rowsPerPageOptions={[]}
+              labelDisplayedRows={this.labelDisplayedRows}
+              colSpan={3}
+              count={address.txCount}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              SelectProps={{
+                native: true,
+              }}
+              onChangePage={this.handleChangePage}
+              onChangeRowsPerPage={this.handleChangeRowsPerPage}
+              ActionsComponent={TablePaginationActions}
+            />
           </Paper>
         </CardBody>
       </Card>

@@ -99,7 +99,11 @@ class RichList extends React.Component {
         }
       )
   }
- 
+
+  labelDisplayedRows(){
+    return "";
+  }
+
   render() {
     const { classes } = this.props;
     const { rows, rowsPerPage, page, richListCount } = this.state;
