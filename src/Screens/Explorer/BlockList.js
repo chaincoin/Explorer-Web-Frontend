@@ -29,7 +29,7 @@ const styles = theme => ({
     marginTop: theme.spacing.unit * 3,
   },
   table: {
-    minWidth: 500,
+
   },
   tableWrapper: {
     overflowX: 'auto',
@@ -44,7 +44,6 @@ class BlockList extends React.Component {
     page: 0,
     rowsPerPage: 10,
     loading: true,
-    windowWidth: 0,
 
     blockCount: null
   };
@@ -62,8 +61,6 @@ class BlockList extends React.Component {
 
   componentDidMount() {
 
-    window.addEventListener("resize",  this.updateDimensions);
-    this.setState({windowWidth: window.innerWidth});
 
     this.blockCountSubscription = BlockchainServices.blockCount.subscribe((blockCount) =>{
       //TODO: this works to make the Pagination controls correct but its not great and the Displayed Item numbers is wrong 
@@ -83,14 +80,11 @@ class BlockList extends React.Component {
   }
 
   componentWillUnmount() {
-    window.removeEventListener("resize",this.updateDimensions);  
     this.blockCountSubscription.unsubscribe();
   }
 
 
-  updateDimensions = () => {
-    this.setState({windowWidth: window.innerWidth});
-  }
+
 
 
   getBlocks(){
@@ -123,56 +117,55 @@ class BlockList extends React.Component {
     const emptyRows = rowsPerPage - rows.length;
 
     return (
-      <Card>
+      <Card className={classes.root}>
         <CardHeader>
           Blocks
         </CardHeader>
         <CardBody>
           <Paper>
-            <Table className={classes.table}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Block</TableCell>
-                  <TableCell hidden={this.state.windowWidth < 1110}>Hash</TableCell>
-                  <TableCell hidden={this.state.windowWidth < 660}>Recipients</TableCell>
-                  <TableCell hidden={this.state.windowWidth < 560}>Amount (CHC)</TableCell>
-                  <TableCell>Timestamp</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map(row => (
-                  <TableRow key={row.id}>
-                    <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.height}>{row.height}</Link></TableCell>
-                    <TableCell hidden={this.state.windowWidth < 1110}><Link to={"/Explorer/Block/" + row.height}>{row.hash}</Link></TableCell>
-                    <TableCell hidden={this.state.windowWidth < 660}>{row.tx.map(tx => tx.recipients).reduce(add)}</TableCell>
-                    <TableCell hidden={this.state.windowWidth < 560}>{row.tx.map(tx => tx.value).reduce(add)}</TableCell>
-                    <TableCell>{TimeToString(row.time)}</TableCell>
+            <div className={classes.tableWrapper}>
+              <Table className={classes.table}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Block</TableCell>
+                    <TableCell>Hash</TableCell>
+                    <TableCell>Recipients</TableCell>
+                    <TableCell>Amount (CHC)</TableCell>
+                    <TableCell>Timestamp</TableCell>
                   </TableRow>
-                ))}
-                {emptyRows > 0 && (
-                  <TableRow style={{ height: 48 * emptyRows }}>
-                    <TableCell colSpan={5} />
-                  </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    colSpan={5}
-                    count={blockCount}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    SelectProps={{
-                      native: true,
-                    }}
-                    onChangePage={this.handleChangePage}
-                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                    ActionsComponent={TablePaginationActions}
-                  />
-                </TableRow>
-              </TableFooter>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {rows.map(row => (
+                    <TableRow key={row.id}>
+                      <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.height}>{row.height}</Link></TableCell>
+                      <TableCell><Link to={"/Explorer/Block/" + row.height}>{row.hash}</Link></TableCell>
+                      <TableCell>{row.tx.map(tx => tx.recipients).reduce(add)}</TableCell>
+                      <TableCell>{row.tx.map(tx => tx.value).reduce(add)}</TableCell>
+                      <TableCell>{TimeToString(row.time)}</TableCell>
+                    </TableRow>
+                  ))}
+                  {emptyRows > 0 && (
+                    <TableRow style={{ height: 48 * emptyRows }}>
+                      <TableCell colSpan={5} />
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <TablePagination
+              labelRowsPerPage=""
+              rowsPerPageOptions={[5, 10, 25]}
+              colSpan={5}
+              count={blockCount}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              SelectProps={{
+                native: true,
+              }}
+              onChangePage={this.handleChangePage}
+              onChangeRowsPerPage={this.handleChangeRowsPerPage}
+              ActionsComponent={TablePaginationActions}
+            />
           </Paper>
         </CardBody>
       </Card>
