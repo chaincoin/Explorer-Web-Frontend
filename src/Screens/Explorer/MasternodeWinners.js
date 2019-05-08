@@ -39,7 +39,6 @@ class MasternodeWinners extends React.Component {
     page: 0,
     rowsPerPage: 10,
     loading: true,
-    windowWidth: 0,
     error: null
   };
 
@@ -55,30 +54,21 @@ class MasternodeWinners extends React.Component {
   };
 
   componentDidMount() {
-
-    window.addEventListener("resize", this.updateDimensions);
-    this.setState({windowWidth: window.innerWidth});
-
     this.masternodeWinnersSubscription = BlockchainServices.masternodeWinners.subscribe((masternodeWinners) =>{
       this.setState({
         rows: Object.entries(masternodeWinners)
       });
     });
-
   }
 
   componentWillUnmount() {
-    window.removeEventListener("resize", this.updateDimensions); 
     this.masternodeWinnersSubscription.unsubscribe();
   }
 
 
-  updateDimensions = () => {
-    this.setState({windowWidth: window.innerWidth});
+  labelDisplayedRows(){
+    return "";
   }
-
-
-  
  
   render() {
     const { classes } = this.props;
@@ -92,44 +82,44 @@ class MasternodeWinners extends React.Component {
         </CardHeader>
         <CardBody>
           <Paper>
-            <Table className={classes.table}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Block</TableCell>
-                  <TableCell>Votes</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
-                  <TableRow >
-                    <TableCell component="th" scope="row">{row[0]}</TableCell>
-                    <TableCell>{row[1]}</TableCell>
+            <div className={classes.tableWrapper}>
+              <Table className={classes.table}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Block</TableCell>
+                    <TableCell>Votes</TableCell>
                   </TableRow>
-                ))}
-                {emptyRows > 0 && (
-                  <TableRow style={{ height: 48 * emptyRows }}>
-                    <TableCell colSpan={2} />
-                  </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    colSpan={2}
-                    count={rows.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    SelectProps={{
-                      native: true,
-                    }}
-                    onChangePage={this.handleChangePage}
-                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                    ActionsComponent={TablePaginationActions}
-                  />
-                </TableRow>
-              </TableFooter>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
+                    <TableRow >
+                      <TableCell component="th" scope="row">{row[0]}</TableCell>
+                      <TableCell>{row[1]}</TableCell>
+                    </TableRow>
+                  ))}
+                  {emptyRows > 0 && (
+                    <TableRow style={{ height: 48 * emptyRows }}>
+                      <TableCell colSpan={2} />
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              </div>
+              <TablePagination
+                labelRowsPerPage=""
+                rowsPerPageOptions={[]}
+                labelDisplayedRows={this.labelDisplayedRows}
+                colSpan={2}
+                count={rows.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                SelectProps={{
+                  native: true,
+                }}
+                onChangePage={this.handleChangePage}
+                onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                ActionsComponent={TablePaginationActions}
+              />
           </Paper>
         </CardBody>
       </Card>
