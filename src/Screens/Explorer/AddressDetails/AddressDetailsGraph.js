@@ -20,12 +20,8 @@ class AddressDetailsGraph extends React.Component {
     super(props);
 
     this.state = {
-
     };
-  
   }
-
-
 
   render(){
     const { classes, address } = this.props;
