@@ -48,8 +48,6 @@ class RichList extends React.Component {
     rowsPerPage: 10,
     loading: true,
     error: null,
-    windowWidth: 0,
-
     richListCount: null
   };
 
@@ -65,27 +63,16 @@ class RichList extends React.Component {
   };
 
   componentDidMount() {
-
-    window.addEventListener("resize", this.updateDimensions);
-    this.setState({windowWidth: window.innerWidth});
-
     this.richListCountSubscription = BlockchainServices.richListCount.subscribe((richListCount) =>{
 
       this.setState({
         richListCount: richListCount
       }, this.state.richListCount == null ? this.getRichList : null);
     });
-
   }
 
   componentWillUnmount() {
-    window.removeEventListener("resize", this.updateDimensions); 
     this.richListCountSubscription.unsubscribe();
-  }
-
-
-  updateDimensions = () => {
-    this.setState({windowWidth: window.innerWidth});
   }
 
 
@@ -125,48 +112,48 @@ class RichList extends React.Component {
         </CardHeader>
         <CardBody>
           <Paper>
-            <Table className={classes.table}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Address</TableCell>
-                  <TableCell>Last Activity</TableCell>
-                  <TableCell>Balance (CHC)</TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map(row => (
-                  <TableRow key={row.id}>
-                    <TableCell component="th" scope="row"><Link to={"/Explorer/Address/" + row.address}>{row.address}</Link></TableCell>
-                    <TableCell>{TimeToString(row.lastActivity)}</TableCell>
-                    <TableCell>{row.balance}</TableCell>
-                    <TableCell><AddressMenu address={row.address} /></TableCell>
+            <div className={classes.tableWrapper}>
+              <Table className={classes.table}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Address</TableCell>
+                    <TableCell>Last Activity</TableCell>
+                    <TableCell>Balance (CHC)</TableCell>
+                    <TableCell></TableCell>
                   </TableRow>
-                ))}
-                {emptyRows > 0 && (
-                  <TableRow style={{ height: 48 * emptyRows }}>
-                    <TableCell colSpan={4} />
-                  </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    colSpan={4}
-                    count={richListCount}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    SelectProps={{
-                      native: true,
-                    }}
-                    onChangePage={this.handleChangePage}
-                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                    ActionsComponent={TablePaginationActions}
-                  />
-                </TableRow>
-              </TableFooter>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {rows.map(row => (
+                    <TableRow key={row.id}>
+                      <TableCell component="th" scope="row"><Link to={"/Explorer/Address/" + row.address}>{row.address}</Link></TableCell>
+                      <TableCell>{TimeToString(row.lastActivity)}</TableCell>
+                      <TableCell>{row.balance}</TableCell>
+                      <TableCell><AddressMenu address={row.address} /></TableCell>
+                    </TableRow>
+                  ))}
+                  {emptyRows > 0 && (
+                    <TableRow style={{ height: 48 * emptyRows }}>
+                      <TableCell colSpan={4} />
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <TablePagination
+              labelRowsPerPage=""
+              rowsPerPageOptions={[]}
+              labelDisplayedRows={this.labelDisplayedRows}
+              colSpan={4}
+              count={richListCount}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              SelectProps={{
+                native: true,
+              }}
+              onChangePage={this.handleChangePage}
+              onChangeRowsPerPage={this.handleChangeRowsPerPage}
+              ActionsComponent={TablePaginationActions}
+            />
           </Paper>
         </CardBody>
       </Card>
