@@ -41,7 +41,7 @@ var mine = function () {
 
     var attempts = maxAttempts * (strength / 100);
 
-    if (miningHeader != null) {
+    if (miner != null && miningHeader != null) {
         if (webAssemblyMinerData == null) {
             webAssemblyMinerData = setupWebAssemblyMinerData(webAssemblyMinerData, miningHeader.blockHeaderHex, miningHeader.target);
         }

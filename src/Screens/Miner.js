@@ -70,10 +70,10 @@ class Miner extends React.Component {
     const { mining, strength} = this.state;
     var workers = this.state.workers.concat([]);
 
-    var makeWorker = function()
+    var makeWorker = () =>
     {
         var worker = new Worker('/miner-worker.js?id=14');
-        worker.addEventListener('message', function(e) {
+        worker.addEventListener('message', (e) => {
             //console.log(e.data);
             var request = e.data;
 
@@ -90,7 +90,7 @@ class Miner extends React.Component {
                   getBlockSubscription.unsubscribe();
 
                   this.setState({
-                    rows: this.state.minedBlocks.concat([block])
+                    rows: this.state.rows.concat([block])
                   })
                 });
 
@@ -135,6 +135,8 @@ class Miner extends React.Component {
   };
 
   handleStartClick = (event) => {
+
+    this.handleThreadsChange(null, this.state.threads);
 
     const { workers } = this.state;
     for(var i = 0; i < workers.length; i++)
