@@ -27,22 +27,30 @@ class BlockDetails extends React.Component {
   }
 
 
-  componentDidMount() {
+  blockSubscribe(){
     const { blockId } = this.props.match.params
+
+    if (this.getBlockSubscription != null) this.getBlockSubscription.unsubscribe();
 
     this.getBlockSubscription = BlockchainServices.getBlock(blockId).subscribe((block) =>{
       this.setState({
         block: block
       });
     });
+  }
 
+  componentDidMount() {
+    this.blockSubscribe();
   }
 
   componentWillUnmount() {
-
     this.getBlockSubscription.unsubscribe();
   }
 
+
+  componentDidUpdate(prevProps) {
+    if (this.props.match.params.blockId  != prevProps.match.params.blockId) this.blockSubscribe();
+  }
 
 
   render(){

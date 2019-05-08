@@ -27,23 +27,30 @@ class AddressDetails extends React.Component {
     this.getAddressSubscription = null;
   }
 
+  addressSubscribe(){
+    const { addressId } = this.props.match.params;
 
-  componentDidMount() {
-    const { addressId } = this.props.match.params
+    if (this.getAddressSubscription != null) this.getAddressSubscription.unsubscribe();
 
     this.getAddressSubscription = BlockchainServices.getAddress(addressId).subscribe((address) =>{
       this.setState({
         address: address
       });
     });
+  }
 
+  componentDidMount() {
+    this.addressSubscribe();
   }
 
   componentWillUnmount() {
-
     this.getAddressSubscription.unsubscribe();
   }
 
+
+  componentDidUpdate(prevProps) {
+    if (this.props.match.params.addressId  != prevProps.match.params.addressId) this.addressSubscribe();
+  }
 
 
   render(){
