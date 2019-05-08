@@ -60,27 +60,17 @@ class MasternodeList extends React.Component {
   };
 
 
-
-
-
-
   componentDidMount() {
-
-
-
     this.masternodeListSubscription = BlockchainServices.masternodeList.subscribe((masternodeList) =>{
       this.setState({
         rows: Object.entries(masternodeList)
       });
     });
-
   }
 
   componentWillUnmount = () => {
     this.masternodeListSubscription.unsubscribe();
   }
-
-
 
   handleSearch = (event) => {
     this.setState({ searchInput: event.target.value });
