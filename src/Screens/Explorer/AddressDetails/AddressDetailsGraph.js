@@ -30,8 +30,12 @@ class AddressDetailsGraph extends React.Component {
   render(){
     const { classes, address } = this.props;
 
+    var names = [];
     var addresses = [];
-    if (address != null) addresses.push(address.address);
+    if (address != null) {
+      names.push("");
+      addresses.push(address.address);
+    }
 
     return (
     <div>
@@ -44,7 +48,7 @@ class AddressDetailsGraph extends React.Component {
           <Paper className={classes.paper}>
           {
             address != null ? 
-            <Graph addresses={addresses} payOutType="miner" /> :
+            <Graph names={names} addresses={addresses} payOutType="miner" /> :
             ""
           }
           </Paper>

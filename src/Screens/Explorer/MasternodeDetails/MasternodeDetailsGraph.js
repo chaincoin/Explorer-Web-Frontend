@@ -30,8 +30,12 @@ class MasternodeDetailsGraph extends React.Component {
   render(){
     const { classes, masternode } = this.props;
 
+    var names = [];
     var addresses = [];
-    if (masternode != null) addresses.push(masternode.payee);
+    if (masternode != null) {
+      names.push("");
+      addresses.push(masternode.payee);
+    }
 
     return (
     <div>
@@ -44,7 +48,7 @@ class MasternodeDetailsGraph extends React.Component {
           <Paper className={classes.paper}>
           {
             masternode != null ? 
-            <Graph addresses={addresses} payOutType="masternode" /> :
+            <Graph names={names} addresses={addresses} payOutType="masternode" /> :
             ""
           }
           </Paper>
