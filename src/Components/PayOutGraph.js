@@ -90,7 +90,7 @@ class PayOutGraph extends React.Component {
 
     });
     /*BlockchainServices.getPayoutStats(address, payOutType, unit).then(stats =>{
-      debugger;
+ 
       var p = PayOutStatsToDataSetData(stats,unit, value);
 
       this.setState(
