@@ -31,6 +31,8 @@ import MyMasternodes from './Screens/Explorer/MyWallet/MyMasternodes'
 
 import BountyList from './Screens/BountyList'
 
+import Miner from './Screens/Miner'
+
 import Api from './Screens/Api'
 import News from './Screens/News'
 import Tutorial from './Screens/Tutorials/0.16-MN/Tutorial'
@@ -171,7 +173,8 @@ const styles = theme => ({
           <Route exact path="/Explorer/MyWallet/MyAddresses" component={MyAddresses} />
           <Route exact path="/Explorer/MyWallet/MyMasternodes" component={MyMasternodes} />
           
-
+          
+          <Route exact path="/Miner" component={Miner} />
           <Route exact path="/BountyList" component={BountyList} />
 
           <Route exact path="/Api" component={Api} />
