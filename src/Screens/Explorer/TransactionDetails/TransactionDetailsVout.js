@@ -20,9 +20,6 @@ const styles = theme => ({
     width: '100%',
     marginTop: theme.spacing.unit * 3,
   },
-  table: {
-    minWidth: 500,
-  },
   tableWrapper: {
     overflowX: 'auto',
   },
@@ -42,6 +39,10 @@ class TransactionDetailsVout extends React.Component {
     this.setState({ page: 0, rowsPerPage: event.target.value });
   };
 
+  labelDisplayedRows(){
+    return "";
+  }
+
   render() {
     const { classes } = this.props;
     const { rowsPerPage, page } = this.state;
@@ -50,8 +51,6 @@ class TransactionDetailsVout extends React.Component {
     var vout = transaction.vout.filter(vout => vout.scriptPubKey.addresses != null);
 
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, vout.length - page * rowsPerPage);
-
-    
 
     return (
       <Card>
@@ -81,25 +80,23 @@ class TransactionDetailsVout extends React.Component {
                     </TableRow>
                   )}
                 </TableBody>
-                <TableFooter>
-                  <TableRow>
-                    <TablePagination
-                      rowsPerPageOptions={[5, 10, 25]}
-                      colSpan={2}
-                      count={vout.length}
-                      rowsPerPage={rowsPerPage}
-                      page={page}
-                      SelectProps={{
-                        native: true,
-                      }}
-                      onChangePage={this.handleChangePage}
-                      onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                      ActionsComponent={TablePaginationActions}
-                    />
-                  </TableRow>
-                </TableFooter>
               </Table>
             </div>
+            <TablePagination
+              labelRowsPerPage=""
+              rowsPerPageOptions={[]}
+              labelDisplayedRows={this.labelDisplayedRows}
+              colSpan={2}
+              count={vout.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              SelectProps={{
+                native: true,
+              }}
+              onChangePage={this.handleChangePage}
+              onChangeRowsPerPage={this.handleChangeRowsPerPage}
+              ActionsComponent={TablePaginationActions}
+            />
           </Paper>
         </CardBody>
       </Card>
