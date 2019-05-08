@@ -45,7 +45,6 @@ class BountyList extends React.Component {
     page: 0,
     rowsPerPage: 10,
     loading: true,
-    windowWidth: 0,
     error: null
   };
 
@@ -61,24 +60,15 @@ class BountyList extends React.Component {
   };
 
   componentDidMount() {
-
-    window.addEventListener("resize", this.updateDimensions);
-    this.setState({windowWidth: window.innerWidth});
-
     this.addressSubscriptions = this.state.rows.map((row, index) => BlockchainServices.getAddress(row.address).subscribe(address =>{
-
       this.setState({
         rows: update(this.state.rows, {[index]: {value: {$set: address.balance}}})
       })
-
     }));
     
-
   }
 
   componentWillUnmount() {
-    window.removeEventListener("resize", this.updateDimensions);
-
     this.addressSubscriptions.forEach(addressSubscription => {
       addressSubscription.unsubscribe();
     });
@@ -90,7 +80,9 @@ class BountyList extends React.Component {
   }
 
 
-  
+  labelDisplayedRows(){
+    return "";
+  }
  
   render() {
     const { classes } = this.props;
@@ -104,52 +96,52 @@ class BountyList extends React.Component {
         </CardHeader>
         <CardBody>
           <Paper>
-            <Table className={classes.table}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Created</TableCell>
-                  <TableCell>Amount (CHC)</TableCell>
-                  <TableCell>Notes</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
-                  <TableRow >
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell>{TimeToString(row.created)}</TableCell>
-                    <TableCell>
-                      <Link to={"/Explorer/Address/" + row.address}>
-                        {row.value}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{row.notes}</TableCell>
+            <div>
+              <Table className={classes.table}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Created</TableCell>
+                    <TableCell>Amount (CHC)</TableCell>
+                    <TableCell>Notes</TableCell>
                   </TableRow>
-                ))}
-                {emptyRows > 0 && (
-                  <TableRow style={{ height: 48 * emptyRows }}>
-                    <TableCell colSpan={2} />
-                  </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    colSpan={2}
-                    count={rows.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    SelectProps={{
-                      native: true,
-                    }}
-                    onChangePage={this.handleChangePage}
-                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                    ActionsComponent={TablePaginationActions}
-                  />
-                </TableRow>
-              </TableFooter>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
+                    <TableRow >
+                      <TableCell>{row.name}</TableCell>
+                      <TableCell>{TimeToString(row.created)}</TableCell>
+                      <TableCell>
+                        <Link to={"/Explorer/Address/" + row.address}>
+                          {row.value}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{row.notes}</TableCell>
+                    </TableRow>
+                  ))}
+                  {emptyRows > 0 && (
+                    <TableRow style={{ height: 48 * emptyRows }}>
+                      <TableCell colSpan={2} />
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <TablePagination
+              labelRowsPerPage=""
+              rowsPerPageOptions={[]}
+              labelDisplayedRows={this.labelDisplayedRows}
+              colSpan={2}
+              count={rows.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              SelectProps={{
+                native: true,
+              }}
+              onChangePage={this.handleChangePage}
+              onChangeRowsPerPage={this.handleChangeRowsPerPage}
+              ActionsComponent={TablePaginationActions}
+            />
           </Paper>
         </CardBody>
       </Card>
