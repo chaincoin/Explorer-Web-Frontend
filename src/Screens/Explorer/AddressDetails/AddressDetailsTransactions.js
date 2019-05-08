@@ -50,6 +50,10 @@ class AddressDetailsTransactions extends React.Component {
     this.getTransactions();
   }
 
+  componentDidUpdate(prevProps) {
+    if (this.props.address  != prevProps.address) this.getTransactions();
+  }
+
   getTransactions(){
     var address = this.props.address;
     var pos = address.txCount - (this.state.page * this.state.rowsPerPage);

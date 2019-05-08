@@ -42,6 +42,10 @@ class PayOutGraph extends React.Component {
 
   componentWillUnmount() {
   }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.addresses  != prevProps.addresses || this.props.names  != prevProps.names || this.props.payOutType  != prevProps.payOutType) this.getGraphData();
+  }
   
   onUnitChange = (event) =>{
     this.setState({unit: event.target.value}, this.getGraphData);
@@ -51,9 +55,8 @@ class PayOutGraph extends React.Component {
 
   onValueChange = (event) => {
     this.setState({value: event.target.value},this.getGraphData);
-
- 
   }
+
 
   getGraphData(){
     this.setState({loading: true});
