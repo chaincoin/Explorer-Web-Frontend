@@ -41,7 +41,7 @@ class ChaincoinExplorerFooter extends React.Component {
     <div className={classes.root}>
 
       <Grid container >
-        <Grid item sm={4} lg={4} classes="hide-xs">
+        <Grid item sm={4} lg={4} classes="hide-xs-down">
 
         </Grid>
         <Grid item xs={6} sm={4} lg={4}>
