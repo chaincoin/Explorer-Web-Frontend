@@ -29,9 +29,6 @@ const styles = theme => ({
     width: '100%',
     marginTop: theme.spacing.unit * 3,
   },
-  table: {
-    minWidth: 500,
-  },
   tableWrapper: {
     overflowX: 'auto',
   },
@@ -45,7 +42,6 @@ class MasternodeList extends React.Component {
     page: 0,
     rowsPerPage: 10,
     loading: true,
-    windowWidth: 0,
     error: null,
 
     searchInput: "",
@@ -70,8 +66,7 @@ class MasternodeList extends React.Component {
 
   componentDidMount() {
 
-    window.addEventListener("resize", this.updateDimensions);
-    this.setState({windowWidth: window.innerWidth});
+
 
     this.masternodeListSubscription = BlockchainServices.masternodeList.subscribe((masternodeList) =>{
       this.setState({
@@ -82,18 +77,17 @@ class MasternodeList extends React.Component {
   }
 
   componentWillUnmount = () => {
-    window.removeEventListener("resize", this.updateDimensions); 
     this.masternodeListSubscription.unsubscribe();
   }
 
 
-  updateDimensions = () => {
-    this.setState({windowWidth: window.innerWidth});
-  }
-
 
   handleSearch = (event) => {
     this.setState({ searchInput: event.target.value });
+  }
+
+  labelDisplayedRows(){
+    return "";
   }
  
   render() {
@@ -133,52 +127,52 @@ class MasternodeList extends React.Component {
         />
 
           <Paper>
-            <Table className={classes.table}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Address</TableCell>
-                  <TableCell>Payee</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Last Seen</TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowPos) => (
-                  <TableRow >
-                    <TableCell component="th" scope="row"><Link to={"/Explorer/MasternodeList/" + row[0]}>{row[1].address}</Link></TableCell>
-                    <TableCell><Link to={"/Explorer/Address/" + row[1].payee}>{row[1].payee}</Link></TableCell>
-                    <TableCell>{row[1].status}</TableCell>
-                    <TableCell>{TimeToString(row[1].lastseen)}</TableCell>
-                    <TableCell>
-                      <MasternodeMenu output={row[0]} payee={row[1].payee} />
-                    </TableCell>
+            <div className={classes.tableWrapper}>
+              <Table className={classes.table}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Address</TableCell>
+                    <TableCell>Payee</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Last Seen</TableCell>
+                    <TableCell></TableCell>
                   </TableRow>
-                ))}
-                {emptyRows > 0 && (
-                  <TableRow style={{ height: 48 * emptyRows }}>
-                    <TableCell colSpan={7} />
-                  </TableRow>
-                )}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    colSpan={7}
-                    count={rows.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    SelectProps={{
-                      native: true,
-                    }}
-                    onChangePage={this.handleChangePage}
-                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                    ActionsComponent={TablePaginationActions}
-                  />
-                </TableRow>
-              </TableFooter>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowPos) => (
+                    <TableRow >
+                      <TableCell component="th" scope="row"><Link to={"/Explorer/MasternodeList/" + row[0]}>{row[1].address}</Link></TableCell>
+                      <TableCell><Link to={"/Explorer/Address/" + row[1].payee}>{row[1].payee}</Link></TableCell>
+                      <TableCell>{row[1].status}</TableCell>
+                      <TableCell>{TimeToString(row[1].lastseen)}</TableCell>
+                      <TableCell>
+                        <MasternodeMenu output={row[0]} payee={row[1].payee} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {emptyRows > 0 && (
+                    <TableRow style={{ height: 48 * emptyRows }}>
+                      <TableCell colSpan={7} />
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <TablePagination
+              labelRowsPerPage=""
+              rowsPerPageOptions={[]}
+              labelDisplayedRows={this.labelDisplayedRows}
+              colSpan={7}
+              count={rows.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              SelectProps={{
+                native: true,
+              }}
+              onChangePage={this.handleChangePage}
+              onChangeRowsPerPage={this.handleChangeRowsPerPage}
+              ActionsComponent={TablePaginationActions}
+            />
           </Paper>
         </CardBody>
       </Card>
