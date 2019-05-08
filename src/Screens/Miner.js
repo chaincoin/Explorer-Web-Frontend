@@ -83,11 +83,10 @@ class Miner extends React.Component {
 
             if (request.event == "MinedBlock"){
 
-                var blockHash = "Mined";
                 var timestamp = new Date();
 
                 
-                var getBlockSubscription = BlockchainServices.getBlock(blockHash).subscribe((block) =>{
+                var getBlockSubscription = BlockchainServices.getBlock(request.blockHash).subscribe((block) =>{
                   getBlockSubscription.unsubscribe();
 
                   this.setState({
