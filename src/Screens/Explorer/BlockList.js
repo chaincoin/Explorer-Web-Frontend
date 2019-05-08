@@ -110,6 +110,10 @@ class BlockList extends React.Component {
         }
       )
   }
+
+  labelDisplayedRows(){
+    return "";
+  }
  
   render() {
     const { classes } = this.props;
@@ -154,7 +158,8 @@ class BlockList extends React.Component {
             </div>
             <TablePagination
               labelRowsPerPage=""
-              rowsPerPageOptions={[5, 10, 25]}
+              rowsPerPageOptions={[]}
+              labelDisplayedRows={this.labelDisplayedRows}
               colSpan={5}
               count={blockCount}
               rowsPerPage={rowsPerPage}
