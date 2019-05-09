@@ -1,8 +1,8 @@
 
-var blockchainApiUrl = "https://blockchain.chaincoinexplorer.co.uk";
-var webServicesApiUrl = "wss://websocket.chaincoinexplorer.co.uk";
-var notificationsApiUrl = "https://notifications.chaincoinexplorer.co.uk";
-var environment = "Live";
+var blockchainApiUrl = "https://blockchain-test.chaincoinexplorer.co.uk";
+var webServicesApiUrl = "wss://websocket-test.chaincoinexplorer.co.uk";
+var notificationsApiUrl = "https://notifications-test.chaincoinexplorer.co.uk";
+var environment = "Test";
 
 
 if (window.location.host == "staging.chaincoinexplorer.co.uk")
@@ -33,7 +33,7 @@ if (window.location.host == "explorer.chaincoin.org")
     environment = "Live";
 }
 
-if (window.location.host == "test.chaincoin.org")
+if (window.location.host == "test-explorer.chaincoin.org")
 {
     blockchainApiUrl = "https://api-test.chaincoin.org";
     webServicesApiUrl = "wss://websocket-test.chaincoin.org";
