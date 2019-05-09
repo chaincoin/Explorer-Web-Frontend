@@ -34,24 +34,13 @@ class AddressDetailsGraph extends React.Component {
     }
 
     return (
-    <div>
-      <Card>
-        <CardHeader>
-          Miner Payout Graph
-        </CardHeader>
-        <CardBody>
-
-          <Paper className={classes.paper}>
-          {
-            address != null ? 
-            <Graph names={names} addresses={addresses} payOutType="miner" /> :
-            ""
-          }
-          </Paper>
-
-        </CardBody>
-      </Card>
-    </div>
+      <Paper className={classes.paper}>
+      {
+        address != null ? 
+        <Graph names={names} addresses={addresses} payOutType="miner" /> :
+        ""
+      }
+      </Paper>
       
     );
   }
