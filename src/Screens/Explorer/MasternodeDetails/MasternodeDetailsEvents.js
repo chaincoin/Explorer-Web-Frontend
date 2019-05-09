@@ -5,11 +5,9 @@ import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
-import TableFooter from '@material-ui/core/TableFooter';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import { Link } from "react-router-dom";
 
 import TablePaginationActions from '../../../Components/TablePaginationActions';
@@ -86,55 +84,48 @@ class MasternodeDetailsEvents extends React.Component {
     const emptyRows = rowsPerPage - rows.length;
 
     return (
-      <Card>
-        <CardHeader>
-          Events
-        </CardHeader>
-        <CardBody>
-          <Paper className={classes.root}>
-            <div className={classes.tableWrapper}>
-              <Table className={classes.table}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Timestamp</TableCell>
-                    <TableCell>Event</TableCell>
-                    <TableCell>Info</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map(row => (
-                    <TableRow key={row.id}>
-                      <TableCell>{TimeToString(row.time)}</TableCell>
-                      <TableCell>{row.event}</TableCell>
-                      <TableCell>{eventToInfo(row)}</TableCell>
-                    </TableRow> 
-                  ))}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 48 * emptyRows }}>
-                      <TableCell colSpan={3} />
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            <TablePagination
-              labelRowsPerPage=""
-              rowsPerPageOptions={[]}
-              labelDisplayedRows={this.labelDisplayedRows}
-              colSpan={3}
-              count={masternode.eventCount}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              SelectProps={{
-                native: true,
-              }}
-              onChangePage={this.handleChangePage}
-              onChangeRowsPerPage={this.handleChangeRowsPerPage}
-              ActionsComponent={TablePaginationActions}
-            />
-          </Paper>
-        </CardBody>
-      </Card>
+      <Paper className={classes.root}>
+        <div className={classes.tableWrapper}>
+          <Table className={classes.table}>
+            <TableHead>
+              <TableRow>
+                <TableCell>Timestamp</TableCell>
+                <TableCell>Event</TableCell>
+                <TableCell>Info</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map(row => (
+                <TableRow key={row.id}>
+                  <TableCell>{TimeToString(row.time)}</TableCell>
+                  <TableCell>{row.event}</TableCell>
+                  <TableCell>{eventToInfo(row)}</TableCell>
+                </TableRow> 
+              ))}
+              {emptyRows > 0 && (
+                <TableRow style={{ height: 48 * emptyRows }}>
+                  <TableCell colSpan={3} />
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        <TablePagination
+          labelRowsPerPage=""
+          rowsPerPageOptions={[]}
+          labelDisplayedRows={this.labelDisplayedRows}
+          colSpan={3}
+          count={masternode.eventCount}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          SelectProps={{
+            native: true,
+          }}
+          onChangePage={this.handleChangePage}
+          onChangeRowsPerPage={this.handleChangeRowsPerPage}
+          ActionsComponent={TablePaginationActions}
+        />
+      </Paper>
       
     );
   }

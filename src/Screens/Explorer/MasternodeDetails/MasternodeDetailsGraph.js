@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
-import { Card, CardBody, CardHeader } from 'reactstrap';
 import Graph from '../../../Components/PayOutGraph';
 import Paper from '@material-ui/core/Paper';
 
@@ -36,22 +35,13 @@ class MasternodeDetailsGraph extends React.Component {
 
     return (
     <div>
-      <Card>
-        <CardHeader>
-          Payout Graph
-        </CardHeader>
-        <CardBody>
-
-          <Paper className={classes.paper}>
-          {
-            masternode != null ? 
-            <Graph names={names} addresses={addresses} payOutType="masternode" /> :
-            ""
-          }
-          </Paper>
-
-        </CardBody>
-      </Card>
+      <Paper className={classes.paper}>
+      {
+        masternode != null ? 
+        <Graph names={names} addresses={addresses} payOutType="masternode" /> :
+        ""
+      }
+      </Paper>
     </div>
       
     );

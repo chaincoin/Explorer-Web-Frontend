@@ -1,6 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import { Card, CardBody, CardHeader } from 'reactstrap';
 
 import Header from './MasternodeDetailsHeader';
 import Events from './MasternodeDetailsEvents';
@@ -21,12 +24,13 @@ class MasternodeDetails extends React.Component {
 
     this.state = {
         masternode: null,
-        error: null
+        error: null,
+
+        tab: 0,
     };
   
     this.getMasternodeSubscription = null;
   }
-
 
   masternodeSubscribe(){
     const { output } = this.props.match.params
@@ -38,6 +42,10 @@ class MasternodeDetails extends React.Component {
       });
     });
   }
+
+  handleTabChange = (event, tab) => {
+    this.setState({ tab });
+  };
 
   componentDidMount() {
     this.masternodeSubscribe();
@@ -56,7 +64,7 @@ class MasternodeDetails extends React.Component {
   render(){
     const { output } = this.props.match.params
     const { classes } = this.props;
-    const { masternode } = this.state;
+    const { masternode, tab } = this.state;
 
     if (masternode == null)
     {
@@ -65,8 +73,19 @@ class MasternodeDetails extends React.Component {
     return (
     <div>
       <Header output={output} masternode={masternode}/>
-      <Events output={output} masternode={masternode}/>
-      <Graph masternode={masternode} />
+      
+      <Card>
+        <CardHeader>
+          <Tabs value={tab} onChange={this.handleTabChange}>
+            <Tab label="Events" classes={{ label: 'details-tab' }} />
+            <Tab label="Graph" classes={{ label: 'details-tab' }} />
+          </Tabs>
+        </CardHeader>
+        <CardBody>
+        {tab === 0 && <Events output={output} masternode={masternode}/>}
+        {tab === 1 && <Graph masternode={masternode} />}
+        </CardBody> 
+      </Card>
     </div>
       
     );
