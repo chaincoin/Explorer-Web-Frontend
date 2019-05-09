@@ -40,7 +40,7 @@ class MyAddresses extends React.Component {
           <Tabs value={tab} onChange={this.handleTabChange}>
             <Tab label="My Addresses" classes={{ label: 'details-tab' }} />
             <Tab label="Mining" classes={{ label: 'details-tab' }} />
-            <Tab label="Mn Payouts" classes={{ label: 'details-tab' }} />
+            <Tab label="MN Payouts" classes={{ label: 'details-tab' }} />
           </Tabs>
         </CardHeader>
         <CardBody>
