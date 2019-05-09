@@ -15,8 +15,9 @@ import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 
 import TablePaginationActions from '../Components/TablePaginationActions';
 
-import BlockchainServices from '../Services/BlockchainServices';
-import Environment from '../Services/Environment';
+
+
+import MinerService from '../Services/MinerService';
 
 const styles = {
   root: {
@@ -40,7 +41,6 @@ class Miner extends React.Component {
       mining: false,
       strength:10,
       threads:1,
-      workers:[],
       hashRate: 0,
       
       rows:[],
@@ -48,131 +48,63 @@ class Miner extends React.Component {
       rowsPerPage: 5,
     }
 
-    this.hashRateInterval = null;
   }
 
-  handleStrengthChange = (event, strength) => {
-    const { workers } = this.state;
+  componentDidMount() {
+    this.miningSubscriptions = MinerService.mining.subscribe(mining =>{
+      this.setState({
+        mining: mining
+      });
+    });
 
-    for(var i = 0; i < workers.length; i++)
-    {
-        var worker = workers[i];
-        worker.postMessage({
-            cmd:"setStrength",
-            strength: strength
-        });
-    }
-    this.setState({ strength });
-  };
+    this.strengthSubscriptions = MinerService.strength.subscribe(strength =>{
+      this.setState({
+        strength: strength
+      });
+    });
+  
+    this.threadsSubscriptions = MinerService.threads.subscribe(threads =>{
+      this.setState({
+        threads: threads
+      });
+    });
 
-  handleThreadsChange = (event, threads) => {
-
-    const { mining, strength} = this.state;
-    var workers = this.state.workers.concat([]);
-
-    var makeWorker = () =>
-    {
-        var worker = new Worker('/miner-worker.js?id=14');
-        worker.addEventListener('message', (e) => {
-            //console.log(e.data);
-            var request = e.data;
-
-            if (request.event == "HashRate"){
-                worker.hashRate = request.hashRate;
-            }
-
-            if (request.event == "MinedBlock"){
-
-                var timestamp = new Date();
-
-                
-                var getBlockSubscription = BlockchainServices.getBlock(request.blockHash).subscribe((block) =>{
-                  getBlockSubscription.unsubscribe();
-
-                  this.setState({
-                    rows: this.state.rows.concat([block])
-                  })
-                });
-
-                //var rowUi = minedBlocksTableRowTemplateEl.clone().appendTo(minedBlocksTableRowsEl);
-                //rowUi.find(".hash-col").text(blockHash);
-                //rowUi.find(".timestamp-col").text(timestamp.toLocaleTimeString() + " " + timestamp.toLocaleDateString());
-            }
-
-        }, false);
-
-        worker.postMessage({
-            cmd:"setWsUrl",
-            wsUrl: Environment.webServicesApiUrl
-        });
-
-        worker.postMessage({
-            cmd:"setStrength",
-            strength:  strength
-        });
-
-        if (mining) worker.postMessage({cmd:"start"});
-
-        workers.push(worker);
-    };
-
-
-    while(workers.length < threads)
-    {
-        makeWorker();
-    }
-
-    while(workers.length > threads)
-    {
-        var work = workers.pop();
-        work.postMessage({
-            cmd:"close"
-        });
-    }
-
-
-    this.setState({ threads, workers });
-  };
-
-  handleStartClick = (event) => {
-
-    this.handleThreadsChange(null, this.state.threads);
-
-    const { workers } = this.state;
-    for(var i = 0; i < workers.length; i++)
-    {
-        var worker = workers[i];
-        worker.postMessage({cmd:"start"});
-    }
-
-    this.hashRateInterval = setInterval(() =>{
-      var hashRate = 0; 
-      for(var i = 0; i < workers.length; i++)
-      {
-          if (workers[i].hashRate != null) hashRate = hashRate + workers[i].hashRate;
-      }
+    this.hashRateSubscriptions = MinerService.hashRate.subscribe(hashRate =>{
       this.setState({
         hashRate: hashRate
       });
-    },1000);
+    });
 
-    this.setState({
-      mining:true
-    })
+
+    this.minedBlocksSubscriptions = MinerService.minedBlocks.subscribe(minedBlocks =>{
+      this.setState({
+        rows: minedBlocks
+      });
+    });
+  }
+
+  componentWillUnmount() {
+    this.miningSubscriptions.unsubscribe();
+    this.strengthSubscriptions.unsubscribe();
+    this.threadsSubscriptions.unsubscribe();
+    this.hashRateSubscriptions.unsubscribe();
+    this.minedBlocksSubscriptions.unsubscribe();
+  }
+
+  handleStrengthChange = (event, strength) => {
+    MinerService.setStrength(strength);
+  };
+
+  handleThreadsChange = (event, threads) => {
+    MinerService.setThreads(threads);
+  };
+
+  handleStartClick = (event) => {
+    MinerService.start();
   };
 
   handleStopClick = (event) => {
-    const { workers } = this.state;
-
-    for(var i = 0; i < workers.length; i++)
-    {
-        var worker = workers[i];
-        worker.postMessage({cmd:"stop"});
-    }
-
-    this.setState({
-      mining:false
-    })
+    MinerService.stop();
   };
 
   handleChangePage = (event, page) => {
@@ -186,6 +118,8 @@ class Miner extends React.Component {
   labelDisplayedRows(){
     return "";
   }
+
+  
 
   render(){
     const { classes } = this.props;
