@@ -78,7 +78,7 @@ class MasternodeDetails extends React.Component {
         <CardHeader>
           <Tabs value={tab} onChange={this.handleTabChange}>
             <Tab label="Events" classes={{ label: 'details-tab' }} />
-            <Tab label="Graph" classes={{ label: 'details-tab' }} />
+            <Tab label="MN Payout" classes={{ label: 'details-tab' }} />
           </Tabs>
         </CardHeader>
         <CardBody>

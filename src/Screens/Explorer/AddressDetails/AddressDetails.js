@@ -83,12 +83,14 @@ class AddressDetails extends React.Component {
         <CardHeader>
           <Tabs value={tab} onChange={this.handleTabChange}>
             <Tab label="Transactions" classes={{ label: 'details-tab' }} />
-            <Tab label="Graph" classes={{ label: 'details-tab' }} />
+            <Tab label="Mining" classes={{ label: 'details-tab' }} />
+            <Tab label="MN Payout" classes={{ label: 'details-tab' }} />
           </Tabs>
         </CardHeader>
         <CardBody>
         {tab === 0 && <Transactions address={address}/>}
-        {tab === 1 && <Graph address={address} />}
+        {tab === 1 && <Graph address={address} payOutType="miner" />}
+        {tab === 2 && <Graph address={address} payOutType="masternode" />}
         </CardBody> 
       </Card>
 

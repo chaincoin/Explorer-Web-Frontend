@@ -3,7 +3,6 @@ import { combineLatest } from 'rxjs';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
-import { Card, CardBody, CardHeader } from 'reactstrap';
 import Graph from '../../../Components/PayOutGraph';
 import Paper from '@material-ui/core/Paper';
 
@@ -48,7 +47,7 @@ class MyAddressesGraph extends React.Component {
   }
 
   render(){
-    const { classes } = this.props;
+    const { classes, payOutType } = this.props;
     var { myAddresses } = this.state;
 
     var addresses = [];
@@ -64,24 +63,13 @@ class MyAddressesGraph extends React.Component {
 
 
     return (
-    <div>
-      <Card>
-        <CardHeader>
-          Miner Payout Graph
-        </CardHeader>
-        <CardBody>
-
-          <Paper className={classes.paper}>
-          {
-            myAddresses != null ? 
-            <Graph names={names} addresses={addresses} payOutType="miner" /> :
-            ""
-          }
-          </Paper>
-
-        </CardBody>
-      </Card>
-    </div>
+      <Paper className={classes.paper}>
+      {
+        myAddresses != null ? 
+        <Graph names={names} addresses={addresses} payOutType={payOutType} /> :
+        ""
+      }
+      </Paper>
       
     );
   }
@@ -92,7 +80,7 @@ class MyAddressesGraph extends React.Component {
 
 
 MyAddressesGraph.propTypes = {
-  classes: PropTypes.object.isRequired
+  classes: PropTypes.object.isRequired,
 };
 
 export default withStyles(styles)(MyAddressesGraph);

@@ -70,24 +70,13 @@ class MyMasternodesGraph extends React.Component {
 
 
     return (
-    <div>
-      <Card>
-        <CardHeader>
-          Masternode Payout Graph
-        </CardHeader>
-        <CardBody>
-
-          <Paper className={classes.paper}>
-          {
-            myMasternodes != null ? 
-            <Graph names={names} addresses={addresses} payOutType="masternode" /> :
-            ""
-          }
-          </Paper>
-
-        </CardBody>
-      </Card>
-    </div>
+      <Paper className={classes.paper}>
+      {
+        myMasternodes != null ? 
+        <Graph names={names} addresses={addresses} payOutType="masternode" /> :
+        ""
+      }
+      </Paper>
       
     );
   }
