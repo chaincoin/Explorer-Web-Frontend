@@ -1,4 +1,5 @@
 import React from 'react';
+import { combineLatest } from 'rxjs';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -7,9 +8,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { Link } from "react-router-dom";
 
 
-import BlockchainServices from '../Services/BlockchainServices';
 import MyWalletServices from '../Services/MyWalletServices';
-
+import NotificationServices from '../Services/NotificationServices';
 
 
 const styles = theme => ({
@@ -33,20 +33,22 @@ class AddressMenu extends React.Component {
  
 
   handleMenuClick = (event) =>{
-    this.subscription = MyWalletServices.myAddresses.subscribe(
-      (myAddresses) =>{
 
-        var addToMyAddresses = true;
+    var menuAnchorEl = event.currentTarget;
 
-        myAddresses.forEach(myMn =>{
-          if (myMn.address == this.props.address) addToMyAddresses = false;
-        });
+    
+
+    this.subscription = combineLatest(MyWalletServices.myAddresses, NotificationServices.addressSubscription(this.props.address)).subscribe(
+      ([myAddresses, addressSubscription]) =>{
+debugger;
+        var myMn = myAddresses.find(myMn => {return myMn.address == this.props.address});
 
         this.setState({
-          addToMyAddresses: addToMyAddresses
+          myMn,
+          menuAnchorEl,
+          addAddressSubscription: addressSubscription == false
         });
     });
-    this.setState({ menuAnchorEl: event.currentTarget });
   };
 
   handleMenuClose = () => {
@@ -70,10 +72,19 @@ class AddressMenu extends React.Component {
     MyWalletServices.deleteMyAddress(this.props.address); //TODO: handle error
   };
 
+
+  handleMenuAddAddressSubscription = () => {
+    this.handleMenuClose();
+    NotificationServices.saveAddressSubscription(this.props.address); //TODO: handle error
+  };
+
+  handleMenuRemoveAddressSubscription = () => {
+    this.handleMenuClose();
+    NotificationServices.deleteAddressSubscription(this.props.address); //TODO: handle error
+  };
+
+
   componentDidMount() {
-
-    
-
   }
 
   componentWillUnmount = () => {
@@ -82,12 +93,10 @@ class AddressMenu extends React.Component {
 
 
 
-
-
  
   render() {
     const { classes,address, hideViewAddress } = this.props;
-    const { menuAnchorEl, addToMyAddresses } = this.state;
+    const { menuAnchorEl, myMn, addAddressSubscription } = this.state;
 
     
 
@@ -107,10 +116,17 @@ class AddressMenu extends React.Component {
           
         
           {
-            addToMyAddresses == true?
+            myMn == null?
             <MenuItem onClick={this.handleMenuAddToMyAddresses}>Add to My Addresses</MenuItem> :
             <MenuItem onClick={this.handleMenuRemoveFromMyAddresses}>Remove from My Addresses</MenuItem>
           }
+          {
+            addAddressSubscription == true?
+            <MenuItem onClick={this.handleMenuAddAddressSubscription}>Add Address Subscription</MenuItem> :
+            <MenuItem onClick={this.handleMenuRemoveAddressSubscription}>Remove Address Subscription</MenuItem>
+          }
+
+          {this.props.children}
         </Menu>
       </div>
       

@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 
 
 import MyWalletServices from '../Services/MyWalletServices';
-
+import NotificationServices from '../Services/NotificationServices';
 
 
 const styles = theme => ({
@@ -22,15 +22,19 @@ class MasternodeMenu extends React.Component {
   state = {
     menuAnchorEl: null,
     addToMyMns: true,
-    addToMyAddresses: true
+    addToMyAddresses: true,
+    addMasternodeSubscription:true
   };
 
   subscription = null
  
 
   handleMenuClick = (event) =>{
-    this.subscription = combineLatest(MyWalletServices.myMasternodes, MyWalletServices.myAddresses).subscribe(
-      ([myMasternodes, myAddresses]) =>{
+
+    const currentTarget = event.currentTarget;
+
+    this.subscription = combineLatest(MyWalletServices.myMasternodes, MyWalletServices.myAddresses, NotificationServices.masternodeSubscription(this.props.output)).subscribe(
+      ([myMasternodes, myAddresses, masternodeSubscription]) =>{
 
         var addToMyMns = true;
         if (myMasternodes != null)
@@ -50,12 +54,14 @@ class MasternodeMenu extends React.Component {
         
 
         this.setState({
+          menuAnchorEl: currentTarget,
           addToMyMns: addToMyMns,
-          addToMyAddresses:addToMyAddresses
+          addToMyAddresses:addToMyAddresses,
+          addMasternodeSubscription:masternodeSubscription == false
         });
     });
     
-    this.setState({ menuAnchorEl: event.currentTarget });
+
   };
 
   handleMenuClose = () => {
@@ -94,33 +100,20 @@ class MasternodeMenu extends React.Component {
     MyWalletServices.deleteMyAddress(this.props.payee); //TODO: handle error
   };
 
+
+  handleMenuAddMasternodeSubscription = () => {
+    this.handleMenuClose();
+
+    NotificationServices.saveMasternodeSubscription(this.props.output); //TODO: handle error
+  };
+
+  handleMenuRemoveMasternodeSubscription = () => {
+    this.handleMenuClose();
+
+    NotificationServices.deleteMasternodeSubscription(this.props.output); //TODO: handle error
+  };
+
   componentDidMount() {
-
-    this.subscription = combineLatest(MyWalletServices.myMasternodes, MyWalletServices.myAddresses).subscribe(
-      ([myMasternodes, myAddresses]) =>{
-
-        var addToMyMns = true;
-        if (myMasternodes != null)
-        {
-          myMasternodes.forEach(myMn =>{
-            if (myMn.output == this.props.output) addToMyMns = false;
-          });
-        }
-        
-        var addToMyAddresses = true;
-        if (myAddresses != null)
-        {
-          myAddresses.forEach(myAddress =>{
-            if (myAddress.address == this.props.payee) addToMyAddresses = false;
-          });
-        }
-        
-
-        this.setState({
-          addToMyMns: addToMyMns,
-          addToMyAddresses:addToMyAddresses
-        });
-    });
 
   }
 
@@ -135,7 +128,7 @@ class MasternodeMenu extends React.Component {
  
   render() {
     const { classes, payee, output, hideViewMasternode } = this.props;
-    const { menuAnchorEl, addToMyMns, addToMyAddresses } = this.state;
+    const { menuAnchorEl, addToMyMns, addToMyAddresses, addMasternodeSubscription } = this.state;
 
     
 
@@ -161,11 +154,17 @@ class MasternodeMenu extends React.Component {
             <MenuItem onClick={this.handleMenuAddToMyMNs}>Add to My Masternodes</MenuItem> :
             <MenuItem onClick={this.handleMenuRemoveFromMyMns}>Remove from My Masternodes</MenuItem>
           }
-           {
+          {
             addToMyAddresses == true?
             <MenuItem onClick={this.handleMenuAddToMyAddresses}>Add to My Addresses</MenuItem> :
             <MenuItem onClick={this.handleMenuRemoveFromMyAddresses}>Remove from My Addresses</MenuItem>
           }
+          {
+            addMasternodeSubscription == true?
+            <MenuItem onClick={this.handleMenuAddMasternodeSubscription}>Add Masternode Subscription</MenuItem> :
+            <MenuItem onClick={this.handleMenuRemoveMasternodeSubscription}>Remove Masternode Subscription</MenuItem>
+          }
+          {this.props.children}
         </Menu>
       </div>
       
