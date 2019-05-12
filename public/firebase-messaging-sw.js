@@ -21,8 +21,8 @@ messaging.setBackgroundMessageHandler(function(payload) {
   // Customize notification here
   var notificationTitle = 'Background Message Title';
   var notificationOptions = {
-    badge:"/images/icons/favicon-192x192-Live.png",
-    icon:"/images/icons/favicon-192x192-Live.png",
+    badge:"/images/main-logo-Live.png",
+    icon:"/images/main-logo-Live.png",
     body: "Background Message body.",
     actions:[]
   };
@@ -35,7 +35,7 @@ messaging.setBackgroundMessageHandler(function(payload) {
 
     notificationOptions.actions.push({
       title: "View",
-      action:"OpenUrl-" + "#Explorer/Block/" + payload.data.blockHash
+      action:"OpenUrl-" + "Explorer/Block/" + payload.data.blockHash
     });
 
       
@@ -48,7 +48,7 @@ messaging.setBackgroundMessageHandler(function(payload) {
 
       notificationOptions.actions.push({
         title: "View",
-        action:"OpenUrl-" + "#Explorer/Address/" + payload.data.address
+        action:"OpenUrl-" + "Explorer/Address/" + payload.data.address
       });
 
 
@@ -61,7 +61,7 @@ messaging.setBackgroundMessageHandler(function(payload) {
 
     notificationOptions.actions.push({
       title: "View",
-      action:"OpenUrl-" + "#Explorer/MasternodeList/" + payload.data.masternodeOutPoint
+      action:"OpenUrl-" + "Explorer/MasternodeList/" + payload.data.masternodeOutPoint
     });
 
   }
@@ -75,7 +75,7 @@ messaging.setBackgroundMessageHandler(function(payload) {
 
     notificationOptions.actions.push({
       title: "View",
-      action:"OpenUrl-" + "#Explorer/MasternodeList/" + payload.data.masternodeOutPoint
+      action:"OpenUrl-" + "Explorer/MasternodeList/" + payload.data.masternodeOutPoint
     });
 
   }
@@ -86,7 +86,7 @@ messaging.setBackgroundMessageHandler(function(payload) {
 
     notificationOptions.actions.push({
       title: "View",
-      action:"OpenUrl-" + "#Explorer/MasternodeList/" + payload.data.masternodeOutPoint
+      action:"OpenUrl-" + "Explorer/MasternodeList/" + payload.data.masternodeOutPoint
     });
   }
   else if (payload.data.eventType === 'expiringMasternode')
@@ -96,7 +96,7 @@ messaging.setBackgroundMessageHandler(function(payload) {
 
     notificationOptions.actions.push({
       title: "View",
-      action:"OpenUrl-" + "#Explorer/MasternodeList/" + payload.data.masternodeOutPoint
+      action:"OpenUrl-" + "Explorer/MasternodeList/" + payload.data.masternodeOutPoint
     });
   }
 
