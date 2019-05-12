@@ -38,6 +38,8 @@ import News from './Screens/News'
 import Tutorial from './Screens/Tutorials/0.16-MN/Tutorial'
 import ContactMe from './Screens/ContactMe'
 
+import NotFound from './Screens/NotFound'
+
 import Environment from './Services/Environment';
 
 
@@ -181,6 +183,9 @@ const styles = theme => ({
           <Route exact path="/News" component={News} />
           <Route exact path="/Tutorials" component={Tutorial} />
           <Route exact path="/ContactMe" component={ContactMe} />
+
+          <Route exact path="/NotFound/:searchInput" component={NotFound} />
+          
         
         </div>
         <Footer/>
