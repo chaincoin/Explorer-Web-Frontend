@@ -6,7 +6,7 @@ import Environment from './Environment';
 
 
 const firebaseId = new BehaviorSubject();
-
+const notifications = new BehaviorSubject([]);
 
 
 function sendHttpRequest(request)
@@ -40,31 +40,8 @@ messaging.usePublicVapidKey("BPIxwVCl8BcMHksgYoO5lBim_hxbE48snFExKNLB56VZ5Cg1VMn
 
 messaging.onMessage(function(payload) {
     console.log('Message received. ', payload);
-    debugger;
-    if (payload.data.eventType == "newBlock")
-    {
-        
-    }
-    else if (payload.data.eventType == "newAddressTransaction")
-    {
-        
-    }
-    else if (payload.data.eventType === 'newMasternode')
-    {
-        
-    }
-    else if (payload.data.eventType === 'changedMasternode' )
-    {
-        
-    }
-    else if ( payload.data.eventType === 'removedMasternode' )
-    {
-        
-    }
-    else if (payload.data.eventType === 'expiringMasternode')
-    {
-        
-    }
+
+    notifications.next(notifications._value.concat(payload.data))
 });
 
 
@@ -376,5 +353,7 @@ export default {
 
     blockSubscription,
     masternodeSubscription,
-    addressSubscription
+    addressSubscription,
+
+    notifications
 };

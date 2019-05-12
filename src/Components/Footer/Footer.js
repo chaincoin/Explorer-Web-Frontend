@@ -6,6 +6,7 @@ import Hidden from '@material-ui/core/Hidden';
 
 import MyAddresses from './MyAddresses'
 import MyMasternodes from './MyMasternodes'
+import Notifications from './Notifications'
 
 
 const styles = {
@@ -53,6 +54,7 @@ class ChaincoinExplorerFooter extends React.Component {
           <span className={classes.controls}>
             <MyAddresses />
             <MyMasternodes />
+            <Notifications />
           </span>
         </Grid>
       </Grid>
