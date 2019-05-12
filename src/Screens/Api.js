@@ -12,7 +12,7 @@ const styles = {
   }
 };
 
-class ContactMe extends React.Component {
+class Api extends React.Component {
   constructor(props) {
     super(props);
 
@@ -44,8 +44,8 @@ class ContactMe extends React.Component {
   
 }
 
-ContactMe.propTypes = {
+Api.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(ContactMe);
+export default withStyles(styles)(Api);
