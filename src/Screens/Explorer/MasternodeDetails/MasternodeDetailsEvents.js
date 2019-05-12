@@ -44,10 +44,14 @@ class MasternodeDetailsEvents extends React.Component {
   };
 
   componentDidMount() {
-    this.getTransactions();
+    this.getEvents();
   }
 
-  getTransactions(){
+  componentDidUpdate(prevProps) {
+    if (this.props.output  != prevProps.output) this.getEvents();
+  }
+
+  getEvents(){
     var output = this.props.output;
     var masternode = this.props.masternode;
     var pos = masternode.eventCount - (this.state.page * this.state.rowsPerPage);
@@ -61,9 +65,6 @@ class MasternodeDetailsEvents extends React.Component {
             rows: results
           });
         },
-        // Note: it's important to handle errors here
-        // instead of a catch() block so that we don't swallow
-        // exceptions from actual bugs in components.
         (error) => {
           this.setState({
             loading: false,
