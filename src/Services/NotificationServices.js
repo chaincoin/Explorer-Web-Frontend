@@ -339,6 +339,16 @@ const addressSubscription = (address) =>{
 
 
 
+const removeNotification = (notification) =>{
+    notifications.next(notifications.value.filter(n => n != notification));
+};
+
+const clearAllNotification = (notification) =>{
+
+    notifications([]);
+};
+
+
 export default {
     deleteSubscriptions,
 
@@ -355,5 +365,12 @@ export default {
     masternodeSubscription,
     addressSubscription,
 
-    notifications
+
+
+
+
+    notifications,
+
+    removeNotification,
+    clearAllNotification
 };

@@ -84,7 +84,7 @@ class Notifications extends React.Component {
 
       <Menu id="simple-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={this.handleClose}>
         {
-          notifications == null ? 
+          notifications == null || notifications.length == 0 ? 
           "" :
           notifications.map(this.notificationToRow)
         }
@@ -97,13 +97,18 @@ class Notifications extends React.Component {
 
  
   notificationToRow = (notification) => {
-debugger;
+
+    const handleClick = () =>{
+      this.handleClose();
+      NotificationServices.removeNotification(notification);
+    };
+
     if (notification.eventType == "newBlock")
     {
       return (
         <Link to={"/Explorer/Block/" + notification.blockHash}>
-          <MenuItem onClick={this.handleClose}>
-            new Block {notification.blockHash}
+          <MenuItem onClick={handleClick}>
+            new Block ({notification.blockHash})
           </MenuItem>
         </Link>
       )
@@ -112,7 +117,7 @@ debugger;
     {
       return (
         <Link to={"/Explorer/Address/" + notification.address}>
-          <MenuItem onClick={this.handleClose}>
+          <MenuItem onClick={handleClick}>
             new transaction ({notification.address})
           </MenuItem>
         </Link>
@@ -122,7 +127,7 @@ debugger;
     {
       return (
         <Link to={"/Explorer/MasternodeList/" + notification.masternodeOutPoint}>
-          <MenuItem onClick={this.handleClose}>
+          <MenuItem onClick={handleClick}>
             new Masternode
           </MenuItem>
         </Link>
@@ -133,7 +138,7 @@ debugger;
       var masternode = JSON.parse(notification.masternode);
       return (
         <Link to={"/Explorer/MasternodeList/" + notification.masternodeOutPoint}>
-          <MenuItem onClick={this.handleClose}>
+          <MenuItem onClick={handleClick}>
             masternode status change from {masternode.previousStatus} to {masternode.status}
           </MenuItem>
         </Link>
@@ -143,7 +148,7 @@ debugger;
     {
       return (
         <Link to={"/Explorer/MasternodeList/" + notification.masternodeOutPoint}>
-          <MenuItem onClick={this.handleClose}>
+          <MenuItem onClick={handleClick}>
             removed Masternode
           </MenuItem>
         </Link>
@@ -153,7 +158,7 @@ debugger;
     {
       return (
         <Link to={"/Explorer/MasternodeList/" + notification.masternodeOutPoint}>
-          <MenuItem onClick={this.handleClose}>
+          <MenuItem onClick={handleClick}>
             expiring Masternode
           </MenuItem>
         </Link>
