@@ -40,6 +40,7 @@ messaging.usePublicVapidKey("BPIxwVCl8BcMHksgYoO5lBim_hxbE48snFExKNLB56VZ5Cg1VMn
 
 messaging.onMessage(function(payload) {
     console.log('Message received. ', payload);
+    debugger;
     if (payload.data.eventType == "newBlock")
     {
         
@@ -100,26 +101,34 @@ const getFirebaseId = () =>{
 }
 
 const deleteSubscriptions = () => {
-
-    /*return sendHttpRequest({
-        op:"deleteSubscriptions",
-        firebaseId: _firebaseId
-    });*/
+    return getFirebaseId()
+    .then((firebaseId) =>{
+        return sendHttpRequest({
+            op:"deleteSubscriptions",
+            firebaseId: firebaseId
+        });
+    });
 }
 
 
 const saveBlockSubscription = () => {
-    return sendHttpRequest({
-        op:"saveBlockSubscription",
-        //firebaseId: _firebaseId
+    return getFirebaseId()
+    .then((firebaseId) =>{
+        return sendHttpRequest({
+            op:"saveBlockSubscription",
+            firebaseId: firebaseId
+        });
     });
 }
 
 
 const deleteBlockSubscription = () => {
-    return sendHttpRequest({
-        op:"deleteBlockSubscription",
-        //firebaseId: _firebaseId
+    return getFirebaseId()
+    .then((firebaseId) =>{
+        return sendHttpRequest({
+            op:"deleteBlockSubscription",
+            firebaseId: firebaseId
+        });
     });
 }
 
@@ -265,19 +274,27 @@ const masternodeSubscription = (masternodeOutpoint) =>{
 
 
 const saveAddressSubscription = (address) => {
-    return sendHttpRequest({
-        op:"saveAddressSubscription",
-        //firebaseId: _firebaseId,
-        address: address
+
+    return getFirebaseId()
+    .then((firebaseId) =>{
+        return sendHttpRequest({
+            op:"saveAddressSubscription",
+            firebaseId: firebaseId,
+            address: address
+        });
     });
+    
 }
 
 
 const deleteAddressSubscription = (address) => {
-    return sendHttpRequest({
-        op:"deleteAddressSubscription",
-        //firebaseId: _firebaseId,
-        address: address
+    return getFirebaseId()
+    .then((firebaseId) =>{
+        return sendHttpRequest({
+            op:"deleteAddressSubscription",
+            firebaseId: firebaseId,
+            address: address
+        });
     });
 }
 
@@ -291,11 +308,12 @@ const addressSubscription = (address) =>{
     {
         addressSubscriptionObservable = Observable.create(function(observer) {
             var _addressSubscription = null;
-        
+            var _firebaseId = null;
+
             var getAddressSubscription = () =>{
                 sendHttpRequest({
                     op:"isAddressSubscription",
-                    //firebaseId: _firebaseId,
+                    firebaseId: _firebaseId,
                     address:address
                 })
                 .then((addressSubscription) => {
@@ -309,11 +327,26 @@ const addressSubscription = (address) =>{
                 });
             };
         
-            var intervalId = setInterval(getAddressSubscription, 30000);
-            getAddressSubscription();
+            var intervalId = null;
+            var firebaseIdSubscription = firebaseId.subscribe((firebaseId) =>{
+                _firebaseId = firebaseId;
+
+                if (firebaseId != null)
+                {
+                    intervalId = setInterval(getAddressSubscription, 30000);
+                    getAddressSubscription();
+                }
+                else
+                {
+                    clearInterval(intervalId);
+                    observer.next(false);
+                }
+
+            });
         
             return () => {
-              clearInterval(intervalId);
+                firebaseIdSubscription.unsubscribe();
+                clearInterval(intervalId);
             }
         }).pipe(shareReplay({
             bufferSize: 1,
