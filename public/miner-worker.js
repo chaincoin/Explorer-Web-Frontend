@@ -32,7 +32,7 @@ var setupMiner = function (_miningHeader) {
     miningStartTime = new Date().getTime();
 
     nonceRange = new bigInt(miningHeader.nonceRange, 16);
-
+    if (miner == null) return;
     webAssemblyMinerData = setupWebAssemblyMinerData(webAssemblyMinerData, miningHeader.blockHeaderHex, miningHeader.target);
 
 }
