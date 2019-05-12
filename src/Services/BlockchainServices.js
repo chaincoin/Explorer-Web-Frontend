@@ -204,6 +204,8 @@ const BlockCount = Observable.create(function(observer) {
               _block = block;
               observer.next(block);
             }
+          }).catch((err) =>{
+            observer.error(new Error(err));
           });
         };
   
@@ -264,6 +266,8 @@ const BlockCount = Observable.create(function(observer) {
               _tranaction = tranaction;
               observer.next(tranaction);
             }
+          }).catch((err) =>{
+            observer.error(new Error(err));
           });
         };
         
@@ -313,7 +317,9 @@ const BlockCount = Observable.create(function(observer) {
           sendRequest({
             op: "getAddress",
             address:addressId
-          }).then(processAddress);
+          }).then(processAddress).catch((err) =>{
+            observer.error(new Error(err));
+          });
         };
         
   
@@ -447,6 +453,8 @@ const BlockCount = Observable.create(function(observer) {
           .then((masternode) => {
             _masternode = masternode;
             observer.next(masternode);
+          }).catch((err) =>{
+            observer.error(new Error(err));
           });
         };
     
