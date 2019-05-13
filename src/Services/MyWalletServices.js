@@ -110,7 +110,7 @@ const myAddresses = Observable.create(function(observer) {
 
 
   var addMyAddress = (name, address, WIF) =>{ 
-debugger;    
+
     return sendWalletWorkerRequest({
         op:"createAddress",
         name:name,
@@ -202,7 +202,7 @@ export default {
 
 
 var broadcastEvent = (event) =>{
-debugger;
+
     var version = window.localStorage.getItem(event);
 
     if (version == null) window.localStorage.setItem(event,0);
@@ -212,7 +212,7 @@ debugger;
 
 
 window.addEventListener('storage', function(e) {
-debugger;
+
     if(e.key == "myMasternodeAdded") myMasternodeAdded.next();
     else if(e.key == "myMasternodeDeleted") myMasternodeDeleted.next();
     else if(e.key == "myAddressAdded") myAddressAdded.next()

@@ -40,7 +40,7 @@ class AddressMenu extends React.Component {
 
     this.subscription = combineLatest(MyWalletServices.myAddresses, NotificationServices.addressSubscription(this.props.address)).subscribe(
       ([myAddresses, addressSubscription]) =>{
-debugger;
+        
         var myMn = myAddresses.find(myMn => {return myMn.address == this.props.address});
 
         this.setState({
