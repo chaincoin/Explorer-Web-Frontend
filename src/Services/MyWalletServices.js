@@ -12,11 +12,11 @@ const walletWorkerCodeBlob = new Blob(['('+walletWorkerCode+')()']);
 _walletWorker = new Worker(URL.createObjectURL(walletWorkerCodeBlob));
 
 
-var myMasternodeAdded = new Subject();
-var myMasternodeDeleted = new Subject();
+const myMasternodeAdded = new Subject();
+const myMasternodeDeleted = new Subject();
 
-var myAddressAdded = new Subject();
-var myAddressDeleted = new Subject();
+const myAddressAdded = new Subject();
+const myAddressDeleted = new Subject();
 
 var walletWorkerRequestId = 0;
 var pendingWalletWorkerRequests = {}
@@ -110,19 +110,20 @@ const myAddresses = Observable.create(function(observer) {
 
 
   var addMyAddress = (name, address, WIF) =>{ 
+debugger;    
     return sendWalletWorkerRequest({
         op:"createAddress",
         name:name,
         address: address,
         WIF:WIF
-    });
+    }).then(() => broadcastEvent("myAddressAdded"));
   }
 
   var deleteMyAddress = (address) =>{ 
     return sendWalletWorkerRequest({
         op:"deleteAddress",
         address: address
-    });
+    }).then(() => broadcastEvent("myAddressDeleted"));
   }
 
 
@@ -174,15 +175,17 @@ const myMasternodes = Observable.create(function(observer) {
         op:"createMasternode",
         name:name,
         output: output
-    });
+    }).then(() => broadcastEvent("myMasternodeAdded"));
   }
 
   var deleteMyMasternode = (output) =>{ 
     return sendWalletWorkerRequest({
         op:"deleteMasternode",
         output: output
-    });
+    }).then(() => broadcastEvent("myMasternodeDeleted"));
   }
+
+
 
 
 export default {
@@ -195,3 +198,23 @@ export default {
     deleteMyMasternode
 
 }
+
+
+
+var broadcastEvent = (event) =>{
+debugger;
+    var version = window.localStorage.getItem(event);
+
+    if (version == null) window.localStorage.setItem(event,0);
+    else window.localStorage.setItem(event,version + 1);
+}
+
+
+
+window.addEventListener('storage', function(e) {
+debugger;
+    if(e.key == "myMasternodeAdded") myMasternodeAdded.next();
+    else if(e.key == "myMasternodeDeleted") myMasternodeDeleted.next();
+    else if(e.key == "myAddressAdded") myAddressAdded.next()
+    else if(e.key == "myAddressDeleted") myAddressDeleted.next()
+});
