@@ -16,7 +16,7 @@ import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import { Link } from "react-router-dom";
 
 import TablePaginationActions from '../../../Components/TablePaginationActions';
-import MyMasternodesGraph from './MyMasternodesGraph';
+import MasternodeMenu from '../../../Components/MasternodeMenu'
 
 import BlockchainServices from '../../../Services/BlockchainServices';
 import MyWalletServices from '../../../Services/MyWalletServices';
@@ -97,14 +97,6 @@ class MyMasternodes extends React.Component {
     MyWalletServices.addMyMasternode(name, output); //TODO: handle error
   }
 
-  handleDeleteMasternode(output, MyWalletServices)
-  {
-    return ()=>{
-      if (window.confirm("Are you sure?") == false) return;
-      MyWalletServices.deleteMyMasternode(output); //TODO: handle error
-    }
-  }
-
   labelDisplayedRows(){
     return "";
   }
@@ -161,9 +153,7 @@ class MyMasternodes extends React.Component {
                       }
                     </TableCell>
                     <TableCell>
-                      <Button variant="contained" color="secondary" className={classes.button} onClick={this.handleDeleteMasternode(row.output,MyWalletServices)}>
-                        Remove
-                      </Button>
+                      <MasternodeMenu output={row.output} payee={row.mn.payee} />
                     </TableCell>
                   </TableRow>
                 ))}
