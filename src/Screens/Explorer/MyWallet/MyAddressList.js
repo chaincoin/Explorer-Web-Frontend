@@ -71,12 +71,12 @@ class MyAddresses extends React.Component {
         rows: myAddresses 
       }, () =>{
 
-        this.addressSubscriptions = myAddresses.map((address, index) => {
-          return BlockchainServices.getAddress(address.address).subscribe(address =>{
+        this.addressSubscriptions = myAddresses.map((myAddress, index) => {
+          return BlockchainServices.getAddress(myAddress.address).subscribe(address =>{
+            myAddress.data = address;
             this.setState({
-              rows: update(this.state.rows, {[index]: {data: {$set: address}}})
+              rows: myAddresses.slice()
             })
-
           });
         });
 
