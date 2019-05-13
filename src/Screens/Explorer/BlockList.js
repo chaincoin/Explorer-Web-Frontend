@@ -9,10 +9,16 @@ import TableFooter from '@material-ui/core/TableFooter';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
+
+import ExpandMore from '@material-ui/icons/ExpandMore';
+import ExpandLess from '@material-ui/icons/ExpandLess';
+
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import { Link } from "react-router-dom";
 
 import TablePaginationActions from '../../Components/TablePaginationActions';
+
+import BlockDetailsTransactions from './BlockDetails/BlockDetailsTransactions';
 
 import BlockchainServices from '../../Services/BlockchainServices';
 
@@ -38,9 +44,8 @@ const styles = theme => ({
 
 class BlockList extends React.Component {
   state = {
-    rows: [
-     
-    ],
+    rows: [],
+    rowsExpanded:[],
     page: 0,
     rowsPerPage: 10,
     loading: true,
@@ -51,12 +56,21 @@ class BlockList extends React.Component {
   blockCountSubscription = null;
 
   handleChangePage = (event, page) => {
-    this.setState({ page }, this.getBlocks);
+    this.setState({ 
+      page,
+      rowsExpanded:[]
+    }, 
+    this.getBlocks);
     
   };
 
   handleChangeRowsPerPage = event => {
-    this.setState({ page: 0, rowsPerPage: parseInt(event.target.value) }, this.getBlocks);
+    this.setState({ 
+      page: 0, 
+      rowsPerPage: parseInt(event.target.value),
+    }, 
+      this.getBlocks
+    );
   };
 
   componentDidMount() {
@@ -114,6 +128,64 @@ class BlockList extends React.Component {
   labelDisplayedRows(){
     return "";
   }
+
+
+  rowToHtml = (row, i) =>
+  {
+    const expanded = this.state.rowsExpanded[i] == true;
+    const elements = [];
+
+
+    const handleExpandMore = () =>{
+      var rowsExpanded = this.state.rowsExpanded.splice();
+      rowsExpanded[i] = true;
+
+      this.setState({
+        rowsExpanded
+      });
+    }
+
+    const handleExpandLess = () =>{
+      var rowsExpanded = this.state.rowsExpanded.splice();
+      rowsExpanded[i] = false;
+
+      this.setState({
+        rowsExpanded
+      });
+    }
+
+    elements.push((
+      <TableRow key={row.id}>
+        <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.height}>{row.height}</Link></TableCell>
+        <TableCell><Link to={"/Explorer/Block/" + row.height}>{row.hash}</Link></TableCell>
+        <TableCell>{row.tx.map(tx => tx.recipients).reduce(add)}</TableCell>
+        <TableCell>{row.tx.map(tx => tx.value).reduce(add)}</TableCell>
+        <TableCell>{TimeToString(row.time)}</TableCell>
+        <TableCell>
+        {
+          expanded == false ? 
+          <ExpandMore onClick={handleExpandMore}/>:
+          <ExpandLess onClick={handleExpandLess}/>
+        }
+        </TableCell>
+      </TableRow>
+    ));
+
+    if (expanded){
+      elements.push((
+        <TableRow>
+          <TableCell colSpan={6}>
+
+            <BlockDetailsTransactions block={row} />
+
+          </TableCell>
+        </TableRow>
+      ));
+    }
+    
+
+    return elements;
+  }
  
   render() {
     const { classes } = this.props;
@@ -136,18 +208,20 @@ class BlockList extends React.Component {
                     <TableCell>Recipients</TableCell>
                     <TableCell>Amount (CHC)</TableCell>
                     <TableCell>Timestamp</TableCell>
+
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {rows.map(row => (
+                  {rows.map(row =>(
                     <TableRow key={row.id}>
-                      <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.height}>{row.height}</Link></TableCell>
-                      <TableCell><Link to={"/Explorer/Block/" + row.height}>{row.hash}</Link></TableCell>
-                      <TableCell>{row.tx.map(tx => tx.recipients).reduce(add)}</TableCell>
-                      <TableCell>{row.tx.map(tx => tx.value).reduce(add)}</TableCell>
-                      <TableCell>{TimeToString(row.time)}</TableCell>
-                    </TableRow>
+                    <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.height}>{row.height}</Link></TableCell>
+                    <TableCell><Link to={"/Explorer/Block/" + row.height}>{row.hash}</Link></TableCell>
+                    <TableCell>{row.tx.map(tx => tx.recipients).reduce(add)}</TableCell>
+                    <TableCell>{row.tx.map(tx => tx.value).reduce(add)}</TableCell>
+                    <TableCell>{TimeToString(row.time)}</TableCell>
+                  </TableRow>
                   ))}
+
                   {emptyRows > 0 && (
                     <TableRow style={{ height: 48 * emptyRows }}>
                       <TableCell colSpan={5} />
@@ -178,6 +252,11 @@ class BlockList extends React.Component {
     );
   }
 }
+
+
+
+
+
 
 
 BlockList.propTypes = {
