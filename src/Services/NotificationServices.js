@@ -5,6 +5,7 @@ import axios from 'axios'
 import Environment from './Environment';
 
 
+
 const firebaseId = new BehaviorSubject();
 const notifications = new BehaviorSubject([]);
 
@@ -48,7 +49,9 @@ try{
     });
     if (Notification.permission == 'granted'){
         messaging.getToken().then(function(_firebaseId) {
+
             if (_firebaseId) firebaseId.next(_firebaseId); //TODO: need to check if firebase id has changed and update server
+            
         }).catch(function(err) {
             console.log('An error occurred while retrieving token. ', err);
         });
@@ -59,7 +62,26 @@ try{
 }
 
 
+firebaseId.subscribe((newFirebaseId) =>{
 
+    var oldFirebaseId = window.localStorage["firebaseId"];
+
+    if (oldFirebaseId == null && newFirebaseId != null)
+    {
+        window.localStorage["firebaseId"] = newFirebaseId;
+    }
+    else if (oldFirebaseId != null && newFirebaseId != null && oldFirebaseId != newFirebaseId){
+
+        sendHttpRequest({
+            op:"updateSubscriptions",
+            oldFirebaseId: oldFirebaseId,
+            newFirebaseId: newFirebaseId
+        }).then(() =>{
+            window.localStorage["firebaseId"] = newFirebaseId;
+        });
+    }
+
+});
 
 
 
