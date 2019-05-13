@@ -85,7 +85,11 @@ class Notifications extends React.Component {
       <Menu id="simple-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={this.handleClose}>
         {
           notifications == null || notifications.length == 0 ? 
-          "" :
+          (
+            <MenuItem onClick={this.handleClose}>
+              Nothing
+            </MenuItem>
+          ) :
           notifications.map(this.notificationToRow)
         }
         
