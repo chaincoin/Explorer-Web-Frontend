@@ -33,25 +33,34 @@ var firebaseConfig = {
 };
 
 // Initialize Firebase
-window.firebase.initializeApp(firebaseConfig); 
+var messaging = null;
+try{
+  
+    window.firebase.initializeApp(firebaseConfig); 
 
-const messaging = window.firebase.messaging(); 
-messaging.usePublicVapidKey("BPIxwVCl8BcMHksgYoO5lBim_hxbE48snFExKNLB56VZ5Cg1VMnwRk1quiKgvOg7YFFIFwo3qAbnSVhYZGeqcME");
+    messaging = window.firebase.messaging(); 
+    messaging.usePublicVapidKey("BPIxwVCl8BcMHksgYoO5lBim_hxbE48snFExKNLB56VZ5Cg1VMnwRk1quiKgvOg7YFFIFwo3qAbnSVhYZGeqcME");
 
-messaging.onMessage(function(payload) {
-    console.log('Message received. ', payload);
+    messaging.onMessage(function(payload) {
+        console.log('Message received. ', payload);
 
-    notifications.next(notifications._value.concat(payload.data))
-});
-
-
-if (Notification.permission == 'granted'){
-    messaging.getToken().then(function(_firebaseId) {
-        if (_firebaseId) firebaseId.next(_firebaseId); //TODO: need to check if firebase id has changed and update server
-    }).catch(function(err) {
-        console.log('An error occurred while retrieving token. ', err);
+        notifications.next(notifications._value.concat(payload.data))
     });
+    if (Notification.permission == 'granted'){
+        messaging.getToken().then(function(_firebaseId) {
+            if (_firebaseId) firebaseId.next(_firebaseId); //TODO: need to check if firebase id has changed and update server
+        }).catch(function(err) {
+            console.log('An error occurred while retrieving token. ', err);
+        });
+    }
+
+} catch(ex){
+    console.log(ex);
 }
+
+
+
+
 
 
 const getFirebaseId = () =>{
