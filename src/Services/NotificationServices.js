@@ -359,6 +359,7 @@ const clearAllNotification = (notification) =>{
 
 
 export default {
+    supported: messaging != null,
     deleteSubscriptions,
 
     saveBlockSubscription,

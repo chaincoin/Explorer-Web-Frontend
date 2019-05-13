@@ -75,6 +75,11 @@ class AddressMenu extends React.Component {
 
   handleMenuAddAddressSubscription = () => {
     this.handleMenuClose();
+    if (NotificationServices.supported == false)
+    {
+      alert("Your browser doesnt support Push Notifications, please try Chrome or Firefox")
+      return;
+    }
     NotificationServices.saveAddressSubscription(this.props.address); //TODO: handle error
   };
 

@@ -104,6 +104,12 @@ class MasternodeMenu extends React.Component {
   handleMenuAddMasternodeSubscription = () => {
     this.handleMenuClose();
 
+    if (NotificationServices.supported == false)
+    {
+      alert("Your browser doesnt support Push Notifications, please try Chrome or Firefox")
+      return;
+    }
+
     NotificationServices.saveMasternodeSubscription(this.props.output); //TODO: handle error
   };
 
