@@ -14,6 +14,7 @@ import Button from '@material-ui/core/Button';
 import { Link } from "react-router-dom";
 
 import TablePaginationActions from '../../../Components/TablePaginationActions';
+import AddressMenu from '../../../Components/AddressMenu'
 
 import BlockchainServices from '../../../Services/BlockchainServices';
 import MyWalletServices from '../../../Services/MyWalletServices';
@@ -135,21 +136,7 @@ class MyAddresses extends React.Component {
     });
   }
 
-  handleDeleteAddress(address)
-  {
-    return function(){
-      if (window.confirm("Are you sure? the address cant be recovered") == false) return;
-      MyWalletServices.deleteMyAddress(address); //TODO: handle error
-    }
-  }
 
-
-  handleExportWif(WIF)
-  {
-    return function(){
-      alert(WIF);
-    }
-  }
 
   labelDisplayedRows(){
     return "";
@@ -201,12 +188,7 @@ class MyAddresses extends React.Component {
                         }
                       </TableCell>
                       <TableCell>
-                        <Button variant="contained" color="secondary" className={classes.button} onClick={this.handleDeleteAddress(row.address)}>
-                          Remove
-                        </Button>
-                        <Button variant="contained" color="primary" className={classes.button} onClick={this.handleExportWif(row.WIF)} disabled={row.WIF == null}>
-                          WIF
-                        </Button>
+                        <AddressMenu address={row.address} />
                       </TableCell>
                     </TableRow>
                   ))}
