@@ -41,10 +41,10 @@ class AddressMenu extends React.Component {
     this.subscription = combineLatest(MyWalletServices.myAddresses, NotificationServices.addressSubscription(this.props.address)).subscribe(
       ([myAddresses, addressSubscription]) =>{
         
-        var myMn = myAddresses.find(myMn => {return myMn.address == this.props.address});
+        var myAddress = myAddresses.find(myAddress => {return myAddress.address == this.props.address});
 
         this.setState({
-          myMn,
+          myAddress,
           menuAnchorEl,
           addAddressSubscription: addressSubscription == false
         });
@@ -68,7 +68,7 @@ class AddressMenu extends React.Component {
   handleMenuRemoveFromMyAddresses = () => {
     this.handleMenuClose();
 
-    if (window.confirm("Are you sure?") == false) return;
+    if (window.confirm(this.state.myAddress.WIF == null ? "Are you sure?" : "Are you sure? the private key can not be recovered") == false) return;
     MyWalletServices.deleteMyAddress(this.props.address); //TODO: handle error
   };
 
@@ -89,6 +89,13 @@ class AddressMenu extends React.Component {
   };
 
 
+
+  handleMenuExportWif = () => {
+    this.handleMenuClose();
+
+    alert(this.state.myAddress.WIF);
+  };
+
   componentDidMount() {
   }
 
@@ -101,7 +108,7 @@ class AddressMenu extends React.Component {
  
   render() {
     const { classes,address, hideViewAddress } = this.props;
-    const { menuAnchorEl, myMn, addAddressSubscription } = this.state;
+    const { menuAnchorEl, myAddress, addAddressSubscription } = this.state;
 
     
 
@@ -121,7 +128,7 @@ class AddressMenu extends React.Component {
           
         
           {
-            myMn == null?
+            myAddress == null?
             <MenuItem onClick={this.handleMenuAddToMyAddresses}>Add to My Addresses</MenuItem> :
             <MenuItem onClick={this.handleMenuRemoveFromMyAddresses}>Remove from My Addresses</MenuItem>
           }
@@ -129,6 +136,12 @@ class AddressMenu extends React.Component {
             addAddressSubscription == true?
             <MenuItem onClick={this.handleMenuAddAddressSubscription}>Add Address Subscription</MenuItem> :
             <MenuItem onClick={this.handleMenuRemoveAddressSubscription}>Remove Address Subscription</MenuItem>
+          }
+
+          {
+            myAddress != null && myAddress.WIF != null?
+            <MenuItem onClick={this.handleMenuExportWif}>Export WIF</MenuItem> :
+            ""
           }
 
           {this.props.children}
