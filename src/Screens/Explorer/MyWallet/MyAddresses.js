@@ -8,6 +8,7 @@ import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import { Link } from "react-router-dom";
 
 import MyAddressList from './MyAddressList';
+import MyAddressesSend from './MyAddressesSend';
 import MyAddressesGraph from './MyAddressesGraph';
 
 
@@ -39,14 +40,16 @@ class MyAddresses extends React.Component {
         <CardHeader>
           <Tabs value={tab} onChange={this.handleTabChange}>
             <Tab label="My Addresses" classes={{ label: 'details-tab' }} />
+            <Tab label="Send" classes={{ label: 'details-tab' }} />
             <Tab label="Mining" classes={{ label: 'details-tab' }} />
             <Tab label="MN Payouts" classes={{ label: 'details-tab' }} />
           </Tabs>
         </CardHeader>
         <CardBody>
         {tab === 0 && <MyAddressList />}
-        {tab === 1 && <MyAddressesGraph  payOutType="miner" />}
-        {tab === 2 && <MyAddressesGraph  payOutType="masternode" />}
+        {tab === 1 && <MyAddressesSend />}
+        {tab === 2 && <MyAddressesGraph  payOutType="miner" />}
+        {tab === 3 && <MyAddressesGraph  payOutType="masternode" />}
         </CardBody> 
       </Card>
 

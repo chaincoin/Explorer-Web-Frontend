@@ -290,9 +290,55 @@ const BlockCount = Observable.create(function(observer) {
      return transactionObservable;
   }
 
+  const addressUnspentObservables = {}
+  const getAddressUnspent = (addressId) =>{ //TODO: This is a memory leak
+
+    var addressUnspentObservable = addressUnspentObservables[addressId];
+
+    if (addressUnspentObservable == null)
+    {
+      addressUnspentObservable = Observable.create(function(observer) {
+
+        var _unspent = null;
+
+        var _getAddressUnspent = () =>{
+          sendRequest({
+            op: "getAddressUnspent",
+            address:addressId
+          }).then((unspent) => {
+            if (_unspent == null || _unspent.length != unspent.length) //TODO: is this good enough
+            {
+              _unspent = unspent;
+              observer.next(unspent);
+            }
+          }).catch((err) =>{
+            observer.error(new Error(err));
+          });
+        };
+        
+
+        var addressSubscription = getAddress(addressId).subscribe(_getAddressUnspent); 
+        
+  
+        return () => {
+            addressSubscription.unsubscribe();
+        }
+      }).pipe(shareReplay({
+        bufferSize: 1,
+        refCount: true
+      }));
+
+      addressUnspentObservables[addressId] = addressUnspentObservable;
+    }
+      
+     return addressUnspentObservable;
+  }
+
+
+
+
 
   var addressObservables = {}
-
   var getAddress = (addressId) =>{ //TODO: This is a memory leak
 
     var addressObservable = addressObservables[addressId];
@@ -691,10 +737,33 @@ const BlockCount = Observable.create(function(observer) {
 
 
   var validateAddress = (address) =>{
-    return axios.get(Environment.blockchainApiUrl + "/validateAddress?address="+ address)
-    .then(res => res.data);
+    return sendRequest({
+      op: "validateAddress",
+      address: address
+    });
   };
 
+  var sendRawTransaction = (hex, allowHighFees) =>{
+    return sendRequest({
+      op: "sendRawTransaction",
+      hex: hex,
+      allowHighFees: allowHighFees
+    });
+  };
+
+  
+
+  var Chaincoin = {
+    messagePrefix: 'DarkCoin Signed Message:\n',
+    bip32: {
+    public: 0x02FE52F8,
+    private: 0x02FE52CC
+    },
+    bech32: "chc",
+    pubKeyHash: 0x1C,
+    scriptHash: 0x04,
+    wif: 0x9C
+  }
 
   export default {
     webSocket:webSocket,
@@ -705,6 +774,7 @@ const BlockCount = Observable.create(function(observer) {
     getTransaction:getTransaction,
     getAddress: getAddress,
     getAddressTxs,
+    getAddressUnspent: getAddressUnspent,
     masternodeCount: masternodeCount,
     masternodeList: masternodeList,
     getMasternode: getMasternode,
@@ -723,5 +793,9 @@ const BlockCount = Observable.create(function(observer) {
     networkHashps,
 
     validateAddress,
-    getPayoutStats
+    getPayoutStats,
+
+    sendRawTransaction,
+
+    Chaincoin
   }

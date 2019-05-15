@@ -23,7 +23,7 @@ class MyAddressesGraph extends React.Component {
     super(props);
 
     this.state = {
-      myMasternodes:null
+      myAddresses:null
     };
   
     this.subscription = null;
