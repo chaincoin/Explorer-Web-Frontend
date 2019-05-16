@@ -756,8 +756,8 @@ const BlockCount = Observable.create(function(observer) {
   var Chaincoin = {
     messagePrefix: 'DarkCoin Signed Message:\n',
     bip32: {
-    public: 0x02FE52F8,
-    private: 0x02FE52CC
+      public: 0x02FE52F8,
+      private: 0x02FE52CC
     },
     bech32: "chc",
     pubKeyHash: 0x1C,

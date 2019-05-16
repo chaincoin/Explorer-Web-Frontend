@@ -7,10 +7,20 @@ import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 
-import Graph from '../../../Components/PayOutGraph';
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+
+
+import { ValidatorForm, TextValidator, SelectValidator} from 'react-material-ui-form-validator';
 
 import BlockchainServices from '../../../Services/BlockchainServices';
 import MyWalletServices from '../../../Services/MyWalletServices';
+
+import coinSelect from 'coinselect'; //https://github.com/bitcoinjs/coinselect
 
 const styles = {
   root: {
@@ -18,6 +28,9 @@ const styles = {
   },
   paper:{
     padding:"10px"
+  },
+  changeSelect:{
+    "min-width" : 200
   }
 };
 
@@ -28,10 +41,23 @@ class MyAddressesSend extends React.Component {
     this.state = {
       sending:false,
       myAddresses:[],
+      controlledAddresses:[],
       recipients:[{
         address: "",
         amount: ""
-      }]
+      }],
+
+      feePerByte: 10,
+
+      changeAddress:"",
+
+      transactionFee: 0,
+      transactionInputs: null,
+      transactionOutputs: null,
+
+      validation:{
+
+      }
     };
   
     this.myAddressesSubscription = null;
@@ -40,88 +66,144 @@ class MyAddressesSend extends React.Component {
 
   
   handleAddRecipientClick = () =>{
-
     this.setState({
       recipients: this.state.recipients.concat([{
         address: "",
         amount: ""
       }])
+    }, this.processTransaction);
+  }
+
+
+  processTransaction = () =>{
+
+    const utxos = this.state.controlledAddresses.flatMap(a => a.unspent.map(u => {
+      return {
+        txId: u.txid,
+        vout: u.vout,
+        value: u.value * 100000000,
+        myAddress: a
+      };
+    }));
+
+    var targets = this.state.recipients.map(r =>{
+      return  {
+        address: r.address,
+        value: parseFloat(r.amount) * 100000000
+      };
+    });
+
+    let { inputs, outputs, fee } = coinSelect(utxos, targets, this.state.feePerByte);
+
+
+    this.setState({
+      transactionFee: fee,
+      transactionInputs: inputs,
+      transactionOutputs: outputs,
+      transactionChange: outputs == null ? null : outputs.find(o => o.address == null)
     });
   }
 
 
-  handleSendClick = () =>{
+
+  handleSendClick = (event) =>{
+
 
     this.setState({
       sending:true
     });
-    const { recipients, controlledAddresses } = this.state;
-    const validateAddressPromises = recipients.map(r => BlockchainServices.validateAddress(r.address));
-
-
     
+    this.refs.form.isFormValid(false).then(valid =>{
+      if (valid) this.SendTransaction();
+      else {
+        this.setState({
+          sending:false
+        });
+      }
+    })
+  }
+
+
+  SendTransaction = () =>{
+    const { transactionInputs, transactionOutputs, changeAddress } = this.state;
+
+
+
+    let txb = new window.bitcoin.TransactionBuilder(BlockchainServices.Chaincoin);
+    txb.setVersion(3);
+    transactionInputs.forEach(input => {
+      if (input.myAddress.address.startsWith(BlockchainServices.Chaincoin.bech32))
+      {
+        var keyPair = window.bitcoin.ECPair.fromWIF(input.myAddress.WIF, BlockchainServices.Chaincoin);
+        const p2wpkh = window.bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin })
+        txb.addInput(input.txId, input.vout, null, p2wpkh.output); 
+      }
+      else
+      {
+        txb.addInput(input.txId, input.vout);
+      }
+      
+      
+    });
+
+    transactionOutputs.forEach(output => {
+      // watch out, outputs may have been added that you need to provide
+      // an output address/script for
+      if (!output.address) {
+        output.address = changeAddress.address
+      }
+
+      txb.addOutput(output.address, output.value)
+    });
+
+    transactionInputs.forEach((input,i) => {
+
+      var keyPair = window.bitcoin.ECPair.fromWIF(input.myAddress.WIF, BlockchainServices.Chaincoin);
+      
+      if (input.myAddress.address.startsWith(BlockchainServices.Chaincoin.bech32))
+      {
+        txb.sign(i, keyPair,null, null,input.value);
+      }
+      else
+      {
+        txb.sign(i, keyPair);
+      }
+      
+    });
+
+    var transaction = txb.build();
+    var hex = transaction.toHex();
+
+
+    BlockchainServices.sendRawTransaction(hex, true);
+
+    const validateAddressPromises = transactionOutputs.map(output => BlockchainServices.validateAddress(output.address));
+
     Promise.all(validateAddressPromises).then((validateAddresses) =>{
-     debugger;
-      
 
-      
-      
-      const txb = new window.bitcoin.TransactionBuilder(BlockchainServices.Chaincoin);
-      txb.setVersion(3);
-
-      
-      var transactionTotal = 0; //TODO: big decimal library
-      recipients.forEach(r => {
-        transactionTotal = transactionTotal + parseFloat(r.amount); //TODO: big decimal library
-
-        const amount = parseFloat(r.amount); //TODO: big decimal library
-        txb.addOutput(r.address, amount * 100000000);
-      });
-
-
-      var keyPairs = {};
-      var p2wpkhs = {};
-      var outputsTotal = 0;  //TODO: big decimal library
-      const outputs = [];
-      controlledAddresses.forEach(controlledAddress => {
-        if (outputsTotal < transactionTotal)
-        {
-          controlledAddress.unspent.forEach(unspent =>{
-            if (outputsTotal < transactionTotal) {
-              outputsTotal = unspent.value;
-
-              var keyPair = window.bitcoin.ECPair.fromWIF(controlledAddress.WIF, BlockchainServices.Chaincoin);
-        
-              const p2wpkh = window.bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin })
-
-              txb.addInput(unspent.txid, unspent.vout, null, p2wpkh.output); 
-              outputs.push({controlledAddress,unspent});
-            }
-          })
-        }
-      });
-
-
-      outputs.forEach((o,i) => {
-
-        var keyPair = window.bitcoin.ECPair.fromWIF(o.controlledAddress.WIF, BlockchainServices.Chaincoin);
-        
-        txb.sign(i, keyPair,null, null,o.unspent.value * 100000000);
-      })
-
-      
-      var transaction = txb.build();
-      var hex = transaction.toHex();
-
-      
-
-      BlockchainServices.sendRawTransaction(hex, true);
+           
+     
     
 
     });
   }
 
+  handleChangeChangeAddress = (event) =>{
+    this.setState({
+      changeAddress: event.target.value
+    });
+  }
+
   componentDidMount() {
+
+    ValidatorForm.addValidationRule('isChaincoinAddress', (address) => {
+      try {
+        window.bitcoin.address.toOutputScript(address,BlockchainServices.Chaincoin)
+        return true
+      } catch (e) {
+        return false
+      }
+    });
 
     this.myAddressesSubscription = MyWalletServices.myAddresses.subscribe(myAddresses =>{ //TODO: this could be done better
 
@@ -129,6 +211,7 @@ class MyAddressesSend extends React.Component {
       this.addressUnspentSubscriptions.forEach(v => v.unsubscribe());
 
       this.setState({
+        myAddresses: myAddresses,
         controlledAddresses: controlledAddresses 
       });
 
@@ -164,7 +247,7 @@ class MyAddressesSend extends React.Component {
       recipient.amount = event.target.value;
       this.setState({
         recipients: recipients.slice()
-      });
+      }, this.processTransaction);
     }
 
     const handleRemoveClick = () =>{
@@ -175,8 +258,22 @@ class MyAddressesSend extends React.Component {
 
     return (
       <div>
-        <TextField label="Pay To" value={recipient.address} onChange={handleAddressChange} />
-        <TextField label="Amount" value={recipient.amount} onChange={handleAmountChange} />
+        <TextValidator
+          label="Pay To"
+          onChange={handleAddressChange}
+          value={recipient.address}
+          validators={['required', 'isChaincoinAddress']}
+          errorMessages={['Address required',"Invalid address"]}
+        />
+
+        <TextValidator
+          label="Amount"
+          onChange={handleAmountChange}
+          value={recipient.amount}
+          validators={['required', 'matchRegexp:^[0-9]\\d{0,9}(\\.\\d{0,8})?%?$']}
+          errorMessages={['Amount required',"Invalid amount"]}
+        />
+
         <Button variant="contained" color="secondary" onClick={handleRemoveClick}>Remove</Button>
       </div>
     );
@@ -184,18 +281,55 @@ class MyAddressesSend extends React.Component {
 
   render(){
     const { classes } = this.props;
-    const { recipients } = this.state;
+    const { recipients, feePerByte, transactionFee, transactionChange, changeAddress, myAddresses} = this.state;
 
     
 
     return (
       <Paper className={classes.paper}>
+        <ValidatorForm
+          ref="form"
+          onSubmit={this.handleSendClick}
+          onError={errors => console.log(errors)}
+        >
+          {
+            recipients.map(this.renderRecipient)
+          }
 
-        {
-          recipients.map(this.renderRecipient)
-        }
-        <Button variant="contained" color="primary" onClick={this.handleAddRecipientClick}>Add Recipient</Button>
-        <Button variant="contained" color="primary" onClick={this.handleSendClick}>Send</Button>
+
+          
+          <SelectValidator
+              label="Change Address"
+              value={changeAddress}
+              onChange={this.handleChangeChangeAddress}
+              name="change-address"
+              className={classes.changeSelect}
+              validators={['required']}
+              errorMessages={['Change Address Required']}
+            >
+              <MenuItem value="">
+                <em>None</em>
+              </MenuItem>
+
+              {
+                myAddresses.map(myAddress =>(
+                  <MenuItem value={myAddress}>{myAddress.name}</MenuItem>
+                ))
+              }
+
+            </SelectValidator>
+          <div>
+            Fee Per KB {(feePerByte * 1024) / 100000000}
+          </div>
+          <div>
+            Transaction Fee {transactionFee / 100000000}
+          </div>
+          <div>
+            Change {transactionChange == null ? 0 : transactionChange.value / 100000000}
+          </div>
+          <Button variant="contained" color="primary" onClick={this.handleAddRecipientClick}>Add Recipient</Button>
+          <Button variant="contained" color="primary" onClick={this.handleSendClick}>Send</Button>
+        </ValidatorForm>
       </Paper>
       
     );
