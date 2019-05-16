@@ -4,15 +4,10 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
 import Paper from '@material-ui/core/Paper';
-import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
-
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
+import Grid from '@material-ui/core/Grid';
+import Divider from '@material-ui/core/Divider';
 
 
 import { ValidatorForm, TextValidator, SelectValidator} from 'react-material-ui-form-validator';
@@ -29,8 +24,21 @@ const styles = {
   paper:{
     padding:"10px"
   },
+  recipient:{
+    "padding-bottom":"10px"
+  },
+  recipientAddress:{
+    "width":"100%"
+  },
+  recipientAmount:{
+    "width":"100%"
+  },
+  recipientDivider:{
+    "margin-top":"10px",
+    "background-color": "#27B463"
+  },
   changeSelect:{
-    "min-width" : 200
+    "width" : "100%"
   }
 };
 
@@ -233,7 +241,8 @@ class MyAddressesSend extends React.Component {
   }
 
 
-  renderRecipient = (recipient) =>{
+  renderRecipient = (recipient, pos) =>{
+    const { classes } = this.props;
     const { recipients } = this.state;
 
     const handleAddressChange = (event) =>{
@@ -257,24 +266,41 @@ class MyAddressesSend extends React.Component {
     }
 
     return (
-      <div>
-        <TextValidator
-          label="Pay To"
-          onChange={handleAddressChange}
-          value={recipient.address}
-          validators={['required', 'isChaincoinAddress']}
-          errorMessages={['Address required',"Invalid address"]}
-        />
+      <div className={classes.recipient}>
 
-        <TextValidator
-          label="Amount"
-          onChange={handleAmountChange}
-          value={recipient.amount}
-          validators={['required', 'matchRegexp:^[0-9]\\d{0,9}(\\.\\d{0,8})?%?$']}
-          errorMessages={['Amount required',"Invalid amount"]}
-        />
+        <Grid container spacing={24}>
+          <Grid item xs={12} sm={12} md={6} lg={6}>
+            <TextValidator
+              label="Pay To"
+              onChange={handleAddressChange}
+              value={recipient.address}
+              validators={['required', 'isChaincoinAddress']}
+              errorMessages={['Address required',"Invalid address"]}
+              className={classes.recipientAddress}
+            />
+          </Grid>
+          <Grid item xs={12} sm={12} md={4} lg={4}>
+            <TextValidator
+              label="Amount"
+              onChange={handleAmountChange}
+              value={recipient.amount}
+              validators={['required', 'matchRegexp:^[0-9]\\d{0,9}(\\.\\d{0,8})?%?$']}
+              errorMessages={['Amount required',"Invalid amount"]}
+              className={classes.recipientAmount}
+            />
+          </Grid>
+          {
+            pos != 0 ?
+            (
+            <Grid item xs={12} sm={12} md={2} lg={1}>
+              <Button variant="contained" color="secondary" onClick={handleRemoveClick}>Remove</Button>
+            </Grid>
+            )
+            : null
+          }
+          
+        </Grid>
 
-        <Button variant="contained" color="secondary" onClick={handleRemoveClick}>Remove</Button>
       </div>
     );
   }
@@ -296,28 +322,34 @@ class MyAddressesSend extends React.Component {
             recipients.map(this.renderRecipient)
           }
 
-
+          <div>
+            <Button variant="contained" color="primary" onClick={this.handleAddRecipientClick}>Add Recipient</Button>
+          </div>
           
-          <SelectValidator
-              label="Change Address"
-              value={changeAddress}
-              onChange={this.handleChangeChangeAddress}
-              name="change-address"
-              className={classes.changeSelect}
-              validators={['required']}
-              errorMessages={['Change Address Required']}
-            >
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
+          <Grid container spacing={24}>
+            <Grid item xs={12} sm={12} md={6} lg={6}>
+              <SelectValidator
+                  label="Change Address"
+                  value={changeAddress}
+                  onChange={this.handleChangeChangeAddress}
+                  name="change-address"
+                  className={classes.changeSelect}
+                  validators={['required']}
+                  errorMessages={['Change address required']}
+                >
+                  <MenuItem value="">
+                    <em>None</em>
+                  </MenuItem>
 
-              {
-                myAddresses.map(myAddress =>(
-                  <MenuItem value={myAddress}>{myAddress.name}</MenuItem>
-                ))
-              }
+                  {
+                    myAddresses.map(myAddress =>(
+                      <MenuItem value={myAddress}>{myAddress.name}</MenuItem>
+                    ))
+                  }
 
-            </SelectValidator>
+                </SelectValidator>
+              </Grid>
+            </Grid>
           <div>
             Fee Per KB {(feePerByte * 1024) / 100000000}
           </div>
@@ -327,7 +359,7 @@ class MyAddressesSend extends React.Component {
           <div>
             Change {transactionChange == null ? 0 : transactionChange.value / 100000000}
           </div>
-          <Button variant="contained" color="primary" onClick={this.handleAddRecipientClick}>Add Recipient</Button>
+          
           <Button variant="contained" color="primary" onClick={this.handleSendClick}>Send</Button>
         </ValidatorForm>
       </Paper>
