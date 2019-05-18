@@ -10,12 +10,20 @@ import Grid from '@material-ui/core/Grid';
 import Divider from '@material-ui/core/Divider';
 
 
+import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import Checkbox from '@material-ui/core/Checkbox';
+
+
 import { ValidatorForm, TextValidator, SelectValidator} from 'react-material-ui-form-validator';
 
 import BlockchainServices from '../../../Services/BlockchainServices';
 import MyWalletServices from '../../../Services/MyWalletServices';
 
-import coinSelect from 'coinselect'; //https://github.com/bitcoinjs/coinselect
+import coinSelect from '../../../Scripts/coinselect/coinselect'; //https://github.com/bitcoinjs/coinselect
+import coinSelectUtils from '../../../Scripts/coinselect/utils'; //https://github.com/bitcoinjs/coinselect
 
 const styles = {
   root: {
@@ -55,7 +63,11 @@ class MyAddressesSend extends React.Component {
         amount: ""
       }],
 
+
       feePerByte: 10,
+
+      coinControl:true,
+      coinControlInputTotal:0,
 
       changeAddress:"",
 
@@ -63,9 +75,6 @@ class MyAddressesSend extends React.Component {
       transactionInputs: null,
       transactionOutputs: null,
 
-      validation:{
-
-      }
     };
   
     this.myAddressesSubscription = null;
@@ -85,31 +94,84 @@ class MyAddressesSend extends React.Component {
 
   processTransaction = () =>{
 
-    const utxos = this.state.controlledAddresses.flatMap(a => a.unspent.map(u => {
-      return {
-        txId: u.txid,
-        vout: u.vout,
-        value: u.value * 100000000, //TODO: floating point issue
-        myAddress: a
-      };
-    }));
+    var recipientsTotal = 0;
+    var outputs = this.state.recipients.forEach(r =>{
 
-    var targets = this.state.recipients.map(r =>{
-      return  {
-        address: r.address,
-        value: parseFloat(r.amount) * 100000000  //TODO: floating point issue
-      };
+      var amount = parseFloat(r.amount);
+      if (isNaN(amount) == false) recipientsTotal = recipientsTotal + (amount * 100000000); //TODO: floating point issue
     });
 
-    let { inputs, outputs, fee } = coinSelect(utxos, targets, this.state.feePerByte);
+
+    if (this.state.coinControl)
+    {
+
+      var coinControlInputTotal = 0;
+      var utxos = [];
+      this.state.controlledAddresses.forEach(controlledAddress => {
+        if (controlledAddress.unspent == null) return;
+        controlledAddress.unspent.forEach(unspent =>{
+          if (unspent.selected == true){
+            coinControlInputTotal = coinControlInputTotal + (unspent.value * 100000000); //TODO: floating point issue
+            utxos.push({
+              txId: unspent.txid,
+              vout: unspent.vout,
+              value: unspent.value * 100000000, //TODO: floating point issue
+              myAddress: controlledAddress
+            });
+          } 
+        })
+      });
 
 
-    this.setState({
-      transactionFee: fee,
-      transactionInputs: inputs,
-      transactionOutputs: outputs,
-      transactionChange: outputs == null ? null : outputs.find(o => o.address == null)
-    });
+      var targets = this.state.recipients.map(r =>{
+        return  {
+          address: r.address,
+          value: parseFloat(r.amount) * 100000000  //TODO: floating point issue
+        };
+      });
+
+     
+
+      let { inputs, outputs, fee } = coinSelectUtils.finalize(utxos, targets, this.state.feePerByte);
+
+      this.setState({
+        coinControlInputTotal: coinControlInputTotal,
+
+        transactionFee: fee,
+        transactionInputs: inputs,
+        transactionOutputs: outputs,
+        transactionChange: outputs == null ? null : outputs.find(o => o.address == null)
+      });
+
+    }
+    else
+    {
+      const utxos = this.state.controlledAddresses.flatMap(a => a.unspent.map(u => {
+        return {
+          txId: u.txid,
+          vout: u.vout,
+          value: u.value * 100000000, //TODO: floating point issue
+          myAddress: a
+        };
+      }));
+  
+      var targets = this.state.recipients.map(r =>{
+        return  {
+          address: r.address,
+          value: parseFloat(r.amount) * 100000000  //TODO: floating point issue
+        };
+      });
+  
+      let { inputs, outputs, fee } = coinSelect(utxos, targets, this.state.feePerByte);
+  
+  
+      this.setState({
+        transactionFee: fee,
+        transactionInputs: inputs,
+        transactionOutputs: outputs,
+        transactionChange: outputs == null ? null : outputs.find(o => o.address == null)
+      });
+    }
   }
 
 
@@ -135,7 +197,10 @@ class MyAddressesSend extends React.Component {
   SendTransaction = () =>{
     const { transactionInputs, transactionOutputs, changeAddress } = this.state;
 
-
+    if (transactionInputs == null || transactionOutputs == null) {
+      alert("invalid transaction - please check details");
+      return;
+    } 
 
     let txb = new window.bitcoin.TransactionBuilder(BlockchainServices.Chaincoin);
     txb.setVersion(3);
@@ -305,12 +370,72 @@ class MyAddressesSend extends React.Component {
     );
   }
 
-  render(){
-    const { classes } = this.props;
-    const { recipients, feePerByte, transactionFee, transactionChange, changeAddress, myAddresses} = this.state;
+  renderAddressCoinControl = (controlledAddress) =>
+  {
 
+    var allSelected = true;
+    if (controlledAddress.unspent != null)
+    {
+      controlledAddress.unspent.forEach(unspent => {
+        if (unspent.selected != true) allSelected = false;
+      });
+    }
+    else
+    {
+      allSelected = false;
+    }
     
 
+    const handleUnspentChange = (unspent) =>{
+      return (event) =>{
+        unspent.selected = event.target.checked;
+        this.processTransaction();
+      }
+    }
+
+
+    const handleControlledAddressChange = (event) =>{
+      controlledAddress.unspent.forEach(unspent => unspent.selected = event.target.checked);
+      this.processTransaction();
+    }
+
+    return (
+      <ExpansionPanel>
+        <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
+        <Checkbox
+            checked={allSelected}
+            onClick={(e)=> e.stopPropagation()}
+            onChange={handleControlledAddressChange}
+            value="checkedB"
+            color="primary"
+          />
+        {controlledAddress.name} {controlledAddress.data.balance}
+        
+        </ExpansionPanelSummary>
+        <ExpansionPanelDetails>
+            {controlledAddress.unspent != null? controlledAddress.unspent.map(unspent => (
+              <div>
+                <div>
+                  <Checkbox
+                    checked={unspent.selected == true}
+                    onChange={handleUnspentChange(unspent)}
+                    value="checkedB"
+                    color="primary"
+                  />
+                  {unspent.value}
+                </div>
+              </div>
+            )): null}
+        </ExpansionPanelDetails>
+      </ExpansionPanel>
+    )
+  }
+
+  render(){
+    const { classes } = this.props;
+    const { coinControl, controlledAddresses, coinControlInputTotal, recipients, feePerByte, transactionFee, transactionChange, changeAddress, myAddresses} = this.state;
+
+    
     return (
       <Paper className={classes.paper}>
         <ValidatorForm
@@ -318,9 +443,26 @@ class MyAddressesSend extends React.Component {
           onSubmit={this.handleSendClick}
           onError={errors => console.log(errors)}
         >
+
+          {
+            coinControl == true?
+            (
+              <div>
+                {controlledAddresses.map(this.renderAddressCoinControl)}
+                <div>
+                  Input Total: {coinControlInputTotal / 100000000}
+                </div>
+              </div>
+            )
+            :
+            null
+          }
+
+
           {
             recipients.map(this.renderRecipient)
           }
+          
 
           <div>
             <Button variant="contained" color="primary" onClick={this.handleAddRecipientClick}>Add Recipient</Button>

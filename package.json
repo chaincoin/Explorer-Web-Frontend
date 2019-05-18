@@ -9,7 +9,6 @@
     "axios": "^0.18.0",
     "bootstrap": "^4.3.1",
     "chart.js": "^2.8.0",
-    "coinselect": "^3.1.11",
     "es6-promise": "^4.2.6",
     "react": "^16.8.6",
     "react-addons-update": "^15.6.2",
