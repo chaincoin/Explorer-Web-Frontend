@@ -11,6 +11,15 @@ var notificationsApiUrl = "https://notifications-test.chaincoinexplorer.co.uk";
 var environment = "Test";*/
 
 
+if (window.location.host == "localhost:3000")
+{
+    blockchainApiUrl = "https://blockchain-staging.chaincoinexplorer.co.uk";
+    webServicesApiUrl = "wss://websocket-staging.chaincoinexplorer.co.uk";
+    notificationsApiUrl = "https://notifications-staging.chaincoinexplorer.co.uk";
+    environment = "Staging";
+}
+
+
 if (window.location.host == "staging.chaincoinexplorer.co.uk")
 {
     blockchainApiUrl = "https://blockchain-staging.chaincoinexplorer.co.uk";
