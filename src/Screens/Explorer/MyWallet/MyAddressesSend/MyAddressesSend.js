@@ -17,13 +17,15 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Checkbox from '@material-ui/core/Checkbox';
 
 
-import { ValidatorForm, TextValidator, SelectValidator} from 'react-material-ui-form-validator';
+import { ValidatorForm, SelectValidator} from 'react-material-ui-form-validator';
+import Recipients from './Recipients';
+import CoinControl from './CoinControl';
 
-import BlockchainServices from '../../../Services/BlockchainServices';
-import MyWalletServices from '../../../Services/MyWalletServices';
+import BlockchainServices from '../../../../Services/BlockchainServices';
+import MyWalletServices from '../../../../Services/MyWalletServices';
 
-import coinSelect from '../../../Scripts/coinselect/coinselect'; //https://github.com/bitcoinjs/coinselect
-import coinSelectUtils from '../../../Scripts/coinselect/utils'; //https://github.com/bitcoinjs/coinselect
+import coinSelect from '../../../../Scripts/coinselect/coinselect'; //https://github.com/bitcoinjs/coinselect
+import coinSelectUtils from '../../../../Scripts/coinselect/utils'; //https://github.com/bitcoinjs/coinselect
 
 const styles = {
   root: {
@@ -58,10 +60,9 @@ class MyAddressesSend extends React.Component {
       sending:false,
       myAddresses:[],
       controlledAddresses:[],
-      recipients:[{
-        address: "",
-        amount: ""
-      }],
+
+      selectedInputs: [],
+      recipients:null,
 
 
       feePerByte: 10,
@@ -82,14 +83,6 @@ class MyAddressesSend extends React.Component {
   }
 
   
-  handleAddRecipientClick = () =>{
-    this.setState({
-      recipients: this.state.recipients.concat([{
-        address: "",
-        amount: ""
-      }])
-    }, this.processTransaction);
-  }
 
 
   processTransaction = () =>{
@@ -250,22 +243,8 @@ class MyAddressesSend extends React.Component {
 
     BlockchainServices.sendRawTransaction(hex, true);
 
-    const validateAddressPromises = transactionOutputs.map(output => BlockchainServices.validateAddress(output.address));
-
-    Promise.all(validateAddressPromises).then((validateAddresses) =>{
-
-           
-     
-    
-
-    });
   }
 
-  handleChangeChangeAddress = (event) =>{
-    this.setState({
-      changeAddress: event.target.value
-    });
-  }
 
   componentDidMount() {
 
@@ -306,135 +285,33 @@ class MyAddressesSend extends React.Component {
   }
 
 
-  renderRecipient = (recipient, pos) =>{
-    const { classes } = this.props;
-    const { recipients } = this.state;
-
-    const handleAddressChange = (event) =>{
-      recipient.address = event.target.value;
-      this.setState({
-        recipients: recipients.slice()
-      });
-    }
-
-    const handleAmountChange = (event) =>{
-      recipient.amount = event.target.value;
-      this.setState({
-        recipients: recipients.slice()
-      }, this.processTransaction);
-    }
-
-    const handleRemoveClick = () =>{
-      this.setState({
-        recipients: recipients.filter(r => r != recipient)
-      });
-    }
-
-    return (
-      <div className={classes.recipient}>
-
-        <Grid container spacing={24}>
-          <Grid item xs={12} sm={12} md={6} lg={6}>
-            <TextValidator
-              label="Pay To"
-              onChange={handleAddressChange}
-              value={recipient.address}
-              validators={['required', 'isChaincoinAddress']}
-              errorMessages={['Address required',"Invalid address"]}
-              className={classes.recipientAddress}
-            />
-          </Grid>
-          <Grid item xs={12} sm={12} md={4} lg={4}>
-            <TextValidator
-              label="Amount"
-              onChange={handleAmountChange}
-              value={recipient.amount}
-              validators={['required', 'matchRegexp:^[0-9]\\d{0,9}(\\.\\d{0,8})?%?$']}
-              errorMessages={['Amount required',"Invalid amount"]}
-              className={classes.recipientAmount}
-            />
-          </Grid>
-          {
-            pos != 0 ?
-            (
-            <Grid item xs={12} sm={12} md={2} lg={1}>
-              <Button variant="contained" color="secondary" onClick={handleRemoveClick}>Remove</Button>
-            </Grid>
-            )
-            : null
-          }
-          
-        </Grid>
-
-      </div>
-    );
+  handleClearClick = () =>{
+    //this.coinControl.clear();
+    this.recipients.clear();
   }
 
-  renderAddressCoinControl = (controlledAddress) =>
-  {
 
-    var allSelected = true;
-    if (controlledAddress.unspent != null)
-    {
-      controlledAddress.unspent.forEach(unspent => {
-        if (unspent.selected != true) allSelected = false;
-      });
-    }
-    else
-    {
-      allSelected = false;
-    }
-    
+  handleSelectedInputsChange = (selectedInputs) =>{
+    this.setState({
+      selectedInputs
+    });
+  }
 
-    const handleUnspentChange = (unspent) =>{
-      return (event) =>{
-        unspent.selected = event.target.checked;
-        this.processTransaction();
-      }
-    }
-
-
-    const handleControlledAddressChange = (event) =>{
-      controlledAddress.unspent.forEach(unspent => unspent.selected = event.target.checked);
-      this.processTransaction();
-    }
-
-    return (
-      <ExpansionPanel>
-        <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-        <Checkbox
-            checked={allSelected}
-            onClick={(e)=> e.stopPropagation()}
-            onChange={handleControlledAddressChange}
-            value="checkedB"
-            color="primary"
-          />
-        {controlledAddress.name} {controlledAddress.data.balance}
-        
-        </ExpansionPanelSummary>
-        <ExpansionPanelDetails>
-            {controlledAddress.unspent != null? controlledAddress.unspent.map(unspent => (
-              <div>
-                <div>
-                  <Checkbox
-                    checked={unspent.selected == true}
-                    onChange={handleUnspentChange(unspent)}
-                    value="checkedB"
-                    color="primary"
-                  />
-                  {unspent.value}
-                </div>
-              </div>
-            )): null}
-        </ExpansionPanelDetails>
-      </ExpansionPanel>
-    )
+  handleRecipientsChange = (recipients) =>{
+    this.setState({
+      recipients
+    });
   }
 
   render(){
     const { classes } = this.props;
-    const { coinControl, controlledAddresses, coinControlInputTotal, recipients, feePerByte, transactionFee, transactionChange, changeAddress, myAddresses} = this.state;
+    const { coinControl, controlledAddresses,  feePerByte, transactionFee, transactionChange, changeAddress, myAddresses} = this.state;
 
+
+    var balance = 0;
+    controlledAddresses.forEach(controlledAddress =>{
+      if (controlledAddress.unspent != null) controlledAddress.unspent.forEach(unspent => balance = balance + unspent.value);
+    })
     
     return (
       <Paper className={classes.paper}>
@@ -447,26 +324,15 @@ class MyAddressesSend extends React.Component {
           {
             coinControl == true?
             (
-              <div>
-                {controlledAddresses.map(this.renderAddressCoinControl)}
-                <div>
-                  Input Total: {coinControlInputTotal / 100000000}
-                </div>
-              </div>
+              <CoinControl onRef={coinControl => this.coinControl = coinControl} controlledAddresses={controlledAddresses} selectedInputsChange={this.handleSelectedInputsChange}/>
             )
             :
             null
           }
 
 
-          {
-            recipients.map(this.renderRecipient)
-          }
+          <Recipients onRef={recipients => this.recipients = recipients} recipientsChange={this.handleRecipientsChange}/>
           
-
-          <div>
-            <Button variant="contained" color="primary" onClick={this.handleAddRecipientClick}>Add Recipient</Button>
-          </div>
           
           <Grid container spacing={24}>
             <Grid item xs={12} sm={12} md={6} lg={6}>
@@ -501,8 +367,13 @@ class MyAddressesSend extends React.Component {
           <div>
             Change {transactionChange == null ? 0 : transactionChange.value / 100000000} 
           </div>
+
+          <div>
+            Balance {balance} 
+          </div>
           
           <Button variant="contained" color="primary" onClick={this.handleSendClick}>Send</Button>
+          <Button variant="contained" color="secondary" onClick={this.handleClearClick}>Clear</Button>
         </ValidatorForm>
       </Paper>
       
