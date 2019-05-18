@@ -556,7 +556,7 @@ const BlockCount = Observable.create(function(observer) {
     }
   }).pipe(shareReplay({
     bufferSize: 1,
-    refCount: false
+    refCount: true
   }));
   
 
@@ -591,7 +591,7 @@ const BlockCount = Observable.create(function(observer) {
     }
   }).pipe(shareReplay({
     bufferSize: 1,
-    refCount: false
+    refCount: true
   }));
   
 
@@ -606,21 +606,48 @@ const BlockCount = Observable.create(function(observer) {
         extended: true
       })
       .then((rawMemPool) => {
-
+        //TODO: maybe check that the rawMemPool has changed before calling next
         _rawMemPool= rawMemPool;
         observer.next(rawMemPool);
         
       });
     };
 
-    var memPoolInfoSubscription = memPoolInfo.subscribe(memPoolInfo => getMemPoolHttp());
+    var memPoolInfoSubscription = null;
+
+    var webSocketSubscription = webSocket.subscribe(enabled =>{
+  
+      if (enabled == true)
+      {
+        if (memPoolInfoSubscription != null) memPoolInfoSubscription.unsubscribe();
+        memPoolInfoSubscription = null;
+        getMemPoolHttp();
+        _websocket.send(JSON.stringify({op: "memPoolChangeSubscribe"}));//subscribe to event //TODO: should i really be using the web socket directly, if i use send request it throws an error as subcriptions are responded to
+      }
+      else
+      {
+        memPoolInfoSubscription = memPoolInfo.subscribe(memPoolInfo => getMemPoolHttp()); //TODO: this will trigger a getMemPoolHttp straight away, even if memPoolInfo hasnt changed
+      }
+
+    });
+
+    
+    var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+      if (message.op == "memPoolChanged") getMemPoolHttp();
+    });
+    
+    
 
     return () => {
-      memPoolInfoSubscription.unsubscribe();
+        if (_websocket != null)_websocket.send(JSON.stringify({op: "memPoolChangeUnsubscribe"})); //TODO: this feels wrong
+        if(memPoolInfoSubscription != null) memPoolInfoSubscription.unsubscribe();
+        webSocketSubscription.unsubscribe();
+        websocketMessageSubscription.unsubscribe();
     }
+
   }).pipe(shareReplay({
     bufferSize: 1,
-    refCount: false
+    refCount: true
   }));
   
 
@@ -678,7 +705,7 @@ const BlockCount = Observable.create(function(observer) {
     }
   }).pipe(shareReplay({
     bufferSize: 1,
-    refCount: false
+    refCount: true
   }));
   
 
@@ -709,7 +736,7 @@ const BlockCount = Observable.create(function(observer) {
     }
   }).pipe(shareReplay({
     bufferSize: 1,
-    refCount: false
+    refCount: true
   }));
   
 
@@ -731,7 +758,7 @@ const BlockCount = Observable.create(function(observer) {
     }
   }).pipe(shareReplay({
     bufferSize: 1,
-    refCount: false
+    refCount: true
   }));
   
 
