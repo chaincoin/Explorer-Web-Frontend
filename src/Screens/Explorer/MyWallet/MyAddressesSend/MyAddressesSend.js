@@ -1,5 +1,8 @@
 import React from 'react';
 
+import { combineLatest, forkJoin } from 'rxjs';
+import { mergeMap, map  } from 'rxjs/operators';
+
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
@@ -7,15 +10,8 @@ import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
 import MenuItem from '@material-ui/core/MenuItem';
 import Grid from '@material-ui/core/Grid';
-import Divider from '@material-ui/core/Divider';
 
-
-import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Checkbox from '@material-ui/core/Checkbox';
-
+import Switch from '@material-ui/core/Switch';
 
 import { ValidatorForm, SelectValidator} from 'react-material-ui-form-validator';
 import Recipients from './Recipients';
@@ -60,14 +56,15 @@ class MyAddressesSend extends React.Component {
       sending:false,
       myAddresses:[],
       controlledAddresses:[],
+      rawMemPool:[],
 
       selectedInputs: [],
-      recipients:null,
+      recipients:[],
 
 
       feePerByte: 10,
 
-      coinControl:true,
+      coinControl:false,
       coinControlInputTotal:0,
 
       changeAddress:"",
@@ -78,17 +75,104 @@ class MyAddressesSend extends React.Component {
 
     };
   
-    this.myAddressesSubscription = null;
-    this.addressUnspentSubscriptions = [];
+    this.subscription = null;
   }
 
   
+  componentDidMount() {
 
+    ValidatorForm.addValidationRule('isChaincoinAddress', (address) => {
+      try {
+        window.bitcoin.address.toOutputScript(address,BlockchainServices.Chaincoin)
+        return true
+      } catch (e) {
+        return false
+      }
+    });
+
+
+    this.subscription = combineLatest(
+      MyWalletServices.myAddresses, 
+      this.getUnspent(),
+      BlockchainServices.rawMemPool
+    ).subscribe(result =>{
+
+      this.setState({
+        myAddresses: result[0],
+        controlledAddresses: result[1], 
+        rawMemPool: result[2]
+      });
+
+    })
+/*
+    this.myAddressesSubscription = MyWalletServices.myAddresses.subscribe(myAddresses =>{ //TODO: this could be done better
+
+      const controlledAddresses = myAddresses.filter(a => a.WIF != null);
+      this.addressUnspentSubscriptions.forEach(v => v.unsubscribe());
+
+      this.setState({
+        myAddresses: myAddresses,
+        controlledAddresses: controlledAddresses 
+      });
+
+      this.addressUnspentSubscriptions = controlledAddresses.map((controlledAddress) => {
+        return BlockchainServices.getAddressUnspent(controlledAddress.address).subscribe(unspent =>{
+          controlledAddress.unspent = unspent;
+          this.setState({
+            controlledAddresses: controlledAddresses.slice()
+          });
+        });
+      });
+    });
+*/
+  }
+
+  getUnspent = () =>{
+    return MyWalletServices.myAddresses
+      .pipe(
+      mergeMap(myAddresses => combineLatest(
+        myAddresses.filter(myAddress => myAddress.WIF != null).map(controlledAddress => 
+          combineLatest(
+            BlockchainServices.getAddress(controlledAddress.address),
+            BlockchainServices.getAddressUnspent(controlledAddress.address)
+          )
+          .pipe(
+            map(result =>{
+              return {
+                controlledAddress,
+                address: result[0],
+                unspent: result[1]
+              }
+            })
+          )
+        )
+      ))
+    );
+  }
+
+  componentWillUnmount() {
+    this.subscription.unsubscribe();
+  }
+
+
+  handleSelectedInputsChange = (selectedInputs) =>{
+    debugger;
+    this.setState({
+      selectedInputs
+    }, this.processTransaction);
+  }
+
+  handleRecipientsChange = (recipients) =>{
+    this.setState({
+      recipients
+    }, this.processTransaction);
+  }
+  
 
   processTransaction = () =>{
 
     var recipientsTotal = 0;
-    var outputs = this.state.recipients.forEach(r =>{
+    this.state.recipients.forEach(r =>{
 
       var amount = parseFloat(r.amount);
       if (isNaN(amount) == false) recipientsTotal = recipientsTotal + (amount * 100000000); //TODO: floating point issue
@@ -100,19 +184,14 @@ class MyAddressesSend extends React.Component {
 
       var coinControlInputTotal = 0;
       var utxos = [];
-      this.state.controlledAddresses.forEach(controlledAddress => {
-        if (controlledAddress.unspent == null) return;
-        controlledAddress.unspent.forEach(unspent =>{
-          if (unspent.selected == true){
-            coinControlInputTotal = coinControlInputTotal + (unspent.value * 100000000); //TODO: floating point issue
-            utxos.push({
-              txId: unspent.txid,
-              vout: unspent.vout,
-              value: unspent.value * 100000000, //TODO: floating point issue
-              myAddress: controlledAddress
-            });
-          } 
-        })
+      this.state.selectedInputs.forEach(selectedInput => {
+        coinControlInputTotal = coinControlInputTotal + (selectedInput.unspent.value * 100000000); //TODO: floating point issue
+        utxos.push({
+          txId: selectedInput.unspent.txid,
+          vout: selectedInput.unspent.vout,
+          value: selectedInput.unspent.value * 100000000, //TODO: floating point issue
+          data: selectedInput.controlledAddress
+        });
       });
 
 
@@ -144,7 +223,7 @@ class MyAddressesSend extends React.Component {
           txId: u.txid,
           vout: u.vout,
           value: u.value * 100000000, //TODO: floating point issue
-          myAddress: a
+          data: a.controlledAddress
         };
       }));
   
@@ -171,6 +250,7 @@ class MyAddressesSend extends React.Component {
 
   handleSendClick = (event) =>{
 
+    
 
     this.setState({
       sending:true
@@ -190,6 +270,8 @@ class MyAddressesSend extends React.Component {
   SendTransaction = () =>{
     const { transactionInputs, transactionOutputs, changeAddress } = this.state;
 
+    if (window.confirm("Are you sure?") != true) return;
+
     if (transactionInputs == null || transactionOutputs == null) {
       alert("invalid transaction - please check details");
       return;
@@ -198,9 +280,9 @@ class MyAddressesSend extends React.Component {
     let txb = new window.bitcoin.TransactionBuilder(BlockchainServices.Chaincoin);
     txb.setVersion(3);
     transactionInputs.forEach(input => {
-      if (input.myAddress.address.startsWith(BlockchainServices.Chaincoin.bech32))
+      if (input.data.controlledAddress.address.startsWith(BlockchainServices.Chaincoin.bech32))
       {
-        var keyPair = window.bitcoin.ECPair.fromWIF(input.myAddress.WIF, BlockchainServices.Chaincoin);
+        var keyPair = window.bitcoin.ECPair.fromWIF(input.data.controlledAddress.WIF, BlockchainServices.Chaincoin);
         const p2wpkh = window.bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin })
         txb.addInput(input.txId, input.vout, null, p2wpkh.output); 
       }
@@ -224,9 +306,9 @@ class MyAddressesSend extends React.Component {
 
     transactionInputs.forEach((input,i) => {
 
-      var keyPair = window.bitcoin.ECPair.fromWIF(input.myAddress.WIF, BlockchainServices.Chaincoin);
+      var keyPair = window.bitcoin.ECPair.fromWIF(input.data.controlledAddress.WIF, BlockchainServices.Chaincoin);
       
-      if (input.myAddress.address.startsWith(BlockchainServices.Chaincoin.bech32))
+      if (input.data.controlledAddress.address.startsWith(BlockchainServices.Chaincoin.bech32))
       {
         txb.sign(i, keyPair,null, null,input.value);
       }
@@ -241,67 +323,35 @@ class MyAddressesSend extends React.Component {
     var hex = transaction.toHex();
 
 
-    BlockchainServices.sendRawTransaction(hex, true);
-
-  }
-
-
-  componentDidMount() {
-
-    ValidatorForm.addValidationRule('isChaincoinAddress', (address) => {
-      try {
-        window.bitcoin.address.toOutputScript(address,BlockchainServices.Chaincoin)
-        return true
-      } catch (e) {
-        return false
-      }
-    });
-
-    this.myAddressesSubscription = MyWalletServices.myAddresses.subscribe(myAddresses =>{ //TODO: this could be done better
-
-      const controlledAddresses = myAddresses.filter(a => a.WIF != null);
-      this.addressUnspentSubscriptions.forEach(v => v.unsubscribe());
-
-      this.setState({
-        myAddresses: myAddresses,
-        controlledAddresses: controlledAddresses 
-      });
-
-      this.addressUnspentSubscriptions = controlledAddresses.map((controlledAddress) => {
-        return BlockchainServices.getAddressUnspent(controlledAddress.address).subscribe(unspent =>{
-          controlledAddress.unspent = unspent;
-          this.setState({
-            controlledAddresses: controlledAddresses.slice()
-          });
-        });
-      });
+    BlockchainServices.sendRawTransaction(hex, true).then(() =>{
+      alert("Transaction successful");
+    }).catch(() =>{
+      alert("Transaction failed");
     });
 
   }
 
-  componentWillUnmount() {
-    this.myAddressesSubscription.unsubscribe();
-    this.addressUnspentSubscriptions.forEach(v => v.unsubscribe());
-  }
 
+  
+
+  handleChangeChangeAddress = (event) =>{
+    this.setState({
+      changeAddress: event.target.value
+    });
+  }
 
   handleClearClick = () =>{
     //this.coinControl.clear();
     this.recipients.clear();
   }
 
-
-  handleSelectedInputsChange = (selectedInputs) =>{
+  handleCoinControlChange = (event ) =>{
     this.setState({
-      selectedInputs
+      coinControl : event.target.checked
     });
   }
 
-  handleRecipientsChange = (recipients) =>{
-    this.setState({
-      recipients
-    });
-  }
+
 
   render(){
     const { classes } = this.props;
@@ -320,11 +370,15 @@ class MyAddressesSend extends React.Component {
           onSubmit={this.handleSendClick}
           onError={errors => console.log(errors)}
         >
-
+        <Switch
+          checked={coinControl}
+          onChange={this.handleCoinControlChange}
+          color="primary"
+        />
           {
             coinControl == true?
             (
-              <CoinControl onRef={coinControl => this.coinControl = coinControl} controlledAddresses={controlledAddresses} selectedInputsChange={this.handleSelectedInputsChange}/>
+              <CoinControl onRef={coinControl => this.coinControl = coinControl} controlledAddresses={controlledAddresses} rawMemPool={this.state.rawMemPool} selectedInputsChange={this.handleSelectedInputsChange}/>
             )
             :
             null

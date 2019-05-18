@@ -46,7 +46,7 @@ class CoinControl extends React.Component {
 
   componentDidMount() {
     if (this.props.onRef != null) this.props.onRef(this);
-    this.props.selectedInputsChange(this.state.selectedInputs);
+    this.props.selectedInputsChange(Object.values(this.state.selectedInputs));
   }
 
 
@@ -56,7 +56,7 @@ class CoinControl extends React.Component {
       selectedInputs:{},
       selectedInputsTotal: 0
     });
-    this.props.selectedInputsChange({});
+    this.props.selectedInputsChange([]);
   }
 
   renderAddressCoinControl = (controlledAddress) =>
@@ -75,10 +75,10 @@ class CoinControl extends React.Component {
     }
     
     const handleInputChange = () =>{
-
+debugger;
       var selectedInputs = Object.values(this.state.selectedInputs);
       var selectedInputsTotal = 0; //TODO: floating point issue
-      selectedInputs.forEach(i => selectedInputsTotal = selectedInputsTotal + i.value);//TODO: floating point issue
+      selectedInputs.forEach(i => selectedInputsTotal = selectedInputsTotal + i.unspent.value);//TODO: floating point issue
 
       this.setState({selectedInputsTotal:selectedInputsTotal});
       this.props.selectedInputsChange(selectedInputs);
@@ -87,7 +87,7 @@ class CoinControl extends React.Component {
     const handleUnspentChange = (unspent) =>{
       return (event) =>{
         debugger;
-        if (event.target.checked) this.state.selectedInputs[unspent.txid + "-" + unspent.vout] = unspent;
+        if (event.target.checked) this.state.selectedInputs[unspent.txid + "-" + unspent.vout] = {controlledAddress, unspent};
         else delete this.state.selectedInputs[unspent.txid + "-" + unspent.vout];
 
         handleInputChange();
@@ -96,7 +96,7 @@ class CoinControl extends React.Component {
 
 
     const handleControlledAddressChange = (event) =>{
-      if (event.target.checked) controlledAddress.unspent.forEach(unspent => this.state.selectedInputs[unspent.txid + "-" + unspent.vout] = unspent);
+      if (event.target.checked) controlledAddress.unspent.forEach(unspent => this.state.selectedInputs[unspent.txid + "-" + unspent.vout] = {controlledAddress, unspent});
       else controlledAddress.unspent.forEach(unspent => delete this.state.selectedInputs[unspent.txid + "-" + unspent.vout]);
       
       handleInputChange();
@@ -113,7 +113,7 @@ class CoinControl extends React.Component {
             onChange={handleControlledAddressChange}
             color="primary"
           />
-        {controlledAddress.name} {controlledAddress.data.balance}
+        {controlledAddress.controlledAddress.name} {controlledAddress.address.balance}
         
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
@@ -123,6 +123,7 @@ class CoinControl extends React.Component {
                   <Checkbox
                     checked={this.state.selectedInputs[unspent.txid + "-" + unspent.vout] != null}
                     onChange={handleUnspentChange(unspent)}
+                    disabled={this.props.rawMemPool.find(r => r.vin.find(v => v.txid == unspent.txid && v.vout == unspent.vout ))}
                     color="primary"
                   />
                   {unspent.value}
@@ -155,7 +156,8 @@ class CoinControl extends React.Component {
 
 CoinControl.propTypes = {
   classes: PropTypes.object.isRequired,
-  selectedInputsChange: PropTypes.func.isRequired
+  selectedInputsChange: PropTypes.func.isRequired,
+  rawMemPool: PropTypes.object.isRequired,
 };
 
 export default withStyles(styles)(CoinControl);
