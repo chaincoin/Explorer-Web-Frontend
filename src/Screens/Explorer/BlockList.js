@@ -275,5 +275,7 @@ var TimeToString = (timestamp) =>{
 
 
 function add(accumulator, a) {
+
+  if (accumulator == null || a == null) return null
   return accumulator + a;
 }
