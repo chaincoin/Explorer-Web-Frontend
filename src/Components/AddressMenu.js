@@ -19,7 +19,8 @@ const styles = theme => ({
     minWidth: 500,
   },
   tableWrapper: {
-    overflowX: 'auto',
+    overflowX: 'scroll',
+    "-webkit-overflow-scrolling": "touch"
   },
 });
 

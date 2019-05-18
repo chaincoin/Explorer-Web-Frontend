@@ -29,7 +29,8 @@ const styles = {
   table: {
   },
   tableWrapper: {
-    overflowX: 'auto',
+    overflowX: 'scroll',
+    "-webkit-overflow-scrolling": "touch"
   },
 };
 

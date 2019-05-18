@@ -30,7 +30,8 @@ const styles = theme => ({
     marginTop: theme.spacing.unit * 3,
   },
   tableWrapper: {
-    overflowX: 'auto',
+    overflowX: 'scroll',
+    "-webkit-overflow-scrolling": "touch"
   },
 });
 

@@ -22,7 +22,8 @@ const styles = theme => ({
   table: {
   },
   tableWrapper: {
-    overflowX: 'auto',
+    overflowX: 'scroll',
+    "-webkit-overflow-scrolling": "touch"
   },
 });
 
