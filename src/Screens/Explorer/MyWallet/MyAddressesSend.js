@@ -89,7 +89,7 @@ class MyAddressesSend extends React.Component {
       return {
         txId: u.txid,
         vout: u.vout,
-        value: u.value * 100000000,
+        value: u.value * 100000000, //TODO: floating point issue
         myAddress: a
       };
     }));
@@ -97,7 +97,7 @@ class MyAddressesSend extends React.Component {
     var targets = this.state.recipients.map(r =>{
       return  {
         address: r.address,
-        value: parseFloat(r.amount) * 100000000
+        value: parseFloat(r.amount) * 100000000  //TODO: floating point issue
       };
     });
 
@@ -351,13 +351,13 @@ class MyAddressesSend extends React.Component {
               </Grid>
             </Grid>
           <div>
-            Fee Per KB {(feePerByte * 1024) / 100000000}
+            Fee Per KB {(feePerByte * 1024) / 100000000}  
           </div>
           <div>
-            Transaction Fee {transactionFee / 100000000}
+            Transaction Fee {transactionFee / 100000000}  
           </div>
           <div>
-            Change {transactionChange == null ? 0 : transactionChange.value / 100000000}
+            Change {transactionChange == null ? 0 : transactionChange.value / 100000000} 
           </div>
           
           <Button variant="contained" color="primary" onClick={this.handleSendClick}>Send</Button>
