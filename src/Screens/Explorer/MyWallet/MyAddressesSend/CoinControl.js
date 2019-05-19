@@ -1,31 +1,25 @@
 import React from 'react';
 
+import bigDecimal from 'js-big-decimal';
+
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
-import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
-import MenuItem from '@material-ui/core/MenuItem';
-import Grid from '@material-ui/core/Grid';
-import Divider from '@material-ui/core/Divider';
-
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
 
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Checkbox from '@material-ui/core/Checkbox';
+import { nullLiteral } from '@babel/types';
 
 
-import { ValidatorForm, SelectValidator} from 'react-material-ui-form-validator';
-import Recipients from './Recipients';
 
-
-import BlockchainServices from '../../../../Services/BlockchainServices';
-import MyWalletServices from '../../../../Services/MyWalletServices';
-
-import coinSelect from '../../../../Scripts/coinselect/coinselect'; //https://github.com/bitcoinjs/coinselect
-import coinSelectUtils from '../../../../Scripts/coinselect/utils'; //https://github.com/bitcoinjs/coinselect
 
 const styles = {
   
@@ -36,70 +30,28 @@ class CoinControl extends React.Component {
     super(props);
 
     this.state = {
-      selectedInputs:{},
-      selectedInputsTotal: 0
     };
   
   }
 
- 
-
-  componentDidMount() {
-    if (this.props.onRef != null) this.props.onRef(this);
-    this.props.selectedInputsChange(Object.values(this.state.selectedInputs));
-  }
-
-
-  clear = () =>{
-
-    this.setState({
-      selectedInputs:{},
-      selectedInputsTotal: 0
-    });
-    this.props.selectedInputsChange([]);
-  }
 
   renderAddressCoinControl = (controlledAddress) =>
   {
+    const { classes } = this.props;
 
-    var allSelected = true;
-    if (controlledAddress.unspent != null)
-    {
-      controlledAddress.unspent.forEach(unspent => {
-        if (this.state.selectedInputs[unspent.txid + "-" + unspent.vout] == null) allSelected = false;
-      });
-    }
-    else
-    {
-      allSelected = false;
-    }
-    
-    const handleInputChange = () =>{
-debugger;
-      var selectedInputs = Object.values(this.state.selectedInputs);
-      var selectedInputsTotal = 0; //TODO: floating point issue
-      selectedInputs.forEach(i => selectedInputsTotal = selectedInputsTotal + i.unspent.value);//TODO: floating point issue
+    var allSelected = controlledAddress.inputs.find(input => input.selected != true) == null;
 
-      this.setState({selectedInputsTotal:selectedInputsTotal});
-      this.props.selectedInputsChange(selectedInputs);
-    }
-
-    const handleUnspentChange = (unspent) =>{
+    const handleInputChange = (input) =>{
       return (event) =>{
-        debugger;
-        if (event.target.checked) this.state.selectedInputs[unspent.txid + "-" + unspent.vout] = {controlledAddress, unspent};
-        else delete this.state.selectedInputs[unspent.txid + "-" + unspent.vout];
-
-        handleInputChange();
+        this.props.handleInputsSelectedChange([input], event.target.checked);
       }
     }
 
 
     const handleControlledAddressChange = (event) =>{
-      if (event.target.checked) controlledAddress.unspent.forEach(unspent => this.state.selectedInputs[unspent.txid + "-" + unspent.vout] = {controlledAddress, unspent});
-      else controlledAddress.unspent.forEach(unspent => delete this.state.selectedInputs[unspent.txid + "-" + unspent.vout]);
+
       
-      handleInputChange();
+      this.props.handleInputsSelectedChange(controlledAddress.inputs, event.target.checked);
     }
 
     
@@ -117,19 +69,35 @@ debugger;
         
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-            {controlledAddress.unspent != null? controlledAddress.unspent.map(unspent => (
-              <div>
-                <div>
-                  <Checkbox
-                    checked={this.state.selectedInputs[unspent.txid + "-" + unspent.vout] != null}
-                    onChange={handleUnspentChange(unspent)}
-                    disabled={this.props.rawMemPool.find(r => r.vin.find(v => v.txid == unspent.txid && v.vout == unspent.vout ))}
-                    color="primary"
-                  />
-                  {unspent.value}
-                </div>
-              </div>
-            )): null}
+          <Table className={classes.table}>
+            <TableHead>
+              <TableRow>
+                <TableCell></TableCell>
+                <TableCell>Amount</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Confirmations</TableCell>
+                <TableCell></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {controlledAddress.inputs.map(input => (
+                <TableRow>
+                  <TableCell>
+                    <Checkbox
+                      checked={input.selected}
+                      onChange={handleInputChange(input)}
+                      disabled={(input.inMemPool || input.inMnList)}
+                      color="primary"
+                    />
+                  </TableCell>
+                  <TableCell>{input.unspent.value}</TableCell>
+                  <TableCell>{TimeToString(input.unspent.time)}</TableCell>
+                  <TableCell>{input.confirmations}</TableCell>
+                  <TableCell>{input.inMemPool ? "In MemPool, " : null}{ input.inMnList ? "In MN List, " : nullLiteral} </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </ExpansionPanelDetails>
       </ExpansionPanel>
     )
@@ -138,14 +106,18 @@ debugger;
 
   render(){
     const { classes, controlledAddresses } = this.props;
-    const { selectedInputsTotal } = this.state;
+
+    var selectedInputsTotal = new bigDecimal('0');
+    controlledAddresses.forEach(controlledAddress => controlledAddress.inputs.forEach(input =>{
+      if (input.selected) selectedInputsTotal = selectedInputsTotal.add(input.value);
+    }));
 
     
     return (
       <div>
         {controlledAddresses.map(this.renderAddressCoinControl)}
         <div>
-          Input Total: {selectedInputsTotal / 100000000}
+          Input Total: { selectedInputsTotal.getValue() }
         </div>
       </div>
     );
@@ -156,11 +128,15 @@ debugger;
 
 CoinControl.propTypes = {
   classes: PropTypes.object.isRequired,
-  selectedInputsChange: PropTypes.func.isRequired,
-  rawMemPool: PropTypes.object.isRequired,
+  controlledAddresses: PropTypes.object.isRequired,
+  selectedInputs: PropTypes.object.isRequired, 
 };
 
 export default withStyles(styles)(CoinControl);
 
 
 
+var TimeToString = (timestamp) =>{ //TODO: make this an include
+  var d = new Date(timestamp * 1000);
+  return d.toLocaleTimeString() + " " + d.toLocaleDateString();
+}

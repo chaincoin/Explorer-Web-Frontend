@@ -1,4 +1,7 @@
 import React from 'react';
+import { BehaviorSubject } from 'rxjs';
+
+import bigDecimal from 'js-big-decimal';
 
 import { combineLatest, forkJoin } from 'rxjs';
 import { mergeMap, map  } from 'rxjs/operators';
@@ -22,6 +25,8 @@ import MyWalletServices from '../../../../Services/MyWalletServices';
 
 import coinSelect from '../../../../Scripts/coinselect/coinselect'; //https://github.com/bitcoinjs/coinselect
 import coinSelectUtils from '../../../../Scripts/coinselect/utils'; //https://github.com/bitcoinjs/coinselect
+
+
 
 const styles = {
   root: {
@@ -56,9 +61,9 @@ class MyAddressesSend extends React.Component {
       sending:false,
       myAddresses:[],
       controlledAddresses:[],
-      rawMemPool:[],
 
-      selectedInputs: [],
+
+      lockedInputs:{},
       recipients:[],
 
 
@@ -75,6 +80,7 @@ class MyAddressesSend extends React.Component {
 
     };
   
+    this.selectedInputs = new BehaviorSubject({});
     this.subscription = null;
   }
 
@@ -94,54 +100,43 @@ class MyAddressesSend extends React.Component {
     this.subscription = combineLatest(
       MyWalletServices.myAddresses, 
       this.getUnspent(),
-      BlockchainServices.rawMemPool
-    ).subscribe(result =>{
+    ).subscribe(([myAddresses,controlledAddresses]) =>{     
 
       this.setState({
-        myAddresses: result[0],
-        controlledAddresses: result[1], 
-        rawMemPool: result[2]
-      });
+        myAddresses,
+        controlledAddresses, 
+      },this.processTransaction);
 
     })
-/*
-    this.myAddressesSubscription = MyWalletServices.myAddresses.subscribe(myAddresses =>{ //TODO: this could be done better
-
-      const controlledAddresses = myAddresses.filter(a => a.WIF != null);
-      this.addressUnspentSubscriptions.forEach(v => v.unsubscribe());
-
-      this.setState({
-        myAddresses: myAddresses,
-        controlledAddresses: controlledAddresses 
-      });
-
-      this.addressUnspentSubscriptions = controlledAddresses.map((controlledAddress) => {
-        return BlockchainServices.getAddressUnspent(controlledAddress.address).subscribe(unspent =>{
-          controlledAddress.unspent = unspent;
-          this.setState({
-            controlledAddresses: controlledAddresses.slice()
-          });
-        });
-      });
-    });
-*/
   }
 
   getUnspent = () =>{
-    return MyWalletServices.myAddresses
+    return combineLatest(MyWalletServices.myAddresses, BlockchainServices.blockCount,  BlockchainServices.rawMemPool,BlockchainServices.masternodeList, this.selectedInputs)
       .pipe(
-      mergeMap(myAddresses => combineLatest(
+      mergeMap(([myAddresses,blockCount, rawMemPool, masternodeList, selectedInputs]) => combineLatest(
         myAddresses.filter(myAddress => myAddress.WIF != null).map(controlledAddress => 
           combineLatest(
             BlockchainServices.getAddress(controlledAddress.address),
             BlockchainServices.getAddressUnspent(controlledAddress.address)
           )
           .pipe(
-            map(result =>{
+            map(([address,unspent]) =>{
               return {
                 controlledAddress,
-                address: result[0],
-                unspent: result[1]
+                address: address,
+                inputs: unspent.map(unspent => {
+                  var value = new bigDecimal(unspent.value)
+                  return {
+                    unspent: unspent,
+                    value: value,
+                    satoshi: value.multiply(new bigDecimal("100000000")),
+                    confirmations: blockCount - unspent.blockHeight,
+                    selected: selectedInputs[unspent.txid + "-" + unspent.vout] != null,
+                    lockState: null,
+                    inMemPool: rawMemPool.find(r => r.vin.find(v => v.txid == unspent.txid && v.vout == unspent.vout )),
+                    inMnList: Object.keys(masternodeList).find(output => output == unspent.txid + "-" + unspent.vout)
+                  }
+                })
               }
             })
           )
@@ -154,14 +149,6 @@ class MyAddressesSend extends React.Component {
     this.subscription.unsubscribe();
   }
 
-
-  handleSelectedInputsChange = (selectedInputs) =>{
-    debugger;
-    this.setState({
-      selectedInputs
-    }, this.processTransaction);
-  }
-
   handleRecipientsChange = (recipients) =>{
     this.setState({
       recipients
@@ -170,38 +157,43 @@ class MyAddressesSend extends React.Component {
   
 
   processTransaction = () =>{
-
     var recipientsTotal = 0;
-    this.state.recipients.forEach(r =>{
 
+    this.state.recipients.forEach(r =>{
       var amount = parseFloat(r.amount);
       if (isNaN(amount) == false) recipientsTotal = recipientsTotal + (amount * 100000000); //TODO: floating point issue
     });
 
 
+    var targets = this.state.recipients.map(r =>{
+      return  {
+        address: r.address,
+        value: parseInt(new bigDecimal(r.amount).multiply(new bigDecimal("100000000")).getValue())
+      };
+    })
+
+
     if (this.state.coinControl)
     {
 
-      var coinControlInputTotal = 0;
+      var coinControlInputTotal = new bigDecimal("0");
       var utxos = [];
-      this.state.selectedInputs.forEach(selectedInput => {
-        coinControlInputTotal = coinControlInputTotal + (selectedInput.unspent.value * 100000000); //TODO: floating point issue
-        utxos.push({
-          txId: selectedInput.unspent.txid,
-          vout: selectedInput.unspent.vout,
-          value: selectedInput.unspent.value * 100000000, //TODO: floating point issue
-          data: selectedInput.controlledAddress
-        });
+      this.state.controlledAddresses.forEach(controlledAddress => {
+        controlledAddress.inputs.forEach(input =>{
+          if (input.selected == false) return;
+          coinControlInputTotal = coinControlInputTotal.add(input.satoshi); 
+          utxos.push({
+            txId: input.unspent.txid,
+            vout: input.unspent.vout,
+            value: parseInt(input.satoshi.getValue()),
+            data: controlledAddress
+          });
+        })
+        
       });
 
 
-      var targets = this.state.recipients.map(r =>{
-        return  {
-          address: r.address,
-          value: parseFloat(r.amount) * 100000000  //TODO: floating point issue
-        };
-      });
-
+      
      
 
       let { inputs, outputs, fee } = coinSelectUtils.finalize(utxos, targets, this.state.feePerByte);
@@ -218,21 +210,16 @@ class MyAddressesSend extends React.Component {
     }
     else
     {
-      const utxos = this.state.controlledAddresses.flatMap(a => a.unspent.map(u => {
+      const utxos = this.state.controlledAddresses.flatMap(controlledAddress => controlledAddress.inputs.map(input => {
         return {
-          txId: u.txid,
-          vout: u.vout,
-          value: u.value * 100000000, //TODO: floating point issue
-          data: a.controlledAddress
+          txId: input.unspent.txid,
+          vout: input.unspent.vout,
+          value: parseInt(input.satoshi.getValue()),
+          data: controlledAddress
         };
       }));
   
-      var targets = this.state.recipients.map(r =>{
-        return  {
-          address: r.address,
-          value: parseFloat(r.amount) * 100000000  //TODO: floating point issue
-        };
-      });
+      ;
   
       let { inputs, outputs, fee } = coinSelect(utxos, targets, this.state.feePerByte);
   
@@ -348,15 +335,14 @@ class MyAddressesSend extends React.Component {
   handleCoinControlChange = (event ) =>{
     this.setState({
       coinControl : event.target.checked
-    });
+    }, this.processTransaction);
   }
 
 
 
   render(){
     const { classes } = this.props;
-    const { coinControl, controlledAddresses,  feePerByte, transactionFee, transactionChange, changeAddress, myAddresses} = this.state;
-
+    const { coinControl, controlledAddresses, selectedInputs,  feePerByte, transactionFee, transactionChange, changeAddress, myAddresses} = this.state;
 
     var balance = 0;
     controlledAddresses.forEach(controlledAddress =>{
@@ -370,6 +356,7 @@ class MyAddressesSend extends React.Component {
           onSubmit={this.handleSendClick}
           onError={errors => console.log(errors)}
         >
+        Coin Control: 
         <Switch
           checked={coinControl}
           onChange={this.handleCoinControlChange}
@@ -378,7 +365,7 @@ class MyAddressesSend extends React.Component {
           {
             coinControl == true?
             (
-              <CoinControl onRef={coinControl => this.coinControl = coinControl} controlledAddresses={controlledAddresses} rawMemPool={this.state.rawMemPool} selectedInputsChange={this.handleSelectedInputsChange}/>
+              <CoinControl controlledAddresses={controlledAddresses} selectedInputs={selectedInputs} handleInputsSelectedChange={this.handleInputsSelectedChange}/>
             )
             :
             null
