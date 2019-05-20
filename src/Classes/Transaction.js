@@ -26,7 +26,7 @@ class Transaction { //TODO: think this could be better but will do for now
         }]);
 
         this.changeAddress = new BehaviorSubject("");
-        this.feePerByte = new BehaviorSubject(2);
+        this.feePerByte = new BehaviorSubject(2); //TODO: this shoudl use estimate smart fee api
 
 
        
