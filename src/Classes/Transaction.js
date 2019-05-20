@@ -10,7 +10,7 @@ import MyWalletServices from '../Services/MyWalletServices'
 import coinSelect from '../Scripts/coinselect/coinselect'; //https://github.com/bitcoinjs/coinselect
 import coinSelectUtils from '../Scripts/coinselect/utils'; //https://github.com/bitcoinjs/coinselect
 
-class Transaction {
+class Transaction { //TODO: think this could be better but will do for now
     constructor() {
 
 
@@ -26,7 +26,7 @@ class Transaction {
         }]);
 
         this.changeAddress = new BehaviorSubject("");
-        this.feePerByte = new BehaviorSubject(5);
+        this.feePerByte = new BehaviorSubject(2);
 
 
        
