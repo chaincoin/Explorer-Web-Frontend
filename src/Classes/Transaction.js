@@ -67,8 +67,7 @@ class Transaction { //TODO: think this could be better but will do for now
                         value: input.satoshi
                     };
                 });
-
-
+                
                 let { inputs, outputs, fee } = coinSelect(utxos, targets, feePerByte);
 
                 if (inputs == null) return allInputs;
@@ -121,13 +120,16 @@ class Transaction { //TODO: think this could be better but will do for now
                 var fee = bytes * feePerByte;
 
 
+
                 if (inputTotal < ouputTotal){
                     return {
                         error: "Not enough CHC",
-                        fee,
+                        feeSatoshi: fee, 
+                        fee: new bigDecimal(fee).divide(new bigDecimal("100000000")).getPrettyValue(),
                         bytes,
                         dust: true,
-                        change:0
+                        changeSatoshi: 0,
+                        change: 0
                     }
                 }
 
@@ -137,26 +139,30 @@ class Transaction { //TODO: think this could be better but will do for now
                 {
                     return {
                         error: "Not enough CHC for the fee",
-                        fee,
+                        feeSatoshi: fee, 
+                        fee: new bigDecimal(fee).divide(new bigDecimal("100000000")).getPrettyValue(),
                         bytes,
                         dust: true,
-                        change:0
+                        changeSatoshi: 0,
+                        change: 0
                     }
                 }
 
                 var dustThreshold = TX_INPUT_BASE + TX_INPUT_PUBKEYHASH;
                 var change = inputTotal - (fee + ouputTotal);
-                var dust = change < dust;
+                var dust = change < dustThreshold;
 
 
                 //let { inputs, outputs, fee } = coinSelectUtils.finalize(utxos, targets, feePerByte);
 
                 return {
                     error:"",
-                    fee, 
+                    feeSatoshi: fee, 
+                    fee: new bigDecimal(fee).divide(new bigDecimal("100000000")).getPrettyValue(),
                     bytes, 
                     dust,
-                    change
+                    changeSatoshi: change,
+                    change: new bigDecimal(change).divide(new bigDecimal("100000000")).getPrettyValue(),
                 };
             })
         );
@@ -225,13 +231,13 @@ class Transaction { //TODO: think this could be better but will do for now
             amount: ""
         }]);
 
-        this.selectedInputIds.next({});
+        this.userSelectedInputIds.next({});
     }
 
     send = () =>{
         return new Promise((resolve, reject) =>{
             combineLatest(this.transactionDetails, this.selectedInputs, this.outputs, this.changeAddress).pipe(first()).subscribe(([transactionDetails,inputs, outputs, changeAddress]) =>{
-                const { change, dust } = transactionDetails;
+                const { changeSatoshi, dust } = transactionDetails;
 
                 let txb = new window.bitcoin.TransactionBuilder(BlockchainServices.Chaincoin);
                 txb.setVersion(3);
@@ -254,7 +260,7 @@ class Transaction { //TODO: think this could be better but will do for now
                 });
 
                 if (dust == false) {
-                    txb.addOutput(changeAddress, change)
+                    txb.addOutput(changeAddress, changeSatoshi)
                 }
 
                 inputs.forEach((input,i) => {
