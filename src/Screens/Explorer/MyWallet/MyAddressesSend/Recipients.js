@@ -29,43 +29,24 @@ class Recipients extends React.Component {
     super(props);
 
     this.state = {
-      recipients:[{
-        address: "",
-        amount: ""
-      }]
+      recipients:[]
     };
+
+    this.subscription = null;
   }
 
 
   componentDidMount() {
-    if (this.props.onRef != null) this.props.onRef(this);
-    this.props.recipientsChange(this.state.recipients);
+    this.subscription = this.props.transaction.recipients.subscribe(recipients => this.setState({recipients}))
   }
 
-
-  clear = () =>{
-    var recipients = [{
-      address: "",
-      amount: ""
-    }];
-
-    this.setState({ recipients })
-
-    this.props.recipientsChange(recipients);
+  componentWillUnmount() {
+    this.subscription.unsubscribe();
   }
+
   
   handleAddRecipientClick = () =>{
-
-    var recipients = this.state.recipients.concat([{
-      address: "",
-      amount: ""
-    }]);
-
-    this.setState({
-      recipients: recipients
-    });
-
-    this.props.recipientsChange(recipients);
+    this.props.transaction.addRecipient();
   }
 
 
@@ -74,31 +55,19 @@ class Recipients extends React.Component {
     const { recipients } = this.state;
 
     const handleAddressChange = (event) =>{
-      recipient.address = event.target.value;
-      this.setState({
-        recipients: recipients.slice()
+      this.props.transaction.updateRecipient(pos,{
+        address: event.target.value
       });
-
-      this.props.recipientsChange(recipients);
     }
 
     const handleAmountChange = (event) =>{
-      recipient.amount = event.target.value;
-      this.setState({
-        recipients: recipients.slice()
+      this.props.transaction.updateRecipient(pos,{
+        amount: event.target.value
       });
-
-      this.props.recipientsChange(recipients);
     }
 
     const handleRemoveClick = () =>{
-
-      var recipients = this.state.recipients.filter(r => r != recipient);
-      this.setState({
-        recipients: recipients
-      });
-
-      this.props.recipientsChange(recipients);
+      this.props.transaction.removeRecipient(recipient);
     }
 
     return (

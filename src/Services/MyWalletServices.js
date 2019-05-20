@@ -1,8 +1,10 @@
-import { Observable, Subject  } from 'rxjs';
-import { shareReplay } from 'rxjs/operators';
+import { Observable, Subject, combineLatest,  } from 'rxjs';
+import { shareReplay, mergeMap, map } from 'rxjs/operators';
+
+import bigDecimal from 'js-big-decimal';
+
 import walletWorker from '../Scripts/walletWorker.js'
-
-
+import BlockchainServices from './BlockchainServices'
 
 
 var _walletWorker = null
@@ -186,6 +188,42 @@ const myMasternodes = Observable.create(function(observer) {
   }
 
 
+  var inputAddresses = combineLatest(myAddresses, BlockchainServices.blockCount, BlockchainServices.rawMemPool, BlockchainServices.masternodeList)
+  .pipe(
+  mergeMap(([myAddresses,blockCount, rawMemPool, masternodeList, selectedInputs]) => combineLatest(
+    myAddresses.filter(myAddress => myAddress.WIF != null).map(myAddress => 
+      combineLatest(
+        BlockchainServices.getAddress(myAddress.address),
+        BlockchainServices.getAddressUnspent(myAddress.address)
+      )
+      .pipe(
+        map(([address,unspent]) =>{
+          return {
+            myAddress,
+            address: address,
+            inputs: unspent.map(unspent => {
+              var value = new bigDecimal(unspent.value)
+              return {
+                myAddress,
+                unspent: unspent,
+                value: value,
+                satoshi: value.multiply(new bigDecimal("100000000")),
+                confirmations: blockCount - unspent.blockHeight,
+                lockState: null,
+                inMemPool: rawMemPool.find(r => r.vin.find(v => v.txid == unspent.txid && v.vout == unspent.vout )),
+                inMnList: Object.keys(masternodeList).find(output => output == unspent.txid + "-" + unspent.vout)
+              }
+            })
+          }
+        })
+      )
+    )
+  )),
+  shareReplay({
+    bufferSize: 1,
+    refCount: true
+  })
+);
 
 
 export default {
@@ -195,7 +233,9 @@ export default {
 
     myMasternodes,
     addMyMasternode,
-    deleteMyMasternode
+    deleteMyMasternode,
+
+    inputAddresses
 
 }
 

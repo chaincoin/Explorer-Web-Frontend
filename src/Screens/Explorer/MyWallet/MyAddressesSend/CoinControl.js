@@ -1,9 +1,14 @@
 import React from 'react';
 
+import { combineLatest } from 'rxjs';
+
 import bigDecimal from 'js-big-decimal';
+
 
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
+
+import Switch from '@material-ui/core/Switch';
 
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -19,7 +24,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import { nullLiteral } from '@babel/types';
 
 
-
+import MyWalletServices from '../../../../Services/MyWalletServices';
 
 const styles = {
   
@@ -30,31 +35,50 @@ class CoinControl extends React.Component {
     super(props);
 
     this.state = {
+      coinControl: false,
+      inputAddresses: [],
+      selectedInputs: []
     };
   
+    this.subscription = null;
   }
 
 
-  renderAddressCoinControl = (controlledAddress) =>
-  {
-    const { classes } = this.props;
+  componentDidMount() {
+    this.subscription = combineLatest(MyWalletServices.inputAddresses, this.props.transaction.coinControl, this.props.transaction.selectedInputs,
+      this.props.transaction.selectedInputsTotal)
+      .subscribe(([inputAddresses, coinControl, selectedInputs, selectedInputsTotal]) => this.setState({coinControl, inputAddresses, selectedInputs, selectedInputsTotal}));
+  }
 
-    var allSelected = controlledAddress.inputs.find(input => input.selected != true) == null;
+  componentWillUnmount() {
+    this.subscription.unsubscribe();
+  }
+
+
+  renderInputAddressCoinControl = (inputAddress) =>
+  {
+    const { classes, transaction } = this.props;
+
+    //var enabledInputs = inputAddress.inputs
+
+    var allSelected = inputAddress.inputs.find(input => transaction.isInputSelected(input.unspent.txid, input.unspent.vout) != true) == null;
 
     const handleInputChange = (input) =>{
       return (event) =>{
-        this.props.handleInputsSelectedChange([input], event.target.checked);
+        debugger;
+
+        if (event.target.checked == true)transaction.addSelectedInput(input.unspent.txid, input.unspent.vout);
+        else transaction.removeSelectedInput(input.unspent.txid, input.unspent.vout);
       }
     }
 
 
-    const handleControlledAddressChange = (event) =>{
-
-      
-      this.props.handleInputsSelectedChange(controlledAddress.inputs, event.target.checked);
+    const handleInputAddressChange = (event) =>{
+      if (event.target.checked == true)inputAddress.inputs.forEach(input => transaction.addSelectedInput(input.unspent.txid, input.unspent.vout)); //TODO: maybe have an add many option
+      else inputAddress.inputs.forEach(input => transaction.removeSelectedInput(input.unspent.txid, input.unspent.vout)); //TODO: maybe have a remove many option
     }
 
-    
+
 
     return (
       <ExpansionPanel>
@@ -62,10 +86,10 @@ class CoinControl extends React.Component {
         <Checkbox
             checked={allSelected}
             onClick={(e)=> e.stopPropagation()}
-            onChange={handleControlledAddressChange}
+            onChange={handleInputAddressChange}
             color="primary"
           />
-        {controlledAddress.controlledAddress.name} {controlledAddress.address.balance}
+        {inputAddress.myAddress.name} {inputAddress.address.balance}
         
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
@@ -80,11 +104,11 @@ class CoinControl extends React.Component {
               </TableRow>
             </TableHead>
             <TableBody>
-              {controlledAddress.inputs.map(input => (
+              {inputAddress.inputs.map(input => (
                 <TableRow>
                   <TableCell>
                     <Checkbox
-                      checked={input.selected}
+                      checked={transaction.isInputSelected(input.unspent.txid, input.unspent.vout)}
                       onChange={handleInputChange(input)}
                       disabled={(input.inMemPool || input.inMnList)}
                       color="primary"
@@ -104,21 +128,35 @@ class CoinControl extends React.Component {
   }
 
 
+  handleCoinControlChange = (event ) =>{
+    ;
+  }
+
+
   render(){
-    const { classes, controlledAddresses } = this.props;
-
-    var selectedInputsTotal = new bigDecimal('0');
-    controlledAddresses.forEach(controlledAddress => controlledAddress.inputs.forEach(input =>{
-      if (input.selected) selectedInputsTotal = selectedInputsTotal.add(input.value);
-    }));
-
+    const { classes } = this.props;
+    const { inputAddresses, coinControl, selectedInputsTotal } = this.state;
     
     return (
       <div>
-        {controlledAddresses.map(this.renderAddressCoinControl)}
-        <div>
-          Input Total: { selectedInputsTotal.getValue() }
-        </div>
+        Coin Control: 
+        <Switch
+          checked={coinControl}
+          onChange={(event) => this.props.transaction.setCoinControl(event.target.checked)}
+          color="primary"
+        />
+
+        {
+          coinControl ? (
+            <div> 
+              {inputAddresses.map(this.renderInputAddressCoinControl)}
+              <div>
+                Input Total: { selectedInputsTotal }
+              </div>
+            </div>
+          ): null
+        }
+        
       </div>
     );
   }
