@@ -180,10 +180,10 @@ class MyAddressesSend extends React.Component {
           Fee Per KB {(feePerByte * 1024) / 100000000}  
         </div>
         <div>
-          Transaction Fee {fee / 100000000}  
+          Transaction Fee {fee}  
         </div>
         <div>
-          Change {change / 100000000} 
+          Change {change} 
         </div>
 
         <Button variant="contained" color="primary" onClick={this.handleSendClick}>Send</Button>
