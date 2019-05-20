@@ -1,5 +1,5 @@
 import { Observable, Subject, combineLatest,  } from 'rxjs';
-import { shareReplay, mergeMap, map } from 'rxjs/operators';
+import { shareReplay, switchMap, map } from 'rxjs/operators';
 
 import bigDecimal from 'js-big-decimal';
 
@@ -190,7 +190,7 @@ const myMasternodes = Observable.create(function(observer) {
 
   var inputAddresses = combineLatest(myAddresses, BlockchainServices.blockCount, BlockchainServices.rawMemPool, BlockchainServices.masternodeList)
   .pipe(
-  mergeMap(([myAddresses,blockCount, rawMemPool, masternodeList, selectedInputs]) => combineLatest(
+  switchMap(([myAddresses,blockCount, rawMemPool, masternodeList]) => combineLatest(
     myAddresses.filter(myAddress => myAddress.WIF != null).map(myAddress => 
       combineLatest(
         BlockchainServices.getAddress(myAddress.address),
