@@ -40,9 +40,13 @@ class Transaction { //TODO: think this could be better but will do for now
 
         this.outputs = this.recipients.pipe(
             map(recipients => recipients.map(r =>{
+
+                var value = 0;
+                try { value= parseInt(new bigDecimal(r.amount).multiply(new bigDecimal("100000000")).getValue())}
+                catch(ex){}
                 return {
                     address: r.address,
-                    value: parseInt(new bigDecimal(r.amount).multiply(new bigDecimal("100000000")).getValue())
+                    value: value
                 };
             })
         ))
