@@ -1,22 +1,30 @@
 
-import { BehaviorSubject, combineLatest } from 'rxjs';
+import { BehaviorSubject, combineLatest, of } from 'rxjs';
 import bigDecimal from 'js-big-decimal';
 
-import { mergeMap, map, first  } from 'rxjs/operators';
+import { mergeMap, map, first, switchMap  } from 'rxjs/operators';
 
 import BlockchainServices from '../Services/BlockchainServices'
 import MyWalletServices from '../Services/MyWalletServices'
 
 import coinSelect from '../Scripts/coinselect/coinselect'; //https://github.com/bitcoinjs/coinselect
 import coinSelectUtils from '../Scripts/coinselect/utils'; //https://github.com/bitcoinjs/coinselect
+import { Input } from '@material-ui/core';
 
 class Transaction { //TODO: think this could be better but will do for now
     constructor() {
 
 
+        var TX_EMPTY_SIZE = 4 + 1 + 1 + 4
+        var TX_INPUT_BASE = 32 + 4 + 1 + 4
+        var TX_INPUT_PUBKEYHASH = 106
+        var TX_OUTPUT_BASE = 8 + 1
+        var TX_OUTPUT_PUBKEYHASH = 25
+
+
 
         this.coinControl = new BehaviorSubject(false);
-        this.selectedInputIds = new BehaviorSubject({});
+        this.userSelectedInputIds = new BehaviorSubject({});
 
 
 
@@ -28,107 +36,145 @@ class Transaction { //TODO: think this could be better but will do for now
         this.changeAddress = new BehaviorSubject("");
         this.feePerByte = new BehaviorSubject(2); //TODO: this shoudl use estimate smart fee api
 
+        
 
-       
+        this.outputs = this.recipients.pipe(
+            map(recipients => recipients.map(r =>{
+                return {
+                    address: r.address,
+                    value: parseInt(new bigDecimal(r.amount).multiply(new bigDecimal("100000000")).getValue())
+                };
+            })
+        ))
 
 
-        this.selectedInputs = combineLatest(this.selectedInputIds, MyWalletServices.inputAddresses)
+
+        var allInputs = MyWalletServices.inputAddresses.pipe(
+            map(inputAddresses => 
+                inputAddresses.flatMap(inputAddress => inputAddress.inputs.filter(input => input.disabled != true))
+            )
+        )
+
+        var autoSelectedInputs = combineLatest(this.outputs, allInputs, this.feePerByte)
         .pipe(
-            map(([selectedInputs, inputAddresses]) =>{
-                return inputAddresses.flatMap(inputAddress => inputAddress.inputs.filter(input => selectedInputs[input.unspent.txid + "-" + input.unspent.vout]))
+            map(([targets, allInputs, feePerByte]) =>{
+
+                const utxos = allInputs.map(input =>{
+                    return {
+                        input: input,
+                        txId: input.unspent.txid,
+                        vout: input.unspent.vout,
+                        value: input.satoshi
+                    };
+                });
+
+
+                let { inputs, outputs, fee } = coinSelect(utxos, targets, feePerByte);
+
+                if (inputs == null) return allInputs;
+                return inputs.map(input => input.input); 
             })
         );
 
+        var userSelectedInputs = combineLatest(this.userSelectedInputIds, allInputs)
+        .pipe(
+            map(([userSelectedInputIds, allInputs]) => {
+                return allInputs.filter(input => userSelectedInputIds[input.unspent.txid + "-" + input.unspent.vout] != null);
+            })
+        );
+       
+        this.selectedInputs = this.coinControl.pipe(
+            switchMap(coinControl => {
+                if (coinControl == true) return  userSelectedInputs; 
+                else return autoSelectedInputs;
+            })
+        );
+        
+
         this.selectedInputsTotal = this.selectedInputs.pipe(map(selectedInputs =>{
             var selectedInputsTotal = new bigDecimal('0');
+
             selectedInputs.forEach(input =>selectedInputsTotal = selectedInputsTotal.add(input.value));
 
             return parseFloat(selectedInputsTotal.getValue());
         }));
 
+        
+
+        this.transactionDetails = combineLatest(this.selectedInputs, this.outputs, this.feePerByte).pipe(
+            map(([selectedInputs, outputs, feePerByte]) =>{
 
 
-        var targets = this.recipients.pipe(
-            map(recipients =>{
-                return recipients.map(r =>{
-                    return  {
-                        address: r.address,
-                        value: parseInt(new bigDecimal(r.amount).multiply(new bigDecimal("100000000")).getValue())
-                    };
-                })
+                var inputTotal = 0;
+                selectedInputs.forEach(selectedInput => inputTotal = inputTotal + selectedInput.satoshi);
+
+                var ouputTotal = 0;
+                outputs.forEach(r => {
+                    ouputTotal = ouputTotal + r.value;
+                });
+
+
+                var inputBytes = selectedInputs.length * (TX_INPUT_BASE + TX_INPUT_PUBKEYHASH);
+                var outputBytes = outputs.length * (TX_OUTPUT_BASE + TX_OUTPUT_PUBKEYHASH);
+
+                var bytes = TX_EMPTY_SIZE + inputBytes + outputBytes;
+                var fee = bytes * feePerByte;
+
+
+                if (inputTotal < ouputTotal){
+                    return {
+                        error: "Not enough CHC",
+                        fee,
+                        bytes,
+                        dust: true,
+                        change:0
+                    }
+                }
+
+                
+
+                if (inputTotal < fee + ouputTotal)
+                {
+                    return {
+                        error: "Not enough CHC for the fee",
+                        fee,
+                        bytes,
+                        dust: true,
+                        change:0
+                    }
+                }
+
+                var dustThreshold = TX_INPUT_BASE + TX_INPUT_PUBKEYHASH;
+                var change = inputTotal - (fee + ouputTotal);
+                var dust = change < dust;
+
+
+                //let { inputs, outputs, fee } = coinSelectUtils.finalize(utxos, targets, feePerByte);
+
+                return {
+                    error:"",
+                    fee, 
+                    bytes, 
+                    dust,
+                    change
+                };
             })
         );
+        
+        
 
 
-        var coinControlTransactionDetails = () =>{
-            return combineLatest(this.selectedInputs, targets, this.feePerByte).pipe(
-                map(([selectedInputs, targets, feePerByte]) =>{
-
-                    var utxos = selectedInputs.map(selectedInput =>{
-                        return {
-                            myAddress:selectedInput.myAddress,
-                            txId: selectedInput.unspent.txid,
-                            vout: selectedInput.unspent.vout,
-                            value: parseInt(selectedInput.satoshi.getValue())
-                        };
-                    })
-
-                  
-
-                    let { inputs, outputs, fee } = coinSelectUtils.finalize(utxos, targets, feePerByte);
-
-                    return {
-                        inputs, 
-                        outputs, 
-                        fee,
-                        change: outputs == null ? null : outputs.find(o => o.address == null)
-                    };
-                })
-            )
-        }
-
-        var autoTransactionDetails = () =>{
-            return combineLatest(MyWalletServices.inputAddresses, targets, this.feePerByte).pipe(
-                map(([inputAddresses, targets, feePerByte]) =>{
-
-                    const utxos = inputAddresses.flatMap(inputAddress => inputAddress.inputs.map(input => {
-                        return {
-                            myAddress: input.myAddress,
-                            txId: input.unspent.txid,
-                            vout: input.unspent.vout,
-                            value: parseInt(input.satoshi.getValue())
-                        };
-                    }));
-                    
-                    
-                    let { inputs, outputs, fee } = coinSelect(utxos, targets, feePerByte);
-
-                    return { 
-                        inputs, 
-                        outputs, 
-                        fee,
-                        change: outputs == null ? null : outputs.find(o => o.address == null)
-                    };
-                   
-                })
-            )
-        }
-
-
-        this.computedTransactionDetails = this.coinControl.pipe(
-            mergeMap(coinControl => coinControl ? coinControlTransactionDetails() : autoTransactionDetails())
+        this.bytes = this.transactionDetails.pipe(
+            map(transactionDetails => transactionDetails.bytes)
         )
         
-        
-
-
-        this.fee = this.computedTransactionDetails.pipe(
+        this.fee = this.transactionDetails.pipe(
             map(transactionDetails => transactionDetails.fee)
-        );
+        )
 
-        this.change = this.computedTransactionDetails.pipe(
-            map(transactionDetails => transactionDetails.change == null ? 0 : transactionDetails.change.value)
-        );
+        this.change = this.transactionDetails.pipe(
+            map(transactionDetails => transactionDetails.change)
+        )
 
     }
 
@@ -158,18 +204,14 @@ class Transaction { //TODO: think this could be better but will do for now
         var obj = {};
         obj[txid + "-" + vout] = {};
 
-        this.selectedInputIds.next(Object.assign(obj , this.selectedInputIds.value));
+        this.userSelectedInputIds.next(Object.assign(obj , this.userSelectedInputIds.value));
     }
 
     removeSelectedInput = (txid, vout) =>{
-        var obj = Object.assign({} , this.selectedInputIds.value);
+        var obj = Object.assign({} , this.userSelectedInputIds.value);
         delete obj[txid + "-" + vout];
 
-        this.selectedInputIds.next(obj);
-    }
-
-    isInputSelected = (txid, vout) =>{
-        return this.selectedInputIds.value[txid + "-" + vout] != null;
+        this.userSelectedInputIds.next(obj);
     }
 
     setCoinControl = (coinControl) =>{
@@ -188,33 +230,32 @@ class Transaction { //TODO: think this could be better but will do for now
 
     send = () =>{
         return new Promise((resolve, reject) =>{
-            this.computedTransactionDetails.pipe(first()).subscribe(transactionDetails =>{
-                const { inputs, outputs } = transactionDetails;
+            combineLatest(this.transactionDetails, this.selectedInputs, this.outputs, this.changeAddress).pipe(first()).subscribe(([transactionDetails,inputs, outputs, changeAddress]) =>{
+                const { change, dust } = transactionDetails;
 
                 let txb = new window.bitcoin.TransactionBuilder(BlockchainServices.Chaincoin);
                 txb.setVersion(3);
                 inputs.forEach(input => {
                     if (input.myAddress.address.startsWith(BlockchainServices.Chaincoin.bech32))
                     {
+                        debugger;
                         var keyPair = window.bitcoin.ECPair.fromWIF(input.myAddress.WIF, BlockchainServices.Chaincoin);
                         const p2wpkh = window.bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin })
-                        txb.addInput(input.txId, input.vout, null, p2wpkh.output); 
+                        txb.addInput(input.unspent.txid, input.unspent.vout, null, p2wpkh.output); 
                     }
                     else
                     {
-                        txb.addInput(input.txId, input.vout);
+                        txb.addInput(input.unspent.txid, input.unspent.vout);
                     }
                 });
 
                 outputs.forEach(output => {
-                    // watch out, outputs may have been added that you need to provide
-                    // an output address/script for
-                    if (!output.address) {
-                        output.address = this.changeAddress.value
-                    }
-
                     txb.addOutput(output.address, output.value)
                 });
+
+                if (dust == false) {
+                    txb.addOutput(changeAddress, change)
+                }
 
                 inputs.forEach((input,i) => {
 
@@ -222,7 +263,7 @@ class Transaction { //TODO: think this could be better but will do for now
                 
                     if (input.myAddress.address.startsWith(BlockchainServices.Chaincoin.bech32))
                     {
-                        txb.sign(i, keyPair,null, null,input.value);
+                        txb.sign(i, keyPair,null, null,input.satoshi);
                     }
                     else
                     {

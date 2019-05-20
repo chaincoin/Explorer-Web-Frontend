@@ -198,23 +198,29 @@ const myMasternodes = Observable.create(function(observer) {
       )
       .pipe(
         map(([address,unspent]) =>{
-          return {
-            myAddress,
-            address: address,
-            inputs: unspent.map(unspent => {
-              var value = new bigDecimal(unspent.value)
-              return {
+            return {
                 myAddress,
-                unspent: unspent,
-                value: value,
-                satoshi: value.multiply(new bigDecimal("100000000")),
-                confirmations: blockCount - unspent.blockHeight,
-                lockState: null,
-                inMemPool: rawMemPool.find(r => r.vin.find(v => v.txid == unspent.txid && v.vout == unspent.vout )),
-                inMnList: Object.keys(masternodeList).find(output => output == unspent.txid + "-" + unspent.vout)
-              }
-            })
-          }
+                address: address,
+                inputs: unspent.map(unspent => {
+                    var value = new bigDecimal(unspent.value);
+                    var isMatureCoins = true;
+                    var inMemPool = rawMemPool.find(r => r.vin.find(v => v.txid == unspent.txid && v.vout == unspent.vout )) != null;
+                    var inMnList = Object.keys(masternodeList).find(output => output == unspent.txid + "-" + unspent.vout)  != null;
+                    var lockState = null;
+                    return {
+                        myAddress,
+                        unspent: unspent,
+                        value: value,
+                        satoshi: parseFloat(value.multiply(new bigDecimal("100000000")).getValue()),
+                        confirmations: blockCount - unspent.blockHeight,
+                        lockState: lockState,
+                        disabled: lockState != null? lockState : inMemPool || inMnList || isMatureCoins == false,
+                        isMatureCoins: isMatureCoins,
+                        inMemPool: inMemPool,
+                        inMnList: inMnList
+                    }
+                })
+            }
         })
       )
     )

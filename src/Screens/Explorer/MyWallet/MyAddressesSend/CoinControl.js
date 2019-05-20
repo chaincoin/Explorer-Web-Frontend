@@ -58,14 +58,15 @@ class CoinControl extends React.Component {
   renderInputAddressCoinControl = (inputAddress) =>
   {
     const { classes, transaction } = this.props;
+    const { selectedInputs } = this.state;
 
     //var enabledInputs = inputAddress.inputs
 
-    var allSelected = inputAddress.inputs.find(input => transaction.isInputSelected(input.unspent.txid, input.unspent.vout) != true) == null;
+    var allSelected = inputAddress.inputs.find(input => selectedInputs.indexOf(input) == -1) == null;
 
     const handleInputChange = (input) =>{
       return (event) =>{
-        debugger;
+  
 
         if (event.target.checked == true)transaction.addSelectedInput(input.unspent.txid, input.unspent.vout);
         else transaction.removeSelectedInput(input.unspent.txid, input.unspent.vout);
@@ -108,9 +109,9 @@ class CoinControl extends React.Component {
                 <TableRow>
                   <TableCell>
                     <Checkbox
-                      checked={transaction.isInputSelected(input.unspent.txid, input.unspent.vout)}
+                      checked={selectedInputs.indexOf(input) != -1}
                       onChange={handleInputChange(input)}
-                      disabled={(input.inMemPool || input.inMnList)}
+                      disabled={(input.disabled)}
                       color="primary"
                     />
                   </TableCell>
