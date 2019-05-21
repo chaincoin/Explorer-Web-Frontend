@@ -79,7 +79,7 @@ export default () => {
 	dbPromise = new Promise(function(resolve, reject){
 		
 		var _indexedDB = indexedDB || mozIndexedDB || webkitIndexedDB || msIndexedDB; // eslint-disable-line no-undef
-		var openRequest = _indexedDB.open(databaseName, 7);
+		var openRequest = _indexedDB.open(databaseName, 9);
 		databaseOpen = databaseOpenState.opening;
 
 		openRequest.onsuccess  = function(event) {
@@ -126,6 +126,15 @@ export default () => {
 
 			}
 			
+			if (event.oldVersion < 8)
+			{
+				
+			}
+
+			if (event.oldVersion < 9)
+			{
+				db.createObjectStore("inputLockStates", { keyPath: "output", unique: true });
+			}
 			
 		};
 		
@@ -267,6 +276,80 @@ export default () => {
 					dbRequest.onsuccess = function(event) {
 						resolve();
 						sendEvent("deletedMasternode");
+					};
+					dbRequest.onerror = function(event) {
+						reject();
+					};
+				});
+			});
+		},
+		createInputLockState:function(request){
+			return dbPromise.then(function(db){
+				return new Promise(function(resolve, reject) {
+			
+					var dbRequest = db.transaction("inputLockStates", "readwrite").objectStore("inputLockStates").add({
+						output: request.output,
+						lockState: request.lockState
+					});
+					
+					dbRequest.onsuccess = function(event) {
+						resolve();
+						sendEvent("addedInputLockState");
+					};
+					dbRequest.onerror = function(event) {
+						reject();
+					};
+				});
+			});
+		},
+		updateInputLockState:function(request){
+			return dbPromise.then(function(db){
+				return new Promise(function(resolve, reject) {
+			
+					var dbRequest = db.transaction("inputLockStates", "readwrite").objectStore("inputLockStates").put({  //TODO: this should be update not put
+						output: request.output,
+						lockState: request.lockState
+					});
+					
+					dbRequest.onsuccess = function(event) {
+						resolve();
+						sendEvent("updatedInputLockState");
+					};
+					dbRequest.onerror = function(event) {
+						reject();
+					};
+				});
+			});
+		},
+		listInputLockStates: function(request){
+			return dbPromise.then(function(db){
+				return new Promise(function(resolve, reject) {
+					
+					var dbRequest = db.transaction(["inputLockStates"], "readonly").objectStore("inputLockStates").getAll();
+
+					dbRequest.onsuccess = function(event) {
+
+						var result = {};
+						event.target.result.forEach(lockState => {
+							result[lockState.output] = lockState.lockState;
+						});
+
+						resolve(result);
+					};
+					dbRequest.onerror = function(event) {
+						reject();
+					};
+				});
+			});
+		},
+		deleteInputLockState: function(request){
+			return dbPromise.then(function(db){
+				return new Promise(function(resolve, reject) {
+					var dbRequest= db.transaction(["inputLockStates"], "readwrite").objectStore("inputLockStates").delete(request.output);
+					
+					dbRequest.onsuccess = function(event) {
+						resolve();
+						sendEvent("deletedInputLockState");
 					};
 					dbRequest.onerror = function(event) {
 						reject();

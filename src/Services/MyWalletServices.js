@@ -20,6 +20,10 @@ const myMasternodeDeleted = new Subject();
 const myAddressAdded = new Subject();
 const myAddressDeleted = new Subject();
 
+const inputLockStateAdded = new Subject();
+const inputLockStateUpdated = new Subject();
+const inputLockStateDeleted = new Subject();
+
 var walletWorkerRequestId = 0;
 var pendingWalletWorkerRequests = {}
 
@@ -40,6 +44,9 @@ if (_walletWorker != null)
         else if (message.event == "deletedMasternode") myMasternodeDeleted.next(message.data);
         else if (message.event == "addedAddress") myAddressAdded.next(message.data);
         else if (message.event == "deletedAddress") myAddressDeleted.next(message.data);
+        else if (message.event == "addedInputLockState") inputLockStateAdded.next(message.data);
+        else if (message.event == "updatedInputLockState") inputLockStateUpdated.next(message.data);
+        else if (message.event == "deletedInputLockState") inputLockStateDeleted.next(message.data);
     }
 }
 
@@ -188,9 +195,72 @@ const myMasternodes = Observable.create(function(observer) {
   }
 
 
-  var inputAddresses = combineLatest(myAddresses, BlockchainServices.blockCount, BlockchainServices.rawMemPool, BlockchainServices.masternodeList)
+  const inputLockStates = Observable.create(function(observer) {
+
+    var _response = null;
+
+    var listInputLockStates = () =>{
+        sendWalletWorkerRequest({
+            op:"listInputLockStates"
+        })
+        .then(response =>{
+
+            if (response.success)
+            {
+                _response = response; //TODO: this could be better
+                observer.next(response.data)
+            }
+        })
+        .catch(err => observer.error(err));
+    };
+
+    var inputLockStateAddedSubscription = inputLockStateAdded.subscribe(listInputLockStates);
+    var inputLockStateUpdatedSubscription = inputLockStateUpdated.subscribe(listInputLockStates);
+    var inputLockStateDeletedSubscription = inputLockStateDeleted.subscribe(listInputLockStates);
+
+    var intervalId = setInterval(listInputLockStates, 30000);
+    listInputLockStates();
+
+    return () => {
+        clearInterval(intervalId);
+        inputLockStateAddedSubscription.unsubscribe();
+        inputLockStateUpdatedSubscription.unsubscribe();
+        inputLockStateDeletedSubscription.unsubscribe();
+    }
+  
+  }).pipe(shareReplay({
+    bufferSize: 1,
+    refCount: true
+  }));
+
+
+  var addInputLockState = (output, lockState) =>{ 
+    return sendWalletWorkerRequest({
+        op:"createInputLockState",
+        output: output,
+        lockState: lockState
+    }).then(() => broadcastEvent("inputLockStateAdded"));
+  }
+
+  var updateInputLockState = (output, lockState) =>{ 
+    return sendWalletWorkerRequest({
+        op:"updateInputLockState",
+        output: output,
+        lockState: lockState
+    }).then(() => broadcastEvent("inputLockStateUpdated"));
+  }
+
+  var deleteInputLockState = (output) =>{ 
+    return sendWalletWorkerRequest({
+        op:"deleteInputLockState",
+        output: output
+    }).then(() => broadcastEvent("inputLockStateDeleted"));
+  }
+
+
+  var inputAddresses = combineLatest(myAddresses,inputLockStates, BlockchainServices.blockCount, BlockchainServices.rawMemPool, BlockchainServices.masternodeList)
   .pipe(
-  switchMap(([myAddresses,blockCount, rawMemPool, masternodeList]) => combineLatest(
+  switchMap(([myAddresses, inputLockStates,blockCount, rawMemPool, masternodeList]) => combineLatest(
     myAddresses.filter(myAddress => myAddress.WIF != null).map(myAddress => 
       combineLatest(
         BlockchainServices.getAddress(myAddress.address),
@@ -203,10 +273,10 @@ const myMasternodes = Observable.create(function(observer) {
                 address: address,
                 inputs: unspent.map(unspent => {
                     var value = new bigDecimal(unspent.value);
-                    var isMatureCoins = true;
+                    var isMatureCoins = true; //TODO: check if new coins then verify that coins are mature
                     var inMemPool = rawMemPool.find(r => r.vin.find(v => v.txid == unspent.txid && v.vout == unspent.vout )) != null;
                     var inMnList = Object.keys(masternodeList).find(output => output == unspent.txid + "-" + unspent.vout)  != null;
-                    var lockState = null;
+                    var lockState = inputLockStates[unspent.txid + "-" + unspent.vout];
                     return {
                         myAddress,
                         unspent: unspent,
@@ -214,7 +284,7 @@ const myMasternodes = Observable.create(function(observer) {
                         satoshi: parseFloat(value.multiply(new bigDecimal("100000000")).getValue()),
                         confirmations: blockCount - unspent.blockHeight,
                         lockState: lockState,
-                        disabled: lockState != null? lockState : inMemPool || inMnList || isMatureCoins == false,
+                        disabled: lockState != null ? lockState : inMemPool || inMnList || isMatureCoins == false,
                         isMatureCoins: isMatureCoins,
                         inMemPool: inMemPool,
                         inMnList: inMnList
@@ -241,6 +311,12 @@ export default {
     addMyMasternode,
     deleteMyMasternode,
 
+
+    inputLockStates,
+    addInputLockState,
+    updateInputLockState,
+    deleteInputLockState,
+
     inputAddresses
 
 }
@@ -263,4 +339,7 @@ window.addEventListener('storage', function(e) {
     else if(e.key == "myMasternodeDeleted") myMasternodeDeleted.next();
     else if(e.key == "myAddressAdded") myAddressAdded.next()
     else if(e.key == "myAddressDeleted") myAddressDeleted.next()
+    else if(e.key == "inputLockStateAdded") inputLockStateAdded.next()
+    else if(e.key == "inputLockStateUpdated") inputLockStateUpdated.next()
+    else if(e.key == "inputLockStateDeleted") inputLockStateDeleted.next()
 });
