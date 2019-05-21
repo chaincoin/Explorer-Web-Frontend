@@ -273,7 +273,10 @@ const myMasternodes = Observable.create(function(observer) {
                 address: address,
                 inputs: unspent.map(unspent => {
                     var value = new bigDecimal(unspent.value);
-                    var isMatureCoins = true; //TODO: check if new coins then verify that coins are mature
+
+                    var confirmations = (blockCount - unspent.blockHeight) + 1;
+
+                    var isMatureCoins = unspent.payout == null ? true : confirmations > 102;
                     var inMemPool = rawMemPool.find(r => r.vin.find(v => v.txid == unspent.txid && v.vout == unspent.vout )) != null;
                     var inMnList = Object.keys(masternodeList).find(output => output == unspent.txid + "-" + unspent.vout)  != null;
                     var lockState = inputLockStates[unspent.txid + "-" + unspent.vout];
@@ -282,14 +285,14 @@ const myMasternodes = Observable.create(function(observer) {
                         unspent: unspent,
                         value: value,
                         satoshi: parseFloat(value.multiply(new bigDecimal("100000000")).getValue()),
-                        confirmations: blockCount - unspent.blockHeight,
+                        confirmations: confirmations,
                         lockState: lockState,
                         disabled: lockState != null ? lockState : inMemPool || inMnList || isMatureCoins == false,
                         isMatureCoins: isMatureCoins,
                         inMemPool: inMemPool,
                         inMnList: inMnList
                     }
-                })
+                }).concat()
             }
         })
       )
