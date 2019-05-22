@@ -106,7 +106,7 @@ class MasternodeWinners extends React.Component {
                             <TableHead>
 
                               <TableRow>
-                                <TableCell width="380">MN</TableCell>
+                                <TableCell width="390">MN</TableCell>
                                 <TableCell>Votes</TableCell>
                                 <TableCell>Status</TableCell>
                               </TableRow>
@@ -117,7 +117,7 @@ class MasternodeWinners extends React.Component {
                                 var votes = parseInt(split[1]);
                                 return (
                                   <TableRow >
-                                    <TableCell width="380">
+                                    <TableCell width="390">
                                       {split[0]}
                                     </TableCell>
                                     <TableCell>{votes}</TableCell>
