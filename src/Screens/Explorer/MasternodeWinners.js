@@ -113,6 +113,16 @@ class MasternodeWinners extends React.Component {
                             </TableHead>
                             <TableBody>
                               {votedMNs.map(votedMN => {
+
+                                if (votedMN == "Unknown") return (
+                                  <TableRow >
+                                    <TableCell width="390">
+                                    </TableCell>
+                                    <TableCell></TableCell>
+                                    <TableCell></TableCell>
+                                  </TableRow>
+                                );
+
                                 var split = votedMN.split(":");
                                 var votes = parseInt(split[1]);
                                 return (
