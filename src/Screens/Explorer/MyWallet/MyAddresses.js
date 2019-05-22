@@ -15,7 +15,10 @@ import MyAddressesGraph from './MyAddressesGraph';
 
 
 const styles = theme => ({
-
+  tabHeader:{
+    paddingLeft: "0px",
+    paddingRight: "0px",
+  }
 });
 
 class MyAddresses extends React.Component {
@@ -37,8 +40,8 @@ class MyAddresses extends React.Component {
     return (
 
       <Card>
-        <CardHeader>
-          <Tabs value={tab} onChange={this.handleTabChange}>
+        <CardHeader className={classes.tabHeader}>
+          <Tabs value={tab} onChange={this.handleTabChange} variant="scrollable" scrollButtons="auto">
             <Tab label="My Addresses" classes={{ label: 'details-tab' }} />
             <Tab label="Send" classes={{ label: 'details-tab' }} />
             <Tab label="Mining" classes={{ label: 'details-tab' }} />

@@ -13,7 +13,10 @@ import MyMasternodesGraph from './MyMasternodesGraph';
 
 
 const styles = theme => ({
-  
+  tabHeader:{
+    paddingLeft: "0px",
+    paddingRight: "0px",
+  }
 });
 
 class MyMasternodes extends React.Component {
@@ -31,8 +34,8 @@ class MyMasternodes extends React.Component {
 
     return (
       <Card>
-        <CardHeader>
-          <Tabs value={tab} onChange={this.handleTabChange}>
+        <CardHeader className={classes.tabHeader}>
+          <Tabs value={tab} onChange={this.handleTabChange} variant="scrollable" scrollButtons="auto">
             <Tab label="My Masternodes" classes={{ label: 'details-tab' }} />
             <Tab label="Payouts" classes={{ label: 'details-tab' }} />
           </Tabs>
