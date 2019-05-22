@@ -116,8 +116,7 @@ class MasternodeWinners extends React.Component {
 
                                 if (votedMN == "Unknown") return (
                                   <TableRow >
-                                    <TableCell width="390">
-                                    </TableCell>
+                                    <TableCell width="390">{votedMN}</TableCell>
                                     <TableCell></TableCell>
                                     <TableCell></TableCell>
                                   </TableRow>
