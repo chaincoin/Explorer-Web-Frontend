@@ -75,6 +75,8 @@ class MasternodeWinners extends React.Component {
     const { classes } = this.props;
     const { rows, rowsPerPage, page } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+
+    
 //TODO: Work out if the block has been mined and create link if it has been
     return ( 
       <Card>
@@ -88,16 +90,48 @@ class MasternodeWinners extends React.Component {
                 <TableHead>
                   <TableRow>
                     <TableCell>Block</TableCell>
-                    <TableCell>Votes</TableCell>
+                    <TableCell></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
-                    <TableRow >
-                      <TableCell component="th" scope="row">{row[0]}</TableCell>
-                      <TableCell>{row[1]}</TableCell>
-                    </TableRow>
-                  ))}
+                  {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => 
+                    {
+                      var votedMNs = row[1].split(",");
+                      
+                      return (
+                        <TableRow >
+                          <TableCell component="th" scope="row">{row[0]}</TableCell>
+                          <TableCell>
+                          <Table className={classes.table}>
+                            <TableHead>
+
+                              <TableRow>
+                                <TableCell width="380">MN</TableCell>
+                                <TableCell>Votes</TableCell>
+                                <TableCell>Status</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {votedMNs.map(votedMN => {
+                                var split = votedMN.split(":");
+                                var votes = parseInt(split[1]);
+                                return (
+                                  <TableRow >
+                                    <TableCell width="380">
+                                      {split[0]}
+                                    </TableCell>
+                                    <TableCell>{votes}</TableCell>
+                                    <TableCell>{ votes >= 6 ? "Enforced": (6 - votes) + " votes to enforce"}</TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                            </Table>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    }
+                  )}
                   {emptyRows > 0 && (
                     <TableRow style={{ height: 48 * emptyRows }}>
                       <TableCell colSpan={2} />
