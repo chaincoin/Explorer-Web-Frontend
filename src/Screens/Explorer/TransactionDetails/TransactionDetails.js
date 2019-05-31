@@ -61,7 +61,7 @@ class TransactionDetails extends React.Component {
     return (
     <div>
       <Header transaction={transaction}/>
-      <Grid container spacing={24}>
+      <Grid container>
         <Grid item xs={12} sm={12} md={12} lg={6}>
           <Vin transaction={transaction}/> 
         </Grid>

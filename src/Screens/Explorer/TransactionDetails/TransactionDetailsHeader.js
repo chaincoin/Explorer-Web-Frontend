@@ -46,7 +46,7 @@ class BlockDetailsHeader extends React.Component {
                 }
               </div>
             </Grid>
-            <Grid item lg={7}>
+            <Grid item xs md lg={7}>
               <div>
                 Block Hash
               </div>
