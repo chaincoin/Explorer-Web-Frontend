@@ -5,7 +5,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 
 import MyWalletServices from '../Services/MyWalletServices';
 
-function CoinControlMenu(props) {
+function CoinControlMenu({input}) {
   const [anchorEl, setAnchorEl] = React.useState(null);
 
 
@@ -31,7 +31,6 @@ function CoinControlMenu(props) {
     handleClose();
 }
 
-  const { input } = props;
 
   return (
     <div>
