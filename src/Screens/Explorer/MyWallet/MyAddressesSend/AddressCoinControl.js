@@ -22,12 +22,12 @@ import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Checkbox from '@material-ui/core/Checkbox';
-import Button from '@material-ui/core/Button';
 
 
 import TablePaginationActions from '../../../../Components/TablePaginationActions';
+import CoinControlMenu from '../../../../Components/CoinControlMenu';
 
-import MyWalletServices from '../../../../Services/MyWalletServices';
+
 
 const styles = {
   tableWrapper: {
@@ -152,41 +152,7 @@ class AddressCoinControl extends React.Component {
                       { input.lockState != null ? (input.lockState == true ? "User Locked," : "User Unlocked,") : null }
                     </TableCell>
                     <TableCell>
-
-                      {
-                        input.lockState == null ? (
-                          <div>
-                            <Button variant="contained" color="primary" onClick={(e) => MyWalletServices.addInputLockState(input.unspent.txid + "-" + input.unspent.vout, true)}>
-                              Lock
-                            </Button>
-                            <Button variant="contained" color="primary" onClick={(e) => MyWalletServices.addInputLockState(input.unspent.txid + "-" + input.unspent.vout, false)}>
-                              Unlock
-                            </Button>
-                          </div>
-
-                        ): 
-                        (
-                          <div>
-                            <Button variant="contained" color="primary" onClick={(e) => MyWalletServices.updateInputLockState(input.unspent.txid + "-" + input.unspent.vout, true)}>
-                              Lock
-                            </Button>
-                            <Button variant="contained" color="primary" onClick={(e) => MyWalletServices.updateInputLockState(input.unspent.txid + "-" + input.unspent.vout, false)}>
-                              Unlock
-                            </Button>
-                          </div>
-                        )
-                      }
-
-                      {
-                        input.lockState != null ?
-                        (
-                          <Button variant="contained" color="primary" onClick={(e) => MyWalletServices.deleteInputLockState(input.unspent.txid + "-" + input.unspent.vout)}>
-                            Clear Locked State
-                          </Button>
-                        ): null
-                      }
-                      
-
+                      <CoinControlMenu input={input}/>
                     </TableCell>
                   </TableRow>
                 ))}
