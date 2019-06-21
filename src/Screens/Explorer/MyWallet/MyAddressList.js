@@ -113,8 +113,8 @@ class MyAddresses extends React.Component {
     var name = prompt("Please enter a name for the address");
     if (name == null) return;
 
-    var keyPair = bitcoin.ECPair.fromWIF(WIF, Chaincoin); // eslint-disable-line no-undef
-    var address = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: Chaincoin }).address; // eslint-disable-line no-undef
+    var keyPair = bitcoin.ECPair.fromWIF(WIF, BlockchainServices.Chaincoin); // eslint-disable-line no-undef
+    var address = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin }).address; // eslint-disable-line no-undef
 
     MyWalletServices.addMyAddress(name,address, WIF);
   }
