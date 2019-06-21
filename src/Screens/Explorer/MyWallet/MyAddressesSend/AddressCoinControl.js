@@ -114,6 +114,7 @@ class AddressCoinControl extends React.Component {
             onClick={(e)=> e.stopPropagation()}
             onChange={this.handleInputAddressChange}
             color="primary"
+            disabled={inputAddress.inputs.length == 0}
           />
         {inputAddress.myAddress.name} {inputAddress.address.balance}
         
