@@ -281,7 +281,17 @@ class Transaction { //TODO: think this could be better but will do for now
                     }
                 });
 
-                var transaction = txb.build();
+                var transaction = null;
+                try
+                {
+                    transaction = txb.build();
+                }
+                catch(ex)
+                {
+                    reject();
+                    return;
+                }
+                
                 var hex = transaction.toHex();
 
 
