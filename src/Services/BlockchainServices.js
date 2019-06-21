@@ -802,7 +802,7 @@ const BlockCount = Observable.create(function(observer) {
       bech32: "tchc",
       pubKeyHash: 0x50,
       scriptHash: 0x2c,
-      wif: 0x80
+      wif: 0xd8
     };
   }
 
