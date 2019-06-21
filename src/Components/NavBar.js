@@ -199,7 +199,7 @@ class ChaincoinExplorerNavBar extends React.Component {
               <NavLink tag={Link} to={'/Tutorials'}>Tutorials</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink href="https://www.chaincoin.org//">Chaincoin Home</NavLink>
+              <NavLink href="https://www.chaincoin.org//" target="blank">Chaincoin Home</NavLink>
             </NavItem>
             <NavItem>
               <NavLink tag={Link} to={'/ContactMe'}>Contact Me</NavLink>
