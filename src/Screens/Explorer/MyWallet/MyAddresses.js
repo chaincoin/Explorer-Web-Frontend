@@ -76,14 +76,3 @@ var TimeToString = (timestamp) =>{
   return d.toLocaleTimeString() + " " + d.toLocaleDateString();
 }
 
-var Chaincoin = {
-  messagePrefix: 'DarkCoin Signed Message:\n',
-  bip32: {
-  public: 0x02FE52F8,
-  private: 0x02FE52CC
-  },
-  bech32: "chc",
-  pubKeyHash: 0x1C,
-  scriptHash: 0x04,
-  wif: 0x9C
-};

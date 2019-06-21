@@ -97,7 +97,7 @@ class MyAddresses extends React.Component {
     var name = prompt("Please enter a name for the address");
     if (name == null) return;
 
-    var keyPair = bitcoin.ECPair.makeRandom({ network: Chaincoin }); // eslint-disable-line no-undef
+    var keyPair = bitcoin.ECPair.makeRandom({ network: BlockchainServices.Chaincoin }); // eslint-disable-line no-undef
     var WIF = keyPair.toWIF();
     //var address = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: Chaincoin }).address;
                 
@@ -232,19 +232,3 @@ export default withStyles(styles)(MyAddresses);
 
 
 
-var TimeToString = (timestamp) =>{
-  var d = new Date(timestamp * 1000);
-  return d.toLocaleTimeString() + " " + d.toLocaleDateString();
-}
-
-var Chaincoin = {
-  messagePrefix: 'DarkCoin Signed Message:\n',
-  bip32: {
-  public: 0x02FE52F8,
-  private: 0x02FE52CC
-  },
-  bech32: "chc",
-  pubKeyHash: 0x1C,
-  scriptHash: 0x04,
-  wif: 0x9C
-};

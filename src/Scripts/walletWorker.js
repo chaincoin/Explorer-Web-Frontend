@@ -1,20 +1,5 @@
 export default () => {
-	/*
-	self.window = {};
-	self.importScripts("bitcoinjs.js?6");
 
-	self.bitcoin = window.bitcoin;
-
-	var Chaincoin = {
-		messagePrefix: 'DarkCoin Signed Message:\n',
-		bip32: {
-		public: 0x02FE52F8,
-		private: 0x02FE52CC
-		},
-		pubKeyHash: 0x1C,
-		scriptHash: 0x04,
-		wif: 0x9C
-	}*/
 		
 	var databaseVersion = 2;
 	var databaseName = "Wallet";
