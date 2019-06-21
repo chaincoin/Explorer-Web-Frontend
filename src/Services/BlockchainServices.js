@@ -790,6 +790,20 @@ const BlockCount = Observable.create(function(observer) {
     pubKeyHash: 0x1C,
     scriptHash: 0x04,
     wif: 0x9C
+  };
+
+  if (Environment.environment == "Test"){
+    Chaincoin = {
+      messagePrefix: 'DarkCoin Signed Message:\n',
+      bip32: {
+        public: 0x02FE52F8,
+        private: 0x02FE52CC
+      },
+      bech32: "tchc",
+      pubKeyHash: 0x50,
+      scriptHash: 0x2c,
+      wif: 0x80
+    };
   }
 
   export default {

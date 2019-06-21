@@ -13,10 +13,16 @@ var environment = "Test";*/
 
 if (window.location.host == "localhost:3000")
 {
+    /*
     blockchainApiUrl = "https://blockchain-staging.chaincoinexplorer.co.uk";
     webServicesApiUrl = "wss://websocket-staging.chaincoinexplorer.co.uk";
     notificationsApiUrl = "https://notifications-staging.chaincoinexplorer.co.uk";
-    environment = "Staging";
+    environment = "Staging";*/
+
+    var blockchainApiUrl = "https://blockchain-test.chaincoinexplorer.co.uk";
+    var webServicesApiUrl = "wss://websocket-test.chaincoinexplorer.co.uk";
+    var notificationsApiUrl = "https://notifications-test.chaincoinexplorer.co.uk";
+    var environment = "Test";
 }
 
 
