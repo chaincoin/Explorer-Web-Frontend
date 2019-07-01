@@ -1,4 +1,4 @@
-import { Observable, Subject, from   } from 'rxjs';
+import { Observable, Subject, from, interval } from 'rxjs';
 import { shareReplay, switchMap } from 'rxjs/operators';
 
 import axios from 'axios'
@@ -126,64 +126,31 @@ const webSocket = Observable.create(function(observer) {
 
 
 
-const BlockCount = Observable.create(function(observer) {
+const BlockCount = webSocket.pipe(
+  switchMap(webSocket => webSocket ?
+    Observable.create(function(observer) {
 
-    var _blockCount = 0;
-    var intervalId = null;
+      var subscriptionId = getSubscriptionId();
 
+      _websocket.send(JSON.stringify({op: "BlockCountSubscribe", subscriptionId: subscriptionId}));
+      var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+        if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+      });
 
-    var processBlockCount = (blockCount) => {
-      if (_blockCount != blockCount) {
-        _blockCount = blockCount;
-        observer.next(blockCount);
-      }
-    };
-
-    var getBlockCount = () =>{
-      sendRequest({
-        op: "getBlockCount"
-      }).then(processBlockCount);
-    };
-    
-
-    
-
-    var webSocketSubscription = webSocket.subscribe(enabled =>{
-
-      if (enabled == true)
-      {
-        if (intervalId != null) clearInterval(intervalId);
-        intervalId = null;
-        _websocket.send(JSON.stringify({op: "newBlockSubscribe"}));//subscribe to event //TODO: should i really be using the web socket directly, if i use send request it throws an error as subcriptions are responded to
-        getBlockCount();
-      }
-      else
-      {
-        if (intervalId == null) {
-          intervalId = setInterval(getBlockCount, 30000);
-          getBlockCount();
-        }
-      }
-
-    });
-
-    
-    var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-      if (message.op == "newBlock") processBlockCount(message.data.height);
-    });
-     
-    
-
-    return () => {
-        clearInterval(intervalId);
-        webSocketSubscription.unsubscribe();
+      return () =>{
         websocketMessageSubscription.unsubscribe();
-    }
-  
-  }).pipe(shareReplay({
+        _websocket.send(JSON.stringify({op: "BlockCountUnsubscribe"}));
+      };
+    }):
+    interval(30000).pipe(switchMap(blockCount => from(sendRequest({
+      op: "getBlockCount"
+    }))))
+  ),
+  shareReplay({
     bufferSize: 1,
     refCount: true
-  }));
+  })
+);
 
 
   var blockObservables = {}
@@ -213,8 +180,7 @@ const BlockCount = Observable.create(function(observer) {
           }):
           BlockCount.pipe(switchMap(blockCount => from(sendRequest({
             op: "getBlockExtended",
-            hash: hash,
-            extended:true
+            hash: hash
           }))))
         ),
         shareReplay({
@@ -377,65 +343,32 @@ const BlockCount = Observable.create(function(observer) {
 
     if (addressObservable == null)
     {
-      addressObservable = Observable.create(function(observer) {
+      addressObservable = webSocket.pipe(
+        switchMap(webSocket => webSocket ?
+          Observable.create(function(observer) {
 
-  
-        var _address = null;
-        var blockCountSubscription = null;
-  
-        var processAddress = (address) => {
-          if (_address == null || _address.balance != address.balance) //TODO: is this good enough
-          {
-            _address = address;
-            observer.next(address);
-          }
-        };
-  
-        var _getAddress = () =>{
-          sendRequest({
+            var subscriptionId = getSubscriptionId();
+
+            _websocket.send(JSON.stringify({op: "AddressSubscribe", subscriptionId: subscriptionId, address:addressId}));
+            var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+              if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+            });
+
+            return () =>{
+              websocketMessageSubscription.unsubscribe();
+              _websocket.send(JSON.stringify({op: "AddressUnsubscribe", address:addressId}));
+            };
+          }):
+          BlockCount.pipe(switchMap(blockCount => from(sendRequest({
             op: "getAddress",
-            address:addressId
-          }).then(processAddress).catch((err) =>{
-            observer.error(new Error(err));
-          });
-        };
-        
-  
-        
-  
-        var webSocketSubscription = webSocket.subscribe(enabled =>{
-  
-          if (enabled == true)
-          {
-            if (blockCountSubscription != null) blockCountSubscription.unsubscribe();
-            blockCountSubscription = null;
-            _getAddress();
-            _websocket.send(JSON.stringify({op: "newAddressTransactionSubscribe", address:addressId}));//subscribe to event //TODO: should i really be using the web socket directly, if i use send request it throws an error as subcriptions are responded to
-          }
-          else
-          {
-            blockCountSubscription = BlockCount.subscribe(blockCount => _getAddress()); //TODO: this will trigger a getAddress straight away, even if block count hasnt changed
-          }
-  
-        });
-  
-        
-        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-          if (message.op == "newAddressTransaction" && message.data.address==addressId) processAddress(message.data);
-        });
-        
-        
-  
-        return () => {
-            if (_websocket != null)_websocket.send(JSON.stringify({op: "newAddressTransactionUnsubscribe", address:addressId})); //TODO: this feels wrong
-            if(blockCountSubscription != null) blockCountSubscription.unsubscribe();
-            webSocketSubscription.unsubscribe();
-            websocketMessageSubscription.unsubscribe();
-        }
-      }).pipe(shareReplay({
-        bufferSize: 1,
-        refCount: true
-      }));
+            address: addressId
+          }))))
+        ),
+        shareReplay({
+          bufferSize: 1,
+          refCount: true
+        })
+      );
 
       addressObservables[addressId] = addressObservable;
     }
@@ -454,61 +387,60 @@ const BlockCount = Observable.create(function(observer) {
   }
   
 
-  var masternodeCount = Observable.create(function(observer) {
+  var masternodeCount = webSocket.pipe(
+    switchMap(webSocket => webSocket ?
+      Observable.create(function(observer) {
 
-    var _masternodeCount = null;
+        var subscriptionId = getSubscriptionId();
 
-    var getMasternodeCountHttp = () =>{
+        _websocket.send(JSON.stringify({op: "MasternodeCountSubscribe", subscriptionId: subscriptionId}));
+        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+        });
 
-      sendRequest({
+        return () =>{
+          websocketMessageSubscription.unsubscribe();
+          _websocket.send(JSON.stringify({op: "MasternodeCountUnsubscribe"}));
+        };
+      }):
+      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
         op: "getMasternodeCount",
-      })
-      .then((masternodeCount) => {
-        _masternodeCount = masternodeCount;
-        observer.next(masternodeCount);
-      });
-    };
-
-    var intervalId = setInterval(getMasternodeCountHttp, 30000);
-    getMasternodeCountHttp();
-
-    return () => {
-        clearInterval(intervalId);
-    }
-  
-  }).pipe(shareReplay({
-    bufferSize: 1,
-    refCount: true
-  }));
+      }))))
+    ),
+    shareReplay({
+      bufferSize: 1,
+      refCount: true
+    })
+  );
 
   
 
 
-  var masternodeList = Observable.create(function(observer) {
+  var masternodeList = webSocket.pipe(
+    switchMap(webSocket => webSocket ?
+      Observable.create(function(observer) {
 
-    var _masternodeList = null;
+        var subscriptionId = getSubscriptionId();
 
-    var getMasternodeListHttp = () =>{
-      sendRequest({
+        _websocket.send(JSON.stringify({op: "MasternodeListSubscribe", subscriptionId: subscriptionId}));
+        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+        });
+
+        return () =>{
+          websocketMessageSubscription.unsubscribe();
+          _websocket.send(JSON.stringify({op: "MasternodeListUnsubscribe"}));
+        };
+      }):
+      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
         op: "getMasternodeList",
-      })
-      .then((masternodeList) => {
-        _masternodeList = masternodeList;
-        observer.next(masternodeList);
-      });
-    };
-
-    var intervalId = setInterval(getMasternodeListHttp, 30000);
-    getMasternodeListHttp();
-
-    return () => {
-        clearInterval(intervalId);
-    }
-  
-  }).pipe(shareReplay({
-    bufferSize: 1,
-    refCount: true
-  }));
+      }))))
+    ),
+    shareReplay({
+      bufferSize: 1,
+      refCount: true
+    })
+  );
 
 
   var masternodeObservables = {}
@@ -518,35 +450,32 @@ const BlockCount = Observable.create(function(observer) {
 
     if (masternodeObservable == null)
     {
-      masternodeObservable = Observable.create(function(observer) {
-
-        var _masternode = null;
+      masternodeObservable = webSocket.pipe(
+        switchMap(webSocket => webSocket ?
+          Observable.create(function(observer) {
     
-        var getMasternodeHttp = () =>{
-          sendRequest({
-            op: "getMasternode",
-            output: output,
-            extended: true
-          })
-          .then((masternode) => {
-            _masternode = masternode;
-            observer.next(masternode);
-          }).catch((err) =>{
-            observer.error(new Error(err));
-          });
-        };
+            var subscriptionId = getSubscriptionId();
     
-        var intervalId = setInterval(getMasternodeHttp, 30000);
-        getMasternodeHttp();
+            _websocket.send(JSON.stringify({op: "MasternodeExtendedSubscribe", subscriptionId: subscriptionId, output:output}));
+            var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+              if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+            });
     
-        return () => {
-            clearInterval(intervalId);
-        }
-      
-      }).pipe(shareReplay({
-        bufferSize: 1,
-        refCount: true
-      }));
+            return () =>{
+              websocketMessageSubscription.unsubscribe();
+              _websocket.send(JSON.stringify({op: "MasternodeExtendedUnsubscribe", output:output}));
+            };
+          }):
+          interval(30000).pipe(switchMap(blockCount => from(sendRequest({
+            op: "getMasternodeList",
+            output:output
+          }))))
+        ),
+        shareReplay({
+          bufferSize: 1,
+          refCount: true
+        })
+      );
     } 
 
     return masternodeObservable;
@@ -570,175 +499,140 @@ const BlockCount = Observable.create(function(observer) {
     })
   }
   
-  var masternodeWinners = Observable.create(function(observer) {
+  var masternodeWinners = webSocket.pipe(
+    switchMap(webSocket => webSocket ?
+      Observable.create(function(observer) {
 
-    var getMasternodeWinnersHttp = () =>{
-      sendRequest({
-        op: "getMasternodeWinners"
-      })
-      .then((masternodeWinners) => {
-        observer.next(masternodeWinners);
-      });
-    };
+        var subscriptionId = getSubscriptionId();
 
-    var blockCountSubscription = BlockCount.subscribe(blockCount => getMasternodeWinnersHttp());
+        _websocket.send(JSON.stringify({op: "MasternodeWinnersSubscribe", subscriptionId: subscriptionId}));
+        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+        });
 
-    return () => {
-      blockCountSubscription.unsubscribe();
-    }
-  }).pipe(shareReplay({
-    bufferSize: 1,
-    refCount: true
-  }));
+        return () =>{
+          websocketMessageSubscription.unsubscribe();
+          _websocket.send(JSON.stringify({op: "MasternodeWinnersUnsubscribe"}));
+        };
+      }):
+      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
+        op: "getMasternodeWinners",
+      }))))
+    ),
+    shareReplay({
+      bufferSize: 1,
+      refCount: true
+    })
+  );
   
 
-  var memPoolInfo = Observable.create(function(observer) { 
+  var memPoolInfo = webSocket.pipe(
+    switchMap(webSocket => webSocket ?
+      Observable.create(function(observer) {
 
-    var _memPoolInfo = null;
+        var subscriptionId = getSubscriptionId();
 
-    var getMemPoolHttp = () =>{
-      sendRequest({
-        op: "getMemPoolInfo"
-      })
-      .then((memPoolInfo) => {
+        _websocket.send(JSON.stringify({op: "RawMemPoolSubscribe", subscriptionId: subscriptionId}));
+        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+        });
 
-        if (_memPoolInfo == null || _memPoolInfo.size != memPoolInfo.size || _memPoolInfo.bytes != memPoolInfo.bytes)
-        {
-          _memPoolInfo= memPoolInfo;
-          observer.next(memPoolInfo);
-        }
-       
-        
-      });
-    };
-
-    var blockCountSubscription = BlockCount.subscribe(blockCount => getMemPoolHttp());
-
-    var intervalId = setInterval(getMemPoolHttp, 30000);
-    getMemPoolHttp();
-
-    return () => {
-      blockCountSubscription.unsubscribe();
-      clearInterval(intervalId);
-    }
-  }).pipe(shareReplay({
-    bufferSize: 1,
-    refCount: true
-  }));
-  
-
-
-  var rawMemPool = Observable.create(function(observer) { 
-
-    var _rawMemPool = null;
-
-    var getMemPoolHttp = () =>{
-      sendRequest({
+        return () =>{
+          websocketMessageSubscription.unsubscribe();
+          _websocket.send(JSON.stringify({op: "RawMemPoolUnsubscribe"}));
+        };
+      }):
+      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
         op: "getRawMemPool",
-        extended: true
-      })
-      .then((rawMemPool) => {
-        //TODO: maybe check that the rawMemPool has changed before calling next
-        _rawMemPool= rawMemPool;
-        observer.next(rawMemPool);
-        
-      });
-    };
-
-    var memPoolInfoSubscription = null;
-
-    var webSocketSubscription = webSocket.subscribe(enabled =>{
-  
-      if (enabled == true)
-      {
-        if (memPoolInfoSubscription != null) memPoolInfoSubscription.unsubscribe();
-        memPoolInfoSubscription = null;
-        getMemPoolHttp();
-        _websocket.send(JSON.stringify({op: "memPoolChangeSubscribe"}));//subscribe to event //TODO: should i really be using the web socket directly, if i use send request it throws an error as subcriptions are responded to
-      }
-      else
-      {
-        memPoolInfoSubscription = memPoolInfo.subscribe(memPoolInfo => getMemPoolHttp()); //TODO: this will trigger a getMemPoolHttp straight away, even if memPoolInfo hasnt changed
-      }
-
-    });
-
-    
-    var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-      if (message.op == "memPoolChanged") getMemPoolHttp();
-    });
-    
-    
-
-    return () => {
-        if (_websocket != null)_websocket.send(JSON.stringify({op: "memPoolChangeUnsubscribe"})); //TODO: this feels wrong
-        if(memPoolInfoSubscription != null) memPoolInfoSubscription.unsubscribe();
-        webSocketSubscription.unsubscribe();
-        websocketMessageSubscription.unsubscribe();
-    }
-
-  }).pipe(shareReplay({
-    bufferSize: 1,
-    refCount: true
-  }));
+      }))))
+    ),
+    shareReplay({
+      bufferSize: 1,
+      refCount: true
+    })
+  );
   
 
-  var peerInfo = Observable.create(function(observer) {
 
-    var _peerInfo = null;
+  var rawMemPool = webSocket.pipe(
+    switchMap(webSocket => webSocket ?
+      Observable.create(function(observer) {
 
-    var getPeerInfoHttp = () =>{
-      sendRequest({
+        var subscriptionId = getSubscriptionId();
+
+        _websocket.send(JSON.stringify({op: "RawMemPoolSubscribe", subscriptionId: subscriptionId}));
+        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+        });
+
+        return () =>{
+          websocketMessageSubscription.unsubscribe();
+          _websocket.send(JSON.stringify({op: "RawMemPoolUnsubscribe"}));
+        };
+      }):
+      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
+        op: "getRawMemPool",
+      }))))
+    ),
+    shareReplay({
+      bufferSize: 1,
+      refCount: true
+    })
+  );
+  
+
+  var peerInfo = webSocket.pipe(
+    switchMap(webSocket => webSocket ?
+      Observable.create(function(observer) {
+
+        var subscriptionId = getSubscriptionId();
+
+        _websocket.send(JSON.stringify({op: "PeerInfoSubscribe", subscriptionId: subscriptionId}));
+        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+        });
+
+        return () =>{
+          websocketMessageSubscription.unsubscribe();
+          _websocket.send(JSON.stringify({op: "PeerInfoUnsubscribe"}));
+        };
+      }):
+      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
         op: "getPeerInfo",
-      })
-      .then((peerInfo) => {
-        _peerInfo = peerInfo;
-        observer.next(peerInfo);
-      });
-    };
-
-    var intervalId = setInterval(getPeerInfoHttp, 30000);
-    getPeerInfoHttp();
-
-    return () => {
-        clearInterval(intervalId);
-    }
-  
-  }).pipe(shareReplay({
-    bufferSize: 1,
-    refCount: true
-  }));
+      }))))
+    ),
+    shareReplay({
+      bufferSize: 1,
+      refCount: true
+    })
+  );
 
 
-  var richListCount = Observable.create(function(observer) {
+  var richListCount = webSocket.pipe(
+    switchMap(webSocket => webSocket ?
+      Observable.create(function(observer) {
 
-    var _richList = null;
+        var subscriptionId = getSubscriptionId();
 
-    var getAddressHttp = () =>{
-      sendRequest({
+        _websocket.send(JSON.stringify({op: "RichListCountSubscribe", subscriptionId: subscriptionId}));
+        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+        });
+
+        return () =>{
+          websocketMessageSubscription.unsubscribe();
+          _websocket.send(JSON.stringify({op: "RichListCountUnsubscribe"}));
+        };
+      }):
+      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
         op: "getRichListCount",
-        extended: true
-      })
-      .then((richList) => {
-
-        if (_richList == null || _richList != richList) 
-        {
-          _richList= richList;
-          observer.next(richList);
-        }
-        
-      });
-    };
-
-    var blockCountSubscription = BlockCount.subscribe(blockCount => getAddressHttp());
-
-    return () => {
-      blockCountSubscription.unsubscribe();
-    }
-  }).pipe(shareReplay({
-    bufferSize: 1,
-    refCount: true
-  }));
+      }))))
+    ),
+    shareReplay({
+      bufferSize: 1,
+      refCount: true
+    })
+  );
   
 
   var getRichList = (pos, rowsPerPage) => { //TODO: should this be an Observable, can the data change over time?
@@ -751,47 +645,59 @@ const BlockCount = Observable.create(function(observer) {
   }
 
 
-  var txOutSetInfo = Observable.create(function(observer) {
-    var getTxOutSetInfoHttp = () =>{
-      sendRequest({
+  var txOutSetInfo = webSocket.pipe(
+    switchMap(webSocket => webSocket ?
+      Observable.create(function(observer) {
+
+        var subscriptionId = getSubscriptionId();
+
+        _websocket.send(JSON.stringify({op: "TxOutSetInfoSubscribe", subscriptionId: subscriptionId}));
+        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+        });
+
+        return () =>{
+          websocketMessageSubscription.unsubscribe();
+          _websocket.send(JSON.stringify({op: "TxOutSetInfoUnsubscribe"}));
+        };
+      }):
+      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
         op: "getTxOutSetInfo",
-      })
-      .then((txOutSetInfo) => {
-        observer.next(txOutSetInfo);
-      });
-    };
-
-    var blockCountSubscription = BlockCount.subscribe(blockCount => getTxOutSetInfoHttp());
-
-    return () => {
-      blockCountSubscription.unsubscribe();
-    }
-  }).pipe(shareReplay({
-    bufferSize: 1,
-    refCount: true
-  }));
+      }))))
+    ),
+    shareReplay({
+      bufferSize: 1,
+      refCount: true
+    })
+  );
   
 
 
-  var networkHashps = Observable.create(function(observer) {
-    var getNetworkHashpsHttp = () =>{
-      sendRequest({
+  var networkHashps = webSocket.pipe(
+    switchMap(webSocket => webSocket ?
+      Observable.create(function(observer) {
+
+        var subscriptionId = getSubscriptionId();
+
+        _websocket.send(JSON.stringify({op: "NetworkHashpsSubscribe", subscriptionId: subscriptionId}));
+        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+        });
+
+        return () =>{
+          websocketMessageSubscription.unsubscribe();
+          _websocket.send(JSON.stringify({op: "NetworkHashpsUnsubscribe"}));
+        };
+      }):
+      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
         op: "getNetworkHashps",
-      })
-      .then((txOutSetInfo) => {
-        observer.next(txOutSetInfo);
-      });
-    };
-
-    var blockCountSubscription = BlockCount.subscribe(blockCount => getNetworkHashpsHttp());
-
-    return () => {
-      blockCountSubscription.unsubscribe();
-    }
-  }).pipe(shareReplay({
-    bufferSize: 1,
-    refCount: true
-  }));
+      }))))
+    ),
+    shareReplay({
+      bufferSize: 1,
+      refCount: true
+    })
+  );
   
 
 
