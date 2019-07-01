@@ -18,11 +18,16 @@ if (window.location.host == "localhost:3000")
     webServicesApiUrl = "wss://websocket-staging.chaincoinexplorer.co.uk";
     notificationsApiUrl = "https://notifications-staging.chaincoinexplorer.co.uk";
     environment = "Staging";*/
-
+/*
     var blockchainApiUrl = "https://blockchain-test.chaincoinexplorer.co.uk";
     var webServicesApiUrl = "wss://websocket-test.chaincoinexplorer.co.uk";
     var notificationsApiUrl = "https://notifications-test.chaincoinexplorer.co.uk";
-    var environment = "Test";
+    var environment = "Test";*/
+
+
+    blockchainApiUrl = "http://127.0.0.1:8080";
+    webServicesApiUrl = "ws://127.0.0.1:8080";
+    environment = "Live";
 }
 
 
