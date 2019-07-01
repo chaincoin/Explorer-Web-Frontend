@@ -1,5 +1,5 @@
-import { Observable, Subject  } from 'rxjs';
-import { shareReplay } from 'rxjs/operators';
+import { Observable, Subject, from   } from 'rxjs';
+import { shareReplay, switchMap } from 'rxjs/operators';
 
 import axios from 'axios'
 import Environment from './Environment';
@@ -9,6 +9,7 @@ import Environment from './Environment';
 var _websocket = null;
 var websocketRequestId = 0;
 var pendingWebsocketRequests = {};
+var websocketSubscriptionId = 0;
 
 var websocketMessage = new Subject();
 
@@ -35,6 +36,11 @@ function sendWebsocketRequest(request)
     });
 }
 
+
+var getSubscriptionId = () =>{
+  websocketSubscriptionId++;
+  return websocketSubscriptionId;
+}
 
 function sendHttpRequest(request)
 {
@@ -70,6 +76,7 @@ const webSocket = Observable.create(function(observer) {
     tempWebsocket.addEventListener('open', function (event) {
       _websocket = tempWebsocket; 
       websocketRequestId = 0; //reset
+      websocketSubscriptionId = 0; //reset
       websocketRetryTimer = 500; //reset
       pendingWebsocketRequests = {};
       observer.next(true);
@@ -181,52 +188,42 @@ const BlockCount = Observable.create(function(observer) {
 
   var blockObservables = {}
 
-  var getBlock = (blockId) =>{ //TODO: This is a memory leak
+  var getBlock = (hash) =>{ //TODO: This is a memory leak
 
-    var blockObservable = blockObservables[blockId];
+    var blockObservable = blockObservables[hash];
     
 
     if (blockObservable == null){
 
-      var _block = null;
-      var _blockCount = null;
-      blockObservable = Observable.create(function(observer) {
+      blockObservable = webSocket.pipe(
+        switchMap(webSocket => webSocket ?
+          Observable.create(function(observer) {
 
-        var getBlockHttp = () =>{
-          sendRequest({
-            op: "getBlock",
-            hash: blockId,
+            var subscriptionId = getSubscriptionId();
+
+            _websocket.send(JSON.stringify({op: "BlockExtendedSubscribe", subscriptionId: subscriptionId, hash:hash}));
+            var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+              if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+            });
+
+            return () =>{
+              websocketMessageSubscription.unsubscribe();
+              _websocket.send(JSON.stringify({op: "BlockExtendedUnsubscribe", hash:hash}));
+            };
+          }):
+          BlockCount.pipe(switchMap(blockCount => from(sendRequest({
+            op: "getBlockExtended",
+            hash: hash,
             extended:true
-          })
-          .then((block) => {
-            if (_block == null || _block.confirmations != block.confirmations)
-            {
-              _block = block;
-              observer.next(block);
-            }
-          }).catch((err) =>{
-            observer.error(new Error(err));
-          });
-        };
-  
-        var blockCountSubscription = BlockCount.subscribe(blockCount => {
-          if (_blockCount == null || _block == null || _blockCount != blockCount) {
-            getBlockHttp();
-            _blockCount = blockCount;
-          }else{
-            observer.next(_block);
-          }
-        });
-  
-        return () => {
-          blockCountSubscription.unsubscribe();
-        }
-      }).pipe(shareReplay({
-        bufferSize: 1,
-        refCount: true
-      }));
+          }))))
+        ),
+        shareReplay({
+          bufferSize: 1,
+          refCount: true
+        })
+      );
 
-      blockObservables[blockId] = blockObservable;
+      blockObservables[hash] = blockObservable;
     } 
 
     return blockObservable;
@@ -234,11 +231,55 @@ const BlockCount = Observable.create(function(observer) {
 
   var getBlocks = (blockPos, rowsPerPage) => { //TODO: should this be an Observable, can the data change over time?
     return sendRequest({
-      op: "getBlocks",
+      op: "getBlocksExtended",
       blockId: blockPos,
       pageSize: rowsPerPage,
       extended:true
     })
+  }
+
+
+  var blocksObservables = {}
+
+  var getBlocks = (blockId, pageSize) =>{ //TODO: This is a memory leak
+
+    var observable = blocksObservables[blockId + "-" + pageSize];
+    
+
+    if (observable == null){
+
+      observable = webSocket.pipe(
+        switchMap(webSocket => webSocket ?
+          Observable.create(function(observer) {
+
+            var subscriptionId = getSubscriptionId();
+
+            _websocket.send(JSON.stringify({op: "BlocksExtendedSubscribe", subscriptionId: subscriptionId, blockId:blockId,pageSize:pageSize}));
+            var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+              if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+            });
+
+            return () =>{
+              websocketMessageSubscription.unsubscribe();
+              _websocket.send(JSON.stringify({op: "BlocksExtendedUnsubscribe", blockId:blockId,pageSize:pageSize }));
+            };
+          }):
+          BlockCount.pipe(switchMap(blockCount => from(sendRequest({
+            op: "getBlocksExtended",
+            blockId: blockId,
+            pageSize: pageSize,
+          }))))
+        ),
+        shareReplay({
+          bufferSize: 1,
+          refCount: true
+        })
+      );
+
+      blocksObservables[blockId + "-" + pageSize] = observable;
+    } 
+
+    return observable;
   }
 
   var transactionObservables = {}
@@ -249,41 +290,32 @@ const BlockCount = Observable.create(function(observer) {
 
     if (transactionObservable == null)
     {
-      var _tranaction = null;
-      var _blockCount = null;
+      transactionObservable = webSocket.pipe(
+        switchMap(webSocket => webSocket ?
+          Observable.create(function(observer) {
 
-      transactionObservable = Observable.create(function(observer) {
-  
-        var getTransactionHttp = () =>{
-          sendRequest({
-            op: "getTransaction",
-            txid: txid,
-            extended:true
-          })
-          .then((tranaction) => {
-            if (_tranaction == null || _tranaction.confirmations != tranaction.confirmations)
-            {
-              _tranaction = tranaction;
-              observer.next(tranaction);
-            }
-          }).catch((err) =>{
-            observer.error(new Error(err));
-          });
-        };
-        
-        var blockCountSubscription = BlockCount.subscribe(blockCount =>{
-          if (_blockCount == null || _tranaction == null || _blockCount != blockCount) {
-            getTransactionHttp();
-            _blockCount = blockCount;
-          }else{
-            observer.next(_tranaction);
-          }
-        });
-  
-        return () => {
-          blockCountSubscription.unsubscribe();
-        }
-      });
+            var subscriptionId = getSubscriptionId();
+
+            _websocket.send(JSON.stringify({op: "TransactionExtendedSubscribe", subscriptionId: subscriptionId, transactionId:txid}));
+            var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+              if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+            });
+
+            return () =>{
+              websocketMessageSubscription.unsubscribe();
+              _websocket.send(JSON.stringify({op: "TransactionExtendedUnsubscribe", transactionId:txid }));
+            };
+          }):
+          BlockCount.pipe(switchMap(blockCount => from(sendRequest({
+            op: "getTransactionExtended",
+            transactionId: txid,
+          }))))
+        ),
+        shareReplay({
+          bufferSize: 1,
+          refCount: true
+        })
+      );
       transactionObservables[txid] = transactionObservable;
     }
 

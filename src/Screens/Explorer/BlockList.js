@@ -55,6 +55,7 @@ class BlockList extends React.Component {
   };
 
   blockCountSubscription = null;
+  blocksSubscription = null;
 
   handleChangePage = (event, page) => {
     this.setState({ 
@@ -96,6 +97,7 @@ class BlockList extends React.Component {
 
   componentWillUnmount() {
     this.blockCountSubscription.unsubscribe();
+    if (this.blocksSubscription != null) this.blocksSubscription.unsubscribe();
   }
 
 
@@ -103,27 +105,23 @@ class BlockList extends React.Component {
 
 
   getBlocks(){
+    if (this.blocksSubscription != null) this.blocksSubscription.unsubscribe();
+
     var blockPos = this.state.blockCount - (this.state.page * this.state.rowsPerPage);
     var rowsPerPage = blockPos < this.state.rowsPerPage ? blockPos : this.state.rowsPerPage;
 
-    BlockchainServices.getBlocks(blockPos,rowsPerPage)
-      .then(
-        (results) => {
-          this.setState({
-            loading: false,
-            rows: results
-          });
-        },
-        // Note: it's important to handle errors here
-        // instead of a catch() block so that we don't swallow
-        // exceptions from actual bugs in components.
-        (error) => {
-          this.setState({
-            loading: false,
-            error
-          });
-        }
-      )
+    this.blocksSubscription = BlockchainServices.getBlocks(blockPos,rowsPerPage).subscribe(blocks =>{
+      this.setState({
+        loading: false,
+        rows: blocks
+      });
+    },(error) => {
+      this.setState({
+        loading: false,
+        error
+      });
+    })
+
   }
 
   labelDisplayedRows(){
@@ -157,8 +155,8 @@ class BlockList extends React.Component {
 
     elements.push((
       <TableRow key={row.id}>
-        <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.height}>{row.height}</Link></TableCell>
-        <TableCell><Link to={"/Explorer/Block/" + row.height}>{row.hash}</Link></TableCell>
+        <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.hash}>{row.height}</Link></TableCell>
+        <TableCell><Link to={"/Explorer/Block/" + row.hash}>{row.hash}</Link></TableCell>
         <TableCell>{row.tx.map(tx => tx.recipients).reduce(add)}</TableCell>
         <TableCell>{row.tx.map(tx => tx.value).reduce(add)}</TableCell>
         <TableCell>{TimeToString(row.time)}</TableCell>
@@ -215,8 +213,8 @@ class BlockList extends React.Component {
                 <TableBody>
                   {rows.map(row =>(
                     <TableRow key={row.id}>
-                    <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.height}>{row.height}</Link></TableCell>
-                    <TableCell><Link to={"/Explorer/Block/" + row.height}>{row.hash}</Link></TableCell>
+                    <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.hash}>{row.height}</Link></TableCell>
+                    <TableCell><Link to={"/Explorer/Block/" + row.hash}>{row.hash}</Link></TableCell>
                     <TableCell>{row.tx.map(tx => tx.recipients).reduce(add)}</TableCell>
                     <TableCell>{row.tx.map(tx => tx.value).reduce(add)}</TableCell>
                     <TableCell>{TimeToString(row.time)}</TableCell>
