@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
 import { combineLatest } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
@@ -60,19 +61,31 @@ class MyMasternodes extends React.Component {
   };
 
   componentDidMount() {
-    this.subscription = combineLatest(BlockchainServices.masternodeList, MyWalletServices.myMasternodes).subscribe(
-      ([masternodeList, myMasternodes]) =>{
 
+
+    MyWalletServices.myMasternodes.pipe(
+      switchMap(myMasternodes => combineLatest(myMasternodes.map(myMn => BlockchainServices.masternode(myMn.output))).pipe(
+        map(masternodeList =>[masternodeList,myMasternodes])
+      ))
+    ).subscribe(
+      ([masternodeList, myMasternodes]) =>{
         var mnProblems = false;
 
-        myMasternodes.forEach(myMn =>{
-          myMn.mn = masternodeList[myMn.output];
-
-          if (myMn.mn == null || myMn.mn.status != "ENABLED") mnProblems = mnProblems + 1;
+        masternodeList.forEach(mn =>{
+          if (mn == null || mn.status != "ENABLED") mnProblems = mnProblems + 1;
         });
 
+        var rows = [];
+        for(var i = 0; i < myMasternodes.length; i++)
+        {
+          rows.push({
+            myMn: myMasternodes[i],
+            mn: masternodeList[i]
+          })
+        }
+
         this.setState({
-          myMasternodes: myMasternodes,
+          rows: rows,
           mnProblems: mnProblems
         });
       });
@@ -86,7 +99,7 @@ class MyMasternodes extends React.Component {
 
   render(){
     const { classes } = this.props;
-    const { myMasternodes, mnProblems,  anchorEl } = this.state;
+    const { rows, mnProblems,  anchorEl } = this.state;
 
     return (
     <div className={classes.root}>
@@ -98,9 +111,9 @@ class MyMasternodes extends React.Component {
         }
         
         {
-          myMasternodes == null ? 
+          rows == null ? 
           "loading" :
-          myMasternodes.length - mnProblems + "/" + myMasternodes.length
+          rows.length - mnProblems + "/" + rows.length
         }
       </Button>
 
@@ -111,20 +124,20 @@ class MyMasternodes extends React.Component {
           </MenuItem>
         </Link>
         {
-          myMasternodes == null ?
+          rows == null ?
           "" :
-          myMasternodes.map(myMn =>
+          rows.map(row =>
             (
-              <Link to={"/Explorer/MasternodeList/" + myMn.output}>
+              <Link to={"/Explorer/MasternodeList/" + row.myMn.output}>
                 <MenuItem className={classes.menuItem} onClick={this.handleClose}>
                   <ListItemIcon className={classes.icon}>
                     {
-                      myMn.mn != null && myMn.mn.status == "ENABLED" ? 
+                      row.mn != null && row.mn.status == "ENABLED" ? 
                       (<CheckIcon className={classes.checkIcon}/>):
                       (<CloseIcon className={classes.closeIcon}/>)
                     }
                   </ListItemIcon>
-                  <ListItemText classes={{ primary: classes.primary }} inset primary={myMn.name} />
+                  <ListItemText classes={{ primary: classes.primary }} inset primary={row.myMn.name} />
                 </MenuItem>
               </Link>
             )
