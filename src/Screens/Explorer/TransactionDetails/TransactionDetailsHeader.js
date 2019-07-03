@@ -54,7 +54,7 @@ class BlockDetailsHeader extends React.Component {
                 {
                   transaction.blockhash != null ? 
                   (
-                    <Link to={"/Explorer/Block/" + transaction.height}>{transaction.blockhash}</Link>
+                    <Link to={"/Explorer/Block/" + transaction.blockhash}>{transaction.blockhash}</Link>
                   ) :
                   "Unconfirmed"
                 }
