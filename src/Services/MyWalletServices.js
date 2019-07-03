@@ -258,16 +258,20 @@ const myMasternodes = Observable.create(function(observer) {
   }
 
 
-  var inputAddresses = combineLatest(myAddresses,inputLockStates, BlockchainServices.blockCount, BlockchainServices.rawMemPool, BlockchainServices.masternodeList)
+  var inputAddresses = myAddresses
   .pipe(
-  switchMap(([myAddresses, inputLockStates,blockCount, rawMemPool, masternodeList]) => combineLatest(
+  switchMap(myAddresses => combineLatest(
     myAddresses.filter(myAddress => myAddress.WIF != null).map(myAddress => 
       combineLatest(
         BlockchainServices.getAddress(myAddress.address),
-        BlockchainServices.getAddressUnspent(myAddress.address)
+        BlockchainServices.getAddressUnspent(myAddress.address),
+        inputLockStates, 
+        BlockchainServices.blockCount, 
+        BlockchainServices.rawMemPool, 
+        BlockchainServices.masternodeList
       )
       .pipe(
-        map(([address,unspent]) =>{
+        map(([address,unspent, inputLockStates,blockCount, rawMemPool, masternodeList]) =>{
             return {
                 myAddress,
                 address: address,
