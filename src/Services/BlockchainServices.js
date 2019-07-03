@@ -295,36 +295,32 @@ const BlockCount = webSocket.pipe(
 
     if (addressUnspentObservable == null)
     {
-      addressUnspentObservable = Observable.create(function(observer) {
+      addressUnspentObservable = webSocket.pipe(
+        switchMap(webSocket => webSocket ?
+          Observable.create(function(observer) {
 
-        var _unspent = null;
+            var subscriptionId = getSubscriptionId();
 
-        var _getAddressUnspent = () =>{
-          sendRequest({
+            _websocket.send(JSON.stringify({op: "AddressUnspentSubscribe", subscriptionId: subscriptionId, address:addressId}));
+            var websocketMessageSubscription = websocketMessage.subscribe(message =>{
+              if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
+            });
+
+            return () =>{
+              websocketMessageSubscription.unsubscribe();
+              _websocket.send(JSON.stringify({op: "AddressUnspentUnsubscribe", address:addressId}));
+            };
+          }):
+          getAddress(addressId).pipe(switchMap(blockCount => from(sendRequest({
             op: "getAddressUnspent",
-            address:addressId
-          }).then((unspent) => {
-            if (_unspent == null || _unspent.length != unspent.length) //TODO: is this good enough
-            {
-              _unspent = unspent;
-              observer.next(unspent);
-            }
-          }).catch((err) =>{
-            observer.error(new Error(err));
-          });
-        };
-        
-
-        var addressSubscription = getAddress(addressId).subscribe(_getAddressUnspent); 
-        
-  
-        return () => {
-            addressSubscription.unsubscribe();
-        }
-      }).pipe(shareReplay({
-        bufferSize: 1,
-        refCount: true
-      }));
+            address: addressId
+          }))))
+        ),
+        shareReplay({
+          bufferSize: 1,
+          refCount: true
+        })
+      );
 
       addressUnspentObservables[addressId] = addressUnspentObservable;
     }
@@ -444,7 +440,7 @@ const BlockCount = webSocket.pipe(
 
 
   var masternodeObservables = {}
-  var getMasternode = (output) =>{  //TODO: This is a memory leak
+  var masternode = (output) =>{  //TODO: This is a memory leak
 
     var masternodeObservable = masternodeObservables[output]
 
@@ -756,7 +752,7 @@ const BlockCount = webSocket.pipe(
     getAddressUnspent: getAddressUnspent,
     masternodeCount: masternodeCount,
     masternodeList: masternodeList,
-    getMasternode: getMasternode,
+    masternode: masternode,
     getMasternodeEvents,
     masternodeWinners,
 
