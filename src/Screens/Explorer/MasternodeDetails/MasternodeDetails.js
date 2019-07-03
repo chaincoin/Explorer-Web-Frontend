@@ -29,14 +29,14 @@ class MasternodeDetails extends React.Component {
         tab: 0,
     };
   
-    this.getMasternodeSubscription = null;
+    this.masternodeSubscription = null;
   }
 
   masternodeSubscribe(){
     const { output } = this.props.match.params
 
-    if (this.getMasternodeSubscription != null) this.getMasternodeSubscription.unsubscribe();
-    this.getMasternodeSubscription = BlockchainServices.getMasternode(output).subscribe((masternode) =>{
+    if (this.masternodeSubscription != null) this.masternodeSubscription.unsubscribe();
+    this.masternodeSubscription = BlockchainServices.masternode(output).subscribe((masternode) =>{
       this.setState({
         masternode: masternode
       });
@@ -52,7 +52,7 @@ class MasternodeDetails extends React.Component {
   }
 
   componentWillUnmount() {
-    this.getMasternodeSubscription.unsubscribe();
+    this.masternodeSubscription.unsubscribe();
   }
 
 
