@@ -488,7 +488,7 @@ const BlockCount = webSocket.pipe(
 
   var getPayoutStats = (address, type, unit) => { //TODO: should this be an Observable, can the data change over time?
     return sendRequest({
-      op: "getPayoutStats",
+      op: "getPayOutStats",
       address: address,
       type: type,
       unit: unit
