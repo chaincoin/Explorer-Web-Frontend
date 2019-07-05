@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 
 
 import MyWalletServices from '../Services/MyWalletServices';
-import NotificationServices from '../Services/NotificationServices';
+import FirebaseServices from '../Services/FirebaseServices';
 
 
 const styles = theme => ({
@@ -39,7 +39,7 @@ class AddressMenu extends React.Component {
 
     
 
-    this.subscription = combineLatest(MyWalletServices.myAddresses, NotificationServices.addressSubscription(this.props.address)).subscribe(
+    this.subscription = combineLatest(MyWalletServices.myAddresses, FirebaseServices.addressSubscription(this.props.address)).subscribe(
       ([myAddresses, addressSubscription]) =>{
         
         var myAddress = myAddresses.find(myAddress => {return myAddress.address == this.props.address});
@@ -76,17 +76,17 @@ class AddressMenu extends React.Component {
 
   handleMenuAddAddressSubscription = () => {
     this.handleMenuClose();
-    if (NotificationServices.supported == false)
+    if (FirebaseServices.supported == false)
     {
       alert("Your browser doesnt support Push Notifications, please try Chrome or Firefox")
       return;
     }
-    NotificationServices.saveAddressSubscription(this.props.address); //TODO: handle error
+    FirebaseServices.saveAddressSubscription(this.props.address); //TODO: handle error
   };
 
   handleMenuRemoveAddressSubscription = () => {
     this.handleMenuClose();
-    NotificationServices.deleteAddressSubscription(this.props.address); //TODO: handle error
+    FirebaseServices.deleteAddressSubscription(this.props.address); //TODO: handle error
   };
 
 
