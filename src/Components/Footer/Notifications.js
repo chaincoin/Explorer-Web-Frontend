@@ -14,7 +14,7 @@ import NotificationsActive from '@material-ui/icons/NotificationsActive';
 
 import { Link, withRouter } from "react-router-dom";
 
-import NotificationServices from '../../Services/NotificationServices';
+import FirebaseServices from '../../Services/FirebaseServices';
 
 const styles = {
   root: {
@@ -51,7 +51,7 @@ class Notifications extends React.Component {
 
   componentDidMount() {
 
-    this.notificationsSubscription = NotificationServices.notifications.subscribe((notifications) =>{
+    this.notificationsSubscription = FirebaseServices.notifications.subscribe((notifications) =>{
       this.setState({notifications:notifications})
     })
   }
@@ -104,7 +104,7 @@ class Notifications extends React.Component {
 
     const handleClick = () =>{
       this.handleClose();
-      NotificationServices.removeNotification(notification);
+      FirebaseServices.removeNotification(notification);
     };
 
     if (notification.eventType == "newBlock")
