@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 
 
 import MyWalletServices from '../Services/MyWalletServices';
-import NotificationServices from '../Services/NotificationServices';
+import FirebaseServices from '../Services/FirebaseServices';
 
 
 const styles = theme => ({
@@ -33,7 +33,7 @@ class MasternodeMenu extends React.Component {
 
     const currentTarget = event.currentTarget;
 
-    this.subscription = combineLatest(MyWalletServices.myMasternodes, MyWalletServices.myAddresses, NotificationServices.masternodeSubscription(this.props.output)).subscribe(
+    this.subscription = combineLatest(MyWalletServices.myMasternodes, MyWalletServices.myAddresses, FirebaseServices.MasternodeNotification(this.props.output)).subscribe(
       ([myMasternodes, myAddresses, masternodeSubscription]) =>{
 
         var addToMyMns = true;
@@ -104,19 +104,19 @@ class MasternodeMenu extends React.Component {
   handleMenuAddMasternodeSubscription = () => {
     this.handleMenuClose();
 
-    if (NotificationServices.supported == false)
+    if (FirebaseServices.supported == false)
     {
       alert("Your browser doesnt support Push Notifications, please try Chrome or Firefox")
       return;
     }
 
-    NotificationServices.saveMasternodeSubscription(this.props.output); //TODO: handle error
+    FirebaseServices.saveMasternodeNotification(this.props.output).subscribe(); //TODO: handle error
   };
 
   handleMenuRemoveMasternodeSubscription = () => {
     this.handleMenuClose();
 
-    NotificationServices.deleteMasternodeSubscription(this.props.output); //TODO: handle error
+    FirebaseServices.deleteMasternodeNotification(this.props.output).subscribe(); //TODO: handle error
   };
 
   componentDidMount() {
