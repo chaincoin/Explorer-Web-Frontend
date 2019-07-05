@@ -1,148 +1,13 @@
 import { Observable, Subject, from, interval } from 'rxjs';
 import { shareReplay, switchMap } from 'rxjs/operators';
 
-import axios from 'axios'
+import DataService from './DataService'
 import Environment from './Environment';
 
-
-
-var _websocket = null;
-var websocketRequestId = 0;
-var pendingWebsocketRequests = {};
-var websocketSubscriptionId = 0;
-
-var websocketMessage = new Subject();
-
-function sendWebsocketRequest(request)
-{
-    request.id = websocketRequestId;
-
-    return new Promise((resolve, reject) =>{
-      var pendingWebsocketRequest = {
-        request: request,
-        resolve: resolve,
-        reject: reject,
-        timer: setTimeout(function(){
-            reject();
-        },30000)
-      };
-      
-
-      _websocket.send(JSON.stringify(request));
-
-
-      pendingWebsocketRequests["r" + websocketRequestId] = pendingWebsocketRequest;
-      websocketRequestId++;
-    });
-}
-
-
-var getSubscriptionId = () =>{
-  websocketSubscriptionId++;
-  return websocketSubscriptionId;
-}
-
-function sendHttpRequest(request)
-{
-  var queryParms = "?_=" + new Date().getTime();
-  for (var key in request) {
-      if (!request.hasOwnProperty(key) || key == 'op') continue;
-      queryParms = queryParms + "&" + key + "=" + request[key];
-  }
-
-  return axios.get(Environment.blockchainApiUrl + "/" + request.op + queryParms)
-  .then(res => res.data);
-}
-
-function sendRequest(request)
-{
-    if (_websocket != null) return sendWebsocketRequest(request).then((result) => result.data);
-    else return sendHttpRequest(request);
-}
-
-
-const webSocket = Observable.create(function(observer) {
-
-  observer.next(false);
-
-
-  var websocketRetryTimer = 500; 
-
-
-  var startWebsocket = () =>{
-    var tempWebsocket = new WebSocket(Environment.webServicesApiUrl);
-    // Connection opened
-
-    tempWebsocket.addEventListener('open', function (event) {
-      _websocket = tempWebsocket; 
-      websocketRequestId = 0; //reset
-      websocketSubscriptionId = 0; //reset
-      websocketRetryTimer = 500; //reset
-      pendingWebsocketRequests = {};
-      observer.next(true);
-    });
-
-    // Listen for messages
-    tempWebsocket.addEventListener('message', function (event) { //TODO: how to handle subscriptions
-      var message = JSON.parse(event.data);
-                   
-      var pendingWebsocketRequest = pendingWebsocketRequests["r" + message.id];
-      if (pendingWebsocketRequest != null)
-      {
-          if (message.success)pendingWebsocketRequest.resolve(message);
-          else pendingWebsocketRequest.reject(message);
-          clearTimeout(pendingWebsocketRequest.timer);
-          eval("delete pendingWebsocketRequests.r" + message.id);
-      }
-
-      websocketMessage.next(message);
-    });
-
-    tempWebsocket.addEventListener('close', function (event) {
-      observer.next(false);
-      _websocket = null;
-
-      for (var key in pendingWebsocketRequests) {
-        // skip loop if the property is from prototype
-        if (!pendingWebsocketRequests.hasOwnProperty(key)) continue;
-        clearTimeout(pendingWebsocketRequests[key].timer);
-        pendingWebsocketRequests[key].reject();
-      }
-
-
-
-      setTimeout(startWebsocket,websocketRetryTimer);
-      if (websocketRetryTimer < 10000) websocketRetryTimer = websocketRetryTimer * 2; //while retry is less than 10 seconds then 
-    });
-  }
-
-  startWebsocket();
-
-
-}).pipe(shareReplay({
-  bufferSize: 1,
-  refCount: false
-}));
-
-
-
-const BlockCount = webSocket.pipe(
+const BlockCount = DataService.webSocket.pipe(
   switchMap(webSocket => webSocket ?
-    Observable.create(function(observer) {
-
-      var subscriptionId = getSubscriptionId();
-
-      _websocket.send(JSON.stringify({op: "BlockCountSubscribe", subscriptionId: subscriptionId}));
-      var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-        if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-      });
-
-      return () =>{
-        websocketMessageSubscription.unsubscribe();
-        _websocket.send(JSON.stringify({op: "BlockCountUnsubscribe"}));
-      };
-    }):
-    interval(30000).pipe(switchMap(blockCount => from(sendRequest({
+    DataService.subscription("BlockCount"):
+    interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
       op: "getBlockCount"
     }))))
   ),
@@ -162,23 +27,10 @@ const BlockCount = webSocket.pipe(
 
     if (blockObservable == null){
 
-      blockObservable = webSocket.pipe(
+      blockObservable = DataService.webSocket.pipe(
         switchMap(webSocket => webSocket ?
-          Observable.create(function(observer) {
-
-            var subscriptionId = getSubscriptionId();
-
-            _websocket.send(JSON.stringify({op: "BlockExtendedSubscribe", subscriptionId: subscriptionId, hash:hash}));
-            var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-              if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-            });
-
-            return () =>{
-              websocketMessageSubscription.unsubscribe();
-              _websocket.send(JSON.stringify({op: "BlockExtendedUnsubscribe", hash:hash}));
-            };
-          }):
-          BlockCount.pipe(switchMap(blockCount => from(sendRequest({
+          DataService.subscription("BlockExtended", {hash:hash}):
+          BlockCount.pipe(switchMap(blockCount => from(DataService.sendRequest({
             op: "getBlockExtended",
             hash: hash
           }))))
@@ -195,42 +47,18 @@ const BlockCount = webSocket.pipe(
     return blockObservable;
   }
 
-  var getBlocks = (blockPos, rowsPerPage) => { //TODO: should this be an Observable, can the data change over time?
-    return sendRequest({
-      op: "getBlocksExtended",
-      blockId: blockPos,
-      pageSize: rowsPerPage,
-      extended:true
-    })
-  }
-
 
   var blocksObservables = {}
-
   var getBlocks = (blockId, pageSize) =>{ //TODO: This is a memory leak
 
     var observable = blocksObservables[blockId + "-" + pageSize];
     
-
     if (observable == null){
 
-      observable = webSocket.pipe(
+      observable = DataService.webSocket.pipe(
         switchMap(webSocket => webSocket ?
-          Observable.create(function(observer) {
-
-            var subscriptionId = getSubscriptionId();
-
-            _websocket.send(JSON.stringify({op: "BlocksExtendedSubscribe", subscriptionId: subscriptionId, blockId:blockId,pageSize:pageSize}));
-            var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-              if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-            });
-
-            return () =>{
-              websocketMessageSubscription.unsubscribe();
-              _websocket.send(JSON.stringify({op: "BlocksExtendedUnsubscribe", blockId:blockId,pageSize:pageSize }));
-            };
-          }):
-          BlockCount.pipe(switchMap(blockCount => from(sendRequest({
+          DataService.subscription("BlocksExtended",{blockId:blockId,pageSize:pageSize}):
+          BlockCount.pipe(switchMap(blockCount => from(DataService.sendRequest({
             op: "getBlocksExtended",
             blockId: blockId,
             pageSize: pageSize,
@@ -256,23 +84,10 @@ const BlockCount = webSocket.pipe(
 
     if (transactionObservable == null)
     {
-      transactionObservable = webSocket.pipe(
+      transactionObservable = DataService.webSocket.pipe(
         switchMap(webSocket => webSocket ?
-          Observable.create(function(observer) {
-
-            var subscriptionId = getSubscriptionId();
-
-            _websocket.send(JSON.stringify({op: "TransactionExtendedSubscribe", subscriptionId: subscriptionId, transactionId:txid}));
-            var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-              if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-            });
-
-            return () =>{
-              websocketMessageSubscription.unsubscribe();
-              _websocket.send(JSON.stringify({op: "TransactionExtendedUnsubscribe", transactionId:txid }));
-            };
-          }):
-          BlockCount.pipe(switchMap(blockCount => from(sendRequest({
+          DataService.subscription("TransactionExtended",{transactionId:txid}):
+          BlockCount.pipe(switchMap(blockCount => from(DataService.sendRequest({
             op: "getTransactionExtended",
             transactionId: txid,
           }))))
@@ -295,23 +110,10 @@ const BlockCount = webSocket.pipe(
 
     if (addressUnspentObservable == null)
     {
-      addressUnspentObservable = webSocket.pipe(
+      addressUnspentObservable = DataService.webSocket.pipe(
         switchMap(webSocket => webSocket ?
-          Observable.create(function(observer) {
-
-            var subscriptionId = getSubscriptionId();
-
-            _websocket.send(JSON.stringify({op: "AddressUnspentSubscribe", subscriptionId: subscriptionId, address:addressId}));
-            var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-              if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-            });
-
-            return () =>{
-              websocketMessageSubscription.unsubscribe();
-              _websocket.send(JSON.stringify({op: "AddressUnspentUnsubscribe", address:addressId}));
-            };
-          }):
-          getAddress(addressId).pipe(switchMap(blockCount => from(sendRequest({
+          DataService.subscription("AddressUnspent",{address:addressId}):
+          getAddress(addressId).pipe(switchMap(blockCount => from(DataService.sendRequest({
             op: "getAddressUnspent",
             address: addressId
           }))))
@@ -339,23 +141,10 @@ const BlockCount = webSocket.pipe(
 
     if (addressObservable == null)
     {
-      addressObservable = webSocket.pipe(
+      addressObservable = DataService.webSocket.pipe(
         switchMap(webSocket => webSocket ?
-          Observable.create(function(observer) {
-
-            var subscriptionId = getSubscriptionId();
-
-            _websocket.send(JSON.stringify({op: "AddressSubscribe", subscriptionId: subscriptionId, address:addressId}));
-            var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-              if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-            });
-
-            return () =>{
-              websocketMessageSubscription.unsubscribe();
-              _websocket.send(JSON.stringify({op: "AddressUnsubscribe", address:addressId}));
-            };
-          }):
-          BlockCount.pipe(switchMap(blockCount => from(sendRequest({
+          DataService.subscription("Address",{address:addressId}):
+          BlockCount.pipe(switchMap(blockCount => from(DataService.sendRequest({
             op: "getAddress",
             address: addressId
           }))))
@@ -373,7 +162,7 @@ const BlockCount = webSocket.pipe(
   }
 
   var getAddressTxs = (address, pos, rowsPerPage) => { //TODO: should this be an Observable, can the data change over time?
-    return sendRequest({
+    return DataService.sendRequest({
       op: "getAddressTxs",
       address:address,
       pos:pos,
@@ -383,23 +172,10 @@ const BlockCount = webSocket.pipe(
   }
   
 
-  var masternodeCount = webSocket.pipe(
+  var masternodeCount = DataService.webSocket.pipe(
     switchMap(webSocket => webSocket ?
-      Observable.create(function(observer) {
-
-        var subscriptionId = getSubscriptionId();
-
-        _websocket.send(JSON.stringify({op: "MasternodeCountSubscribe", subscriptionId: subscriptionId}));
-        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-        });
-
-        return () =>{
-          websocketMessageSubscription.unsubscribe();
-          _websocket.send(JSON.stringify({op: "MasternodeCountUnsubscribe"}));
-        };
-      }):
-      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
+      DataService.subscription("MasternodeCount"):
+      interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
         op: "getMasternodeCount",
       }))))
     ),
@@ -412,23 +188,10 @@ const BlockCount = webSocket.pipe(
   
 
 
-  var masternodeList = webSocket.pipe(
+  var masternodeList = DataService.webSocket.pipe(
     switchMap(webSocket => webSocket ?
-      Observable.create(function(observer) {
-
-        var subscriptionId = getSubscriptionId();
-
-        _websocket.send(JSON.stringify({op: "MasternodeListSubscribe", subscriptionId: subscriptionId}));
-        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-        });
-
-        return () =>{
-          websocketMessageSubscription.unsubscribe();
-          _websocket.send(JSON.stringify({op: "MasternodeListUnsubscribe"}));
-        };
-      }):
-      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
+      DataService.subscription("MasternodeList"):
+      interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
         op: "getMasternodeList",
       }))))
     ),
@@ -446,24 +209,11 @@ const BlockCount = webSocket.pipe(
 
     if (masternodeObservable == null)
     {
-      masternodeObservable = webSocket.pipe(
+      masternodeObservable = DataService.webSocket.pipe(
         switchMap(webSocket => webSocket ?
-          Observable.create(function(observer) {
-    
-            var subscriptionId = getSubscriptionId();
-    
-            _websocket.send(JSON.stringify({op: "MasternodeExtendedSubscribe", subscriptionId: subscriptionId, output:output}));
-            var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-              if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-            });
-    
-            return () =>{
-              websocketMessageSubscription.unsubscribe();
-              _websocket.send(JSON.stringify({op: "MasternodeExtendedUnsubscribe", output:output}));
-            };
-          }):
-          interval(30000).pipe(switchMap(blockCount => from(sendRequest({
-            op: "getMasternodeList",
+          DataService.subscription("MasternodeExtended",{output:output}):
+          interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
+            op: "getMasternodeExtended",
             output:output
           }))))
         ),
@@ -478,7 +228,7 @@ const BlockCount = webSocket.pipe(
   }
 
   var getMasternodeEvents = (output, pos, rowsPerPage) => { //TODO: should this be an Observable, can the data change over time?
-    return sendRequest({
+    return DataService.sendRequest({
       op: "getMasternodeEvents",
       output: output,
       pos: pos,
@@ -487,31 +237,18 @@ const BlockCount = webSocket.pipe(
   }
 
   var getPayoutStats = (address, type, unit) => { //TODO: should this be an Observable, can the data change over time?
-    return sendRequest({
+    return DataService.sendRequest({
       op: "getPayOutStats",
       address: address,
       type: type,
       unit: unit
-    })
+    }) 
   }
   
-  var masternodeWinners = webSocket.pipe(
+  var masternodeWinners = DataService.webSocket.pipe(
     switchMap(webSocket => webSocket ?
-      Observable.create(function(observer) {
-
-        var subscriptionId = getSubscriptionId();
-
-        _websocket.send(JSON.stringify({op: "MasternodeWinnersSubscribe", subscriptionId: subscriptionId}));
-        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-        });
-
-        return () =>{
-          websocketMessageSubscription.unsubscribe();
-          _websocket.send(JSON.stringify({op: "MasternodeWinnersUnsubscribe"}));
-        };
-      }):
-      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
+      DataService.subscription("MasternodeWinners"):
+      interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
         op: "getMasternodeWinners",
       }))))
     ),
@@ -522,24 +259,11 @@ const BlockCount = webSocket.pipe(
   );
   
 
-  var memPoolInfo = webSocket.pipe(
+  var memPoolInfo = DataService.webSocket.pipe(
     switchMap(webSocket => webSocket ?
-      Observable.create(function(observer) {
-
-        var subscriptionId = getSubscriptionId();
-
-        _websocket.send(JSON.stringify({op: "RawMemPoolSubscribe", subscriptionId: subscriptionId}));
-        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-        });
-
-        return () =>{
-          websocketMessageSubscription.unsubscribe();
-          _websocket.send(JSON.stringify({op: "RawMemPoolUnsubscribe"}));
-        };
-      }):
-      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
-        op: "getRawMemPool",
+      DataService.subscription("MemPoolInfo"):
+      interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
+        op: "getMemPoolInfo",
       }))))
     ),
     shareReplay({
@@ -550,23 +274,10 @@ const BlockCount = webSocket.pipe(
   
 
 
-  var rawMemPool = webSocket.pipe(
+  var rawMemPool = DataService.webSocket.pipe(
     switchMap(webSocket => webSocket ?
-      Observable.create(function(observer) {
-
-        var subscriptionId = getSubscriptionId();
-
-        _websocket.send(JSON.stringify({op: "RawMemPoolSubscribe", subscriptionId: subscriptionId}));
-        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-        });
-
-        return () =>{
-          websocketMessageSubscription.unsubscribe();
-          _websocket.send(JSON.stringify({op: "RawMemPoolUnsubscribe"}));
-        };
-      }):
-      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
+      DataService.subscription("RawMemPool"):
+      interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
         op: "getRawMemPool",
       }))))
     ),
@@ -577,23 +288,10 @@ const BlockCount = webSocket.pipe(
   );
   
 
-  var peerInfo = webSocket.pipe(
+  var peerInfo = DataService.webSocket.pipe(
     switchMap(webSocket => webSocket ?
-      Observable.create(function(observer) {
-
-        var subscriptionId = getSubscriptionId();
-
-        _websocket.send(JSON.stringify({op: "PeerInfoSubscribe", subscriptionId: subscriptionId}));
-        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-        });
-
-        return () =>{
-          websocketMessageSubscription.unsubscribe();
-          _websocket.send(JSON.stringify({op: "PeerInfoUnsubscribe"}));
-        };
-      }):
-      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
+      DataService.subscription("PeerInfo"):
+      interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
         op: "getPeerInfo",
       }))))
     ),
@@ -604,23 +302,10 @@ const BlockCount = webSocket.pipe(
   );
 
 
-  var richListCount = webSocket.pipe(
+  var richListCount = DataService.webSocket.pipe(
     switchMap(webSocket => webSocket ?
-      Observable.create(function(observer) {
-
-        var subscriptionId = getSubscriptionId();
-
-        _websocket.send(JSON.stringify({op: "RichListCountSubscribe", subscriptionId: subscriptionId}));
-        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-        });
-
-        return () =>{
-          websocketMessageSubscription.unsubscribe();
-          _websocket.send(JSON.stringify({op: "RichListCountUnsubscribe"}));
-        };
-      }):
-      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
+      DataService.subscription("RichListCount"):
+      interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
         op: "getRichListCount",
       }))))
     ),
@@ -632,7 +317,7 @@ const BlockCount = webSocket.pipe(
   
 
   var getRichList = (pos, rowsPerPage) => { //TODO: should this be an Observable, can the data change over time?
-    return sendRequest({
+    return DataService.sendRequest({
       op: "getRichList",
       pos: pos,
       pageSize: rowsPerPage,
@@ -641,23 +326,10 @@ const BlockCount = webSocket.pipe(
   }
 
 
-  var txOutSetInfo = webSocket.pipe(
+  var txOutSetInfo = DataService.webSocket.pipe(
     switchMap(webSocket => webSocket ?
-      Observable.create(function(observer) {
-
-        var subscriptionId = getSubscriptionId();
-
-        _websocket.send(JSON.stringify({op: "TxOutSetInfoSubscribe", subscriptionId: subscriptionId}));
-        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-        });
-
-        return () =>{
-          websocketMessageSubscription.unsubscribe();
-          _websocket.send(JSON.stringify({op: "TxOutSetInfoUnsubscribe"}));
-        };
-      }):
-      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
+      DataService.subscription("TxOutSetInfo"):
+      interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
         op: "getTxOutSetInfo",
       }))))
     ),
@@ -669,23 +341,10 @@ const BlockCount = webSocket.pipe(
   
 
 
-  var networkHashps = webSocket.pipe(
+  var networkHashps = DataService.webSocket.pipe(
     switchMap(webSocket => webSocket ?
-      Observable.create(function(observer) {
-
-        var subscriptionId = getSubscriptionId();
-
-        _websocket.send(JSON.stringify({op: "NetworkHashpsSubscribe", subscriptionId: subscriptionId}));
-        var websocketMessageSubscription = websocketMessage.subscribe(message =>{
-          if (message.subscriptionId == subscriptionId && message.error == null) observer.next(message.data);
-        });
-
-        return () =>{
-          websocketMessageSubscription.unsubscribe();
-          _websocket.send(JSON.stringify({op: "NetworkHashpsUnsubscribe"}));
-        };
-      }):
-      interval(30000).pipe(switchMap(blockCount => from(sendRequest({
+      DataService.subscription("NetworkHashps"):
+      interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
         op: "getNetworkHashps",
       }))))
     ),
@@ -698,14 +357,14 @@ const BlockCount = webSocket.pipe(
 
 
   var validateAddress = (address) =>{
-    return sendRequest({
+    return DataService.sendRequest({
       op: "validateAddress",
       address: address
     });
   };
 
   var sendRawTransaction = (hex, allowHighFees) =>{
-    return sendRequest({
+    return DataService.sendRequest({
       op: "sendRawTransaction",
       hex: hex,
       allowHighFees: allowHighFees
@@ -737,13 +396,11 @@ const BlockCount = webSocket.pipe(
       pubKeyHash: 0x50,
       scriptHash: 0x2c,
       wif: 0xd8
-    };
+    }; 
   }
 
-  export default {
-    webSocket:webSocket,
-    websocketMessage,
-    blockCount: BlockCount,
+  export default { 
+    blockCount: BlockCount, 
     getBlock: getBlock,
     getBlocks,
     getTransaction:getTransaction,
