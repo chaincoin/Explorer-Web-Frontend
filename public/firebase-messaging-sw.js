@@ -67,11 +67,8 @@ messaging.setBackgroundMessageHandler(function(payload) {
   }
   else if (payload.data.eventType === 'changedMasternode' )
   {
-
-    var masternode = JSON.parse(payload.data.masternode);
-    
     notificationTitle = "Masternode Status";
-    notificationOptions.body = "Masternode status change from " + masternode.previousStatus + " to " + masternode.status;
+    notificationOptions.body = "Masternode status change from " + payload.data.previousStatus + " to " + payload.data.status;
 
     notificationOptions.actions.push({
       title: "View",
