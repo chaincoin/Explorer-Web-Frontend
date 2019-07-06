@@ -81,12 +81,12 @@ class AddressMenu extends React.Component {
       alert("Your browser doesnt support Push Notifications, please try Chrome or Firefox")
       return;
     }
-    FirebaseServices.saveAddressNotification(this.props.address); //TODO: handle error
+    FirebaseServices.saveAddressNotification(this.props.address).subscribe(); //TODO: handle error
   };
 
   handleMenuRemoveAddressSubscription = () => {
     this.handleMenuClose();
-    FirebaseServices.deleteAddressNotification(this.props.address); //TODO: handle error
+    FirebaseServices.deleteAddressNotification(this.props.address).subscribe(); //TODO: handle error
   };
 
 
