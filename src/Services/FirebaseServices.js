@@ -23,7 +23,6 @@ var firebaseConfig = {
 // Initialize Firebase
 var messaging = null;
 try{
-  
     window.firebase.initializeApp(firebaseConfig); 
 
     messaging = window.firebase.messaging(); 
@@ -230,15 +229,17 @@ const saveAddressNotification = (address) => {
 
 
 const deleteAddressNotification = (address) => {
-    return getFirebaseId()
-    .then((firebaseId) =>{
-        return DataService.sendHttpRequest({
-            op:"setAddressNotification",
-            firebaseId: firebaseId,
-            address: address,
-            enabled: true
-        });
-    });
+    return firebaseId.pipe(
+        switchMap((firebaseId) => {
+            if (firebaseId == null) return of(false); //TODO: throw error
+            return DataService.sendRequest({
+                op: "setAddressNotification",
+                firebaseId: firebaseId,
+                address: address,
+                enabled: false
+            })
+        })
+    );
 }
 
 var addressSubscriptionObservables = {}
