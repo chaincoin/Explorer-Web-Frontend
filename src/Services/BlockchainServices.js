@@ -222,6 +222,8 @@ const BlockCount = DataService.webSocket.pipe(
           refCount: true
         })
       );
+
+      masternodeObservables[output] = masternodeObservable;
     } 
 
     return masternodeObservable;
