@@ -59,7 +59,7 @@ firebaseId.subscribe((newFirebaseId) =>{
     }
     else if (oldFirebaseId != null && newFirebaseId != null && oldFirebaseId != newFirebaseId){
         DataService.sendHttpRequest({
-            op:"updateSubscriptions",
+            op:"updateNotifications",
             oldFirebaseId: oldFirebaseId,
             newFirebaseId: newFirebaseId
         }).then(() =>{
@@ -94,36 +94,44 @@ const getFirebaseId = () =>{
     });
 }
 
-const deleteSubscriptions = () => {
-    return getFirebaseId()
-    .then((firebaseId) =>{
-        return DataService.sendHttpRequest({
-            op:"deleteSubscriptions",
-            firebaseId: firebaseId
-        });
-    });
+const deleteNotifications = () => {
+    return firebaseId.pipe(
+        switchMap((firebaseId) => {
+            if (firebaseId == null) return of(false); //TODO: throw error
+            return DataService.sendRequest({
+                op: "deleteNotifications",
+                firebaseId: firebaseId
+            })
+        })
+    );
 }
 
 
-const saveBlockSubscription = () => {
-    return getFirebaseId()
-    .then((firebaseId) =>{
-        return DataService.sendHttpRequest({
-            op:"saveBlockSubscription",
-            firebaseId: firebaseId
-        });
-    });
+const saveBlockNotification = () => {
+    return firebaseId.pipe(
+        switchMap((firebaseId) => {
+            if (firebaseId == null) return of(false); //TODO: throw error
+            return DataService.sendRequest({
+                op: "setBlockNotification",
+                firebaseId: firebaseId,
+                enabled:true
+            })
+        })
+    );
 }
 
 
-const deleteBlockSubscription = () => {
-    return getFirebaseId()
-    .then((firebaseId) =>{
-        return DataService.sendHttpRequest({
-            op:"deleteBlockSubscription",
-            firebaseId: firebaseId
-        });
-    });
+const deleteBlockNotification = () => {
+    return firebaseId.pipe(
+        switchMap((firebaseId) => {
+            if (firebaseId == null) return of(false); //TODO: throw error
+            return DataService.sendRequest({
+                op: "setBlockNotification",
+                firebaseId: firebaseId,
+                enabled:false
+            })
+        })
+    );
 }
 
 const BlockNotification = combineLatest(firebaseId,DataService.webSocket).pipe(
@@ -144,7 +152,7 @@ const BlockNotification = combineLatest(firebaseId,DataService.webSocket).pipe(
 
 
 var masternodeNotificationObservables = {}
-var MasternodeNotification = (output, pageSize) =>{ //TODO: This is a memory leak
+var MasternodeNotification = (output) =>{ //TODO: This is a memory leak
 
   var observable = masternodeNotificationObservables[output];
   
@@ -191,7 +199,6 @@ const saveMasternodeNotification = (output) => {
 
 
 const deleteMasternodeNotification = (output) => {
-
     return firebaseId.pipe(
         switchMap((firebaseId) => {
             if (firebaseId == null) return of(false); //TODO: throw error
@@ -202,12 +209,11 @@ const deleteMasternodeNotification = (output) => {
                 enabled:false
             })
         })
-    );
-    
+    ); 
 }
 
 
-const saveAddressSubscription = (address) => {
+const saveAddressNotification = (address) => {
 
     return firebaseId.pipe(
         switchMap((firebaseId) => {
@@ -215,84 +221,56 @@ const saveAddressSubscription = (address) => {
             return DataService.sendRequest({
                 op: "setAddressNotification",
                 firebaseId: firebaseId,
-                address: address
+                address: address,
+                enabled: true
             })
         })
     );
 }
 
 
-const deleteAddressSubscription = (address) => {
+const deleteAddressNotification = (address) => {
     return getFirebaseId()
     .then((firebaseId) =>{
         return DataService.sendHttpRequest({
-            op:"deleteAddressSubscription",
+            op:"setAddressNotification",
             firebaseId: firebaseId,
-            address: address
+            address: address,
+            enabled: true
         });
     });
 }
 
 var addressSubscriptionObservables = {}
 
-const addressSubscription = (address) =>{
+const AddressNotification = (address) =>{ //TODO: This is a memory leak
 
-    var addressSubscriptionObservable = addressSubscriptionObservables[address];
-
-    if (addressSubscriptionObservable == null)
-    {
-        addressSubscriptionObservable = Observable.create(function(observer) {
-            var _addressSubscription = null;
-            var _firebaseId = null;
-
-            var getAddressSubscription = () =>{
-                DataService.sendHttpRequest({
-                    op:"isAddressSubscription",
-                    firebaseId: _firebaseId,
-                    address:address
-                })
-                .then((addressSubscription) => {
-        
-                    if (_addressSubscription == null || _addressSubscription != addressSubscription)
-                    {
-                        _addressSubscription = addressSubscription;
-                        observer.next(addressSubscription);
-                    }
-                
-                });
-            };
-        
-            var intervalId = null;
-            var firebaseIdSubscription = firebaseId.subscribe((firebaseId) =>{
-                _firebaseId = firebaseId;
-
-                if (firebaseId != null)
-                {
-                    intervalId = setInterval(getAddressSubscription, 30000);
-                    getAddressSubscription();
-                }
-                else
-                {
-                    clearInterval(intervalId);
-                    observer.next(false);
-                }
-
-            });
-        
-            return () => {
-                firebaseIdSubscription.unsubscribe();
-                clearInterval(intervalId);
-            }
-        }).pipe(shareReplay({
+    var observable = addressSubscriptionObservables[address];
+    
+    if (observable == null){
+  
+      observable = combineLatest(firebaseId,DataService.webSocket).pipe(
+          switchMap(([firebaseId,webSocket]) => {
+              if (firebaseId == null) return of(false);
+              return webSocket ?
+                  DataService.subscription("AddressNotification", { firebaseId: firebaseId, address: address }):
+                  interval(30000).pipe(switchMap(() => from(DataService.sendRequest({
+                      op: "getAddressNotification",
+                      firebaseId: firebaseId,
+                      address: address
+                  }))));
+          }),
+          shareReplay({
             bufferSize: 1,
             refCount: true
-        }));
-
-        addressSubscriptionObservables[address] = addressSubscriptionObservable;
-    }   
-
-    return addressSubscriptionObservable;
-}
+          })
+      );
+  
+      addressSubscriptionObservables[address] = observable;
+    } 
+  
+    return observable;
+  }
 
 
 
@@ -309,21 +287,20 @@ const clearAllNotification = (notification) =>{
 
 export default {
     supported: messaging != null,
-    deleteSubscriptions,
+    deleteNotifications,
 
-    saveBlockSubscription,
-    deleteBlockSubscription,
+    saveBlockNotification,
+    deleteBlockNotification,
     
     saveMasternodeNotification,
     deleteMasternodeNotification,
 
-    saveAddressSubscription,
-    deleteAddressSubscription,
+    saveAddressNotification,
+    deleteAddressNotification,
 
     BlockNotification,
-
     MasternodeNotification,
-    addressSubscription,
+    AddressNotification,
 
 
 
