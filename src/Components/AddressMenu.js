@@ -39,7 +39,7 @@ class AddressMenu extends React.Component {
 
     
 
-    this.subscription = combineLatest(MyWalletServices.myAddresses, FirebaseServices.addressSubscription(this.props.address)).subscribe(
+    this.subscription = combineLatest(MyWalletServices.myAddresses, FirebaseServices.AddressNotification(this.props.address)).subscribe(
       ([myAddresses, addressSubscription]) =>{
         
         var myAddress = myAddresses.find(myAddress => {return myAddress.address == this.props.address});
@@ -81,12 +81,12 @@ class AddressMenu extends React.Component {
       alert("Your browser doesnt support Push Notifications, please try Chrome or Firefox")
       return;
     }
-    FirebaseServices.saveAddressSubscription(this.props.address); //TODO: handle error
+    FirebaseServices.saveAddressNotification(this.props.address); //TODO: handle error
   };
 
   handleMenuRemoveAddressSubscription = () => {
     this.handleMenuClose();
-    FirebaseServices.deleteAddressSubscription(this.props.address); //TODO: handle error
+    FirebaseServices.deleteAddressNotification(this.props.address); //TODO: handle error
   };
 
 
