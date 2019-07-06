@@ -139,11 +139,10 @@ class Notifications extends React.Component {
     }
     else if (notification.eventType === 'changedMasternode' )
     {
-      var masternode = JSON.parse(notification.masternode);
       return (
         <Link to={"/Explorer/MasternodeList/" + notification.masternodeOutPoint}>
           <MenuItem onClick={handleClick}>
-            masternode status change from {masternode.previousStatus} to {masternode.status}
+            masternode status change from {notification.previousStatus} to {notification.status}
           </MenuItem>
         </Link>
       )
