@@ -9,6 +9,7 @@ import Paper from '@material-ui/core/Paper';
 
 import BlockchainServices from '../../../Services/BlockchainServices';
 import MyWalletServices from '../../../Services/MyWalletServices';
+import { switchMap, first, map } from 'rxjs/operators';
 
 const styles = {
   root: {
@@ -33,17 +34,21 @@ class MyMasternodesGraph extends React.Component {
   
 
   componentDidMount() {
-    this.subscription = combineLatest(BlockchainServices.masternodeList, MyWalletServices.myMasternodes).subscribe(
-      ([masternodeList, myMasternodes]) =>{
-
-        myMasternodes.forEach(myMn =>{
-          myMn.mn = masternodeList[myMn.output];
-        });
-
+    this.subscription = MyWalletServices.myMasternodes.pipe(
+      switchMap(myMasternodes => combineLatest(myMasternodes.map(myMn => BlockchainServices.masternode(myMn.output).pipe(first(),map(mn => {
+        return {
+          myMn: myMn,
+          mn:mn
+        }
+      })))))
+    ).subscribe(
+      (myMasternodes) =>{
         this.setState({
           myMasternodes: myMasternodes
         });
-      });
+    });
+    
+
 
   }
 
@@ -61,7 +66,7 @@ class MyMasternodesGraph extends React.Component {
     {
       myMasternodes.forEach(myMn => {
         if (myMn.mn != null) {
-          names.push(myMn.name);
+          names.push(myMn.myMn.name);
           addresses.push(myMn.mn.payee);
         }
       });
