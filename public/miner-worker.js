@@ -284,13 +284,13 @@ var startWebsocket = function(){
     
     websocket.onopen = function() {
         websocketRetryTimer = 500;
-        websocket.send('{"op":"newBlockSubscribe"}');
+        websocket.send('{"op":"BestBlockHashSubscribe"}');
     };
         
     websocket.onmessage = function (evt) { 
         var message = JSON.parse(evt.data);
         
-        if (message.op == "newBlock")
+        if (message.op == "BestBlockHash")
         {
             newBlock();
         }
