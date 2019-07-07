@@ -1,6 +1,6 @@
 importScripts('https://www.gstatic.com/firebasejs/4.8.1/firebase-app.js');
 importScripts('https://www.gstatic.com/firebasejs/4.8.1/firebase-messaging.js');
-
+importScripts('/walletApi.js');
 
 // Initialize the Firebase app in the service worker by passing in the
 // messagingSenderId.
@@ -27,6 +27,7 @@ messaging.setBackgroundMessageHandler(function(payload) {
     actions:[]
   };
 
+  walletApi.createNotification(payload.data);
 
   if (payload.data.eventType == "newBlock")
   {
