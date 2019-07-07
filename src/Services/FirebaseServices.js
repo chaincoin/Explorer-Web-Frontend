@@ -1,4 +1,4 @@
-import { Observable, BehaviorSubject, of, interval, from, combineLatest  } from 'rxjs';
+import { Observable, BehaviorSubject, Subject, of, interval, from, combineLatest  } from 'rxjs';
 import { shareReplay, first, switchMap } from 'rxjs/operators';
 
 import DataService from './DataService';
@@ -6,7 +6,7 @@ import DataService from './DataService';
 
 
 const firebaseId = new BehaviorSubject(null);
-const notifications = new BehaviorSubject([]);
+const notificationsChanged = new Subject();
 
 
 
@@ -31,7 +31,10 @@ try{
     messaging.onMessage(function(payload) {
         console.log('Message received. ', payload);
 
-        notifications.next(notifications._value.concat(payload.data))
+        window.walletApi.createNotification(payload.data).then(function(){
+            broadcastEvent("notificationsChanged");
+            notificationsChanged.next();
+        });
     });
     if (Notification.permission == 'granted'){
         messaging.getToken().then(function(_firebaseId) {
@@ -92,6 +95,38 @@ const getFirebaseId = () =>{
         });
     });
 }
+
+const notifications = Observable.create(function(observer) {
+    var _data = null;
+
+    var listNotifications = () =>{
+        window.walletApi.listNotifications()
+        .then(data =>{
+
+            if (_data == null || _data.length != data.length)
+            {
+                _data = data;
+                observer.next(data)
+            }
+        })
+        .catch(err => observer.error(err));
+    };
+
+
+    var notificationsChangedSubscription = notificationsChanged.subscribe(listNotifications);
+
+    var intervalId = setInterval(listNotifications, 30000);
+    listNotifications();
+
+    return () => {
+        clearInterval(intervalId);
+        notificationsChangedSubscription.unsubscribe();
+    }
+
+}).pipe(shareReplay({
+    bufferSize: 1,
+    refCount: true
+}));
 
 const deleteNotifications = () => {
     return firebaseId.pipe(
@@ -277,12 +312,19 @@ const AddressNotification = (address) =>{ //TODO: This is a memory leak
 
 
 const removeNotification = (notification) =>{
-    notifications.next(notifications.value.filter(n => n != notification));
+    
+    window.walletApi.deleteNotification(notification.id).then(function(){
+        broadcastEvent("notificationsChanged");
+        notificationsChanged.next();
+    });
 };
 
-const clearAllNotification = (notification) =>{
+const clearAllNotification = () =>{
 
-    notifications([]);
+    window.walletApi.deleteNotifications().then(function(){
+        broadcastEvent("notificationsChanged");
+        notificationsChanged.next();
+    });
 };
 
 
@@ -312,3 +354,20 @@ export default {
     removeNotification,
     clearAllNotification
 };
+
+
+
+var broadcastEvent = (event) =>{
+
+    var version = window.localStorage.getItem(event);
+
+    if (version == null) window.localStorage.setItem(event,0);
+    else window.localStorage.setItem(event,version + 1);
+}
+
+
+
+window.addEventListener('storage', function(e) {
+
+    if(e.key == "notificationsChanged") notificationsChanged.next();
+});
