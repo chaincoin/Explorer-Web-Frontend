@@ -63,6 +63,7 @@ class MyMasternodes extends React.Component {
   };
 
   componentDidMount() {
+
     this.subscription = combineLatest(BlockchainServices.masternodeList, MyWalletServices.myMasternodes).subscribe(
       ([masternodeList, myMasternodes]) =>{
 
