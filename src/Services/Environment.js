@@ -33,9 +33,8 @@ if (window.location.host == "localhost:3000")
 
 if (window.location.host == "staging.chaincoinexplorer.co.uk")
 {
-    blockchainApiUrl = "https://blockchain-staging.chaincoinexplorer.co.uk";
-    webServicesApiUrl = "wss://websocket-staging.chaincoinexplorer.co.uk";
-    notificationsApiUrl = "https://notifications-staging.chaincoinexplorer.co.uk";
+    blockchainApiUrl = "https://api-staging.chaincoinexplorer.co.uk";
+    webServicesApiUrl = "wss://api-staging.chaincoinexplorer.co.uk";
     environment = "Staging";
 }
 
