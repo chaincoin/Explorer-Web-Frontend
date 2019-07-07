@@ -267,11 +267,11 @@ const myMasternodes = Observable.create(function(observer) {
         BlockchainServices.getAddressUnspent(myAddress.address),
         inputLockStates, 
         BlockchainServices.blockCount, 
-        BlockchainServices.rawMemPool, 
+        BlockchainServices.memPool, 
         BlockchainServices.masternodeList
       )
       .pipe(
-        map(([address,unspent, inputLockStates,blockCount, rawMemPool, masternodeList]) =>{
+        map(([address,unspent, inputLockStates,blockCount, memPool, masternodeList]) =>{
             return {
                 myAddress,
                 address: address,
@@ -281,7 +281,7 @@ const myMasternodes = Observable.create(function(observer) {
                     var confirmations = (blockCount - unspent.blockHeight) + 1;
 
                     var isMatureCoins = unspent.payout == null ? true : confirmations > 102;
-                    var inMemPool = rawMemPool.find(r => r.vin.find(v => v.txid == unspent.txid && v.vout == unspent.vout )) != null;
+                    var inMemPool = memPool.find(r => r.vin.find(v => v.txid == unspent.txid && v.vout == unspent.vout )) != null;
                     var inMnList = Object.keys(masternodeList).find(output => output == unspent.txid + "-" + unspent.vout)  != null;
                     var lockState = inputLockStates[unspent.txid + "-" + unspent.vout];
                     return {
