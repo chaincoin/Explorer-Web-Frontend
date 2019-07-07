@@ -2,16 +2,8 @@ import { Observable, Subject, combineLatest,  } from 'rxjs';
 import { shareReplay, switchMap, map } from 'rxjs/operators';
 
 import bigDecimal from 'js-big-decimal';
-
-import walletWorker from '../Scripts/walletWorker.js'
 import BlockchainServices from './BlockchainServices'
 
-
-var _walletWorker = null
-
-const walletWorkerCode = walletWorker.toString();
-const walletWorkerCodeBlob = new Blob(['('+walletWorkerCode+')()']);
-_walletWorker = new Worker(URL.createObjectURL(walletWorkerCodeBlob));
 
 
 const myMasternodeAdded = new Subject();
@@ -24,77 +16,21 @@ const inputLockStateAdded = new Subject();
 const inputLockStateUpdated = new Subject();
 const inputLockStateDeleted = new Subject();
 
-var walletWorkerRequestId = 0;
-var pendingWalletWorkerRequests = {}
 
-if (_walletWorker != null)
-{
-    _walletWorker.onmessage = function(e) {
-        var message = e.data;
-        var pendingWalletWorkerRequest = pendingWalletWorkerRequests["r" + message.id];
-        if (pendingWalletWorkerRequest != null)
-        {
-            if (message.success)pendingWalletWorkerRequest.resolve(message);
-            else pendingWalletWorkerRequest.reject(message);
-            clearTimeout(pendingWalletWorkerRequest.timer);
-            eval("delete pendingWalletWorkerRequests.r" + message.id);
-        }
-    
-        if (message.event == "addedMasternode") myMasternodeAdded.next(message.data);
-        else if (message.event == "deletedMasternode") myMasternodeDeleted.next(message.data);
-        else if (message.event == "addedAddress") myAddressAdded.next(message.data);
-        else if (message.event == "deletedAddress") myAddressDeleted.next(message.data);
-        else if (message.event == "addedInputLockState") inputLockStateAdded.next(message.data);
-        else if (message.event == "updatedInputLockState") inputLockStateUpdated.next(message.data);
-        else if (message.event == "deletedInputLockState") inputLockStateDeleted.next(message.data);
-    }
-}
-
-
-
-
-function sendWalletWorkerRequest(request)
-{
-    request.id = walletWorkerRequestId;
-
-
-    return new Promise(function(resolve, reject)
-    {
-        var pendingWalletWorkerRequest = {
-            request: request,
-            resolve: resolve,
-            reject: reject,
-            timer: setTimeout(reject,30000)
-        };
-        
-    
-        _walletWorker.postMessage(request);
-    
-    
-        pendingWalletWorkerRequests["r" + walletWorkerRequestId] = pendingWalletWorkerRequest;
-        walletWorkerRequestId++;
-    }); 
-
-}
 
 
 const myAddresses = Observable.create(function(observer) {
 
-    var _response = null;
+    var _data = null;
 
     var listAddresses = () =>{
-        sendWalletWorkerRequest({
-            op:"listAddresses"
-        })
-        .then(response =>{
+
+        window.walletApi.listAddresses().then(data =>{
   
-            if (response.success)
+            if (_data == null || _data.length != data.length)
             {
-                if (_response == null || _response.data.length != response.data.length)
-                {
-                    _response = response;
-                    observer.next(response.data)
-                }
+                _data = data;
+                observer.next(data)
             }
         })
         .catch(err => observer.error(err));
@@ -120,19 +56,23 @@ const myAddresses = Observable.create(function(observer) {
 
   var addMyAddress = (name, address, WIF) =>{ 
 
-    return sendWalletWorkerRequest({
-        op:"createAddress",
+    return window.walletApi.createAddress({
         name:name,
         address: address,
         WIF:WIF
-    }).then(() => broadcastEvent("myAddressAdded"));
+    }).then(() => {
+        broadcastEvent("myAddressAdded");
+        myAddressAdded.next();
+    });
   }
 
   var deleteMyAddress = (address) =>{ 
-    return sendWalletWorkerRequest({
-        op:"deleteAddress",
+    return window.walletApi.deleteAddress({
         address: address
-    }).then(() => broadcastEvent("myAddressDeleted"));
+    }).then(() => {
+        broadcastEvent("myAddressDeleted");
+        myAddressDeleted.next();
+    });
   }
 
 
@@ -141,21 +81,16 @@ const myAddresses = Observable.create(function(observer) {
 
 const myMasternodes = Observable.create(function(observer) {
 
-    var _response = null;
+    var _data = null;
 
     var listMasternodes = () =>{
-        sendWalletWorkerRequest({
-            op:"listMasternodes"
-        })
-        .then(response =>{
+        window.walletApi.listMasternodes()
+        .then(data =>{
 
-            if (response.success)
+            if (_data == null || _data.length != data.length)
             {
-                if (_response == null || _response.data.length != response.data.length)
-                {
-                    _response = response;
-                    observer.next(response.data)
-                }
+                _data = data;
+                observer.next(data)
             }
         })
         .catch(err => observer.error(err));
@@ -180,36 +115,31 @@ const myMasternodes = Observable.create(function(observer) {
 
 
   var addMyMasternode = (name, output) =>{ 
-    return sendWalletWorkerRequest({
-        op:"createMasternode",
+    return window.walletApi.createMasternode({
         name:name,
         output: output
-    }).then(() => broadcastEvent("myMasternodeAdded"));
+    }).then(() => {
+        broadcastEvent("myMasternodeAdded");
+        myMasternodeAdded.next();
+    });
   }
 
   var deleteMyMasternode = (output) =>{ 
-    return sendWalletWorkerRequest({
-        op:"deleteMasternode",
+    return window.walletApi.deleteMasternode({
         output: output
-    }).then(() => broadcastEvent("myMasternodeDeleted"));
+    }).then(() =>{
+        broadcastEvent("myMasternodeDeleted")
+        myMasternodeDeleted.next();
+    });
   }
 
 
   const inputLockStates = Observable.create(function(observer) {
 
-    var _response = null;
-
     var listInputLockStates = () =>{
-        sendWalletWorkerRequest({
-            op:"listInputLockStates"
-        })
-        .then(response =>{
-
-            if (response.success)
-            {
-                _response = response; //TODO: this could be better
-                observer.next(response.data)
-            }
+        window.walletApi.listInputLockStates()
+        .then(data =>{
+            observer.next(data)
         })
         .catch(err => observer.error(err));
     };
@@ -235,26 +165,32 @@ const myMasternodes = Observable.create(function(observer) {
 
 
   var addInputLockState = (output, lockState) =>{ 
-    return sendWalletWorkerRequest({
-        op:"createInputLockState",
+    return window.walletApi.createInputLockState({
         output: output,
         lockState: lockState
-    }).then(() => broadcastEvent("inputLockStateAdded"));
+    }).then(() =>{
+        broadcastEvent("inputLockStateAdded")
+        inputLockStateAdded.next();
+    });
   }
 
   var updateInputLockState = (output, lockState) =>{ 
-    return sendWalletWorkerRequest({
-        op:"updateInputLockState",
+    return window.walletApi.updateInputLockState({
         output: output,
         lockState: lockState
-    }).then(() => broadcastEvent("inputLockStateUpdated"));
+    }).then(() => {
+        broadcastEvent("inputLockStateUpdated");
+        inputLockStateUpdated.next();
+    });
   }
 
   var deleteInputLockState = (output) =>{ 
-    return sendWalletWorkerRequest({
-        op:"deleteInputLockState",
+    return window.walletApi.deleteInputLockState({
         output: output
-    }).then(() => broadcastEvent("inputLockStateDeleted"));
+    }).then(() => {
+        broadcastEvent("inputLockStateDeleted");
+        inputLockStateDeleted.next();
+    });
   }
 
 
