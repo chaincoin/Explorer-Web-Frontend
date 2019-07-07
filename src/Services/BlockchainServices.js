@@ -288,6 +288,20 @@ const BlockCount = DataService.webSocket.pipe(
       refCount: true
     })
   );
+
+  var memPool = DataService.webSocket.pipe(
+    switchMap(webSocket => webSocket ?
+      DataService.subscription("MemPool"):
+      interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
+        op: "getMemPool",
+      }))))
+    ),
+    shareReplay({
+      bufferSize: 1,
+      refCount: true
+    })
+  );
+  
   
 
   var peerInfo = DataService.webSocket.pipe(
@@ -419,6 +433,7 @@ const BlockCount = DataService.webSocket.pipe(
 
     memPoolInfo,
     rawMemPool,
+    memPool,
 
     richListCount,
     getRichList,
