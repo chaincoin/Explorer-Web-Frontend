@@ -158,7 +158,7 @@ class BlockList extends React.Component {
         <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.hash}>{row.height}</Link></TableCell>
         <TableCell><Link to={"/Explorer/Block/" + row.hash}>{row.hash}</Link></TableCell>
         <TableCell>{row.tx.map(tx => tx.recipients).reduce(add)}</TableCell>
-        <TableCell>{row.tx.map(tx => tx.value).reduce(add)}</TableCell>
+        <TableCell>{row.value}</TableCell>
         <TableCell>{TimeToString(row.time)}</TableCell>
         <TableCell>
         {
@@ -216,7 +216,7 @@ class BlockList extends React.Component {
                     <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.hash}>{row.height}</Link></TableCell>
                     <TableCell><Link to={"/Explorer/Block/" + row.hash}>{row.hash}</Link></TableCell>
                     <TableCell>{row.tx.map(tx => tx.recipients).reduce(add)}</TableCell>
-                    <TableCell>{row.tx.map(tx => tx.value).reduce(add)}</TableCell>
+                    <TableCell>{row.value}</TableCell>
                     <TableCell>{TimeToString(row.time)}</TableCell>
                   </TableRow>
                   ))}
