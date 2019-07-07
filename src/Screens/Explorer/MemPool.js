@@ -48,7 +48,7 @@ class MemPoolList extends React.Component {
     searchInput:""
   };
 
-  rawMemPoolSubscription = null;
+  memPoolSubscription = null;
 
   handleChangePage = (event, page) => {
     this.setState({ page });
@@ -60,7 +60,7 @@ class MemPoolList extends React.Component {
   };
 
   componentDidMount() {
-    this.rawMemPoolSubscription = BlockchainServices.rawMemPool.subscribe((memPool) =>{
+    this.memPoolSubscription = BlockchainServices.memPool.subscribe((memPool) =>{
       this.setState({
         rows: memPool
       });
@@ -68,7 +68,7 @@ class MemPoolList extends React.Component {
   }
 
   componentWillUnmount() {
-    this.rawMemPoolSubscription.unsubscribe();
+    this.memPoolSubscription.unsubscribe();
   }
 
   handleSearch = (event) => {
