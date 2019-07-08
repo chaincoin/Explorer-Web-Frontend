@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
-import { combineLatest } from 'rxjs';
+import { combineLatest, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
 import Button from '@material-ui/core/Button';
@@ -64,9 +64,9 @@ class MyMasternodes extends React.Component {
 
 
     MyWalletServices.myMasternodes.pipe(
-      switchMap(myMasternodes => combineLatest(myMasternodes.map(myMn => BlockchainServices.masternode(myMn.output))).pipe(
+      switchMap(myMasternodes => myMasternodes.length > 0 ? combineLatest(myMasternodes.map(myMn => BlockchainServices.masternode(myMn.output))).pipe(
         map(masternodeList =>[masternodeList,myMasternodes])
-      ))
+      ): of([[],[]]))
     ).subscribe(
       ([masternodeList, myMasternodes]) =>{
         var mnProblems = false;
