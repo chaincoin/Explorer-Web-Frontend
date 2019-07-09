@@ -1,5 +1,6 @@
 import React from 'react';
-import { combineLatest } from 'rxjs';
+import { combineLatest, of } from 'rxjs';
+import { switchMap, map } from 'rxjs/operators';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
@@ -67,18 +68,17 @@ class MyMasternodes extends React.Component {
 
   componentDidMount() {
 
-    this.subscription = combineLatest(BlockchainServices.masternodeList, MyWalletServices.myMasternodes).subscribe(
-      ([masternodeList, myMasternodes]) =>{
-
-        myMasternodes.forEach(myMn =>{
-          myMn.mn = masternodeList[myMn.output];
-        });
-
+    this.subscription = MyWalletServices.myMasternodes.pipe(
+      switchMap(myMasternodes =>{
+        if (myMasternodes.length == 0) return of([]);
+        return combineLatest(myMasternodes.map(myMn => BlockchainServices.masternode(myMn.output).pipe(map(mn =>({myMn, mn})))))
+      })
+    ).subscribe(
+      (rows) =>{
         this.setState({
-          rows: myMasternodes
+          rows: rows
         });
-      });
-
+    });
   }
 
   componentWillUnmount() {
@@ -136,7 +136,7 @@ class MyMasternodes extends React.Component {
               <TableBody>
                 {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
                   <TableRow >
-                    <TableCell component="th" scope="row"><Link to={"/Explorer/MasternodeList/" + row.output}>{row.name}</Link></TableCell>
+                    <TableCell component="th" scope="row"><Link to={"/Explorer/MasternodeList/" + row.myMn.output}>{row.myMn.name}</Link></TableCell>
                     <TableCell>
                       {
                         row.mn != null ? 
@@ -159,7 +159,7 @@ class MyMasternodes extends React.Component {
                       }
                     </TableCell>
                     <TableCell>
-                      <MasternodeMenu output={row.output} payee={row.mn != null ? row.mn.payee : null} />
+                      <MasternodeMenu output={row.myMn.output} payee={row.mn != null ? row.mn.payee : null} />
                     </TableCell>
                   </TableRow>
                 ))}
