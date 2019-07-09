@@ -8,11 +8,19 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
 
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
+
 import MyWalletServices from '../../../../Services/MyWalletServices';
 
 export default function FormDialog() {
   const [open, setOpen] = React.useState(false);
   const [file, setFile] = React.useState(null);
+  const [importResults, setImportResults] = React.useState(null);
 
   function handleClickOpen() {
     setOpen(true);
@@ -37,17 +45,38 @@ export default function FormDialog() {
       
       var lines = e.target.result.split('\n');
 
-      lines.map((line,index) => {
+      var promises = lines.map((line,index) => {
 
-        if (line.startsWith("#")) return Promise.reject("Line " + (index + 1) + ": comment");
+        if (line.startsWith("#")) return Promise.resolve({
+          line: index + 1,
+          result: false,
+          message: "comment"
+        });
+
         var lineParts = line.replace(new RegExp(" +", "g"), " ").replace(new RegExp("\r", "g"), "").split(' ');
-        if (lineParts.length != 5) return Promise.reject("Line " + (index + 1) + ": invalid line format");
+        if (lineParts.length != 5) return Promise.resolve({
+          line: index + 1,
+          result: false,
+          message: "invalid line format"
+        });
 
         var name = lineParts[0];
         var output = lineParts[3] + "-" + lineParts[4];
-        MyWalletServices.addMyMasternode(name, output);
-      })
-     debugger;
+        return new Promise((resolve) => MyWalletServices.addMyMasternode(name, output)
+          .then(() => resolve({
+            line: index + 1,
+            result: true,
+            message: "added succesfully"
+          }))
+          .catch((err) => resolve({
+            line: index + 1,
+            result: false,
+            message: "failed - " + (err || "unknown")
+          })));
+      });
+
+      Promise.all(promises).then(results => setImportResults(results));
+
     };
 
     reader.readAsBinaryString(file);
@@ -73,6 +102,33 @@ export default function FormDialog() {
             fullWidth
             onChange={e => setFile(e.target.files[0])}
           />
+
+          {
+            importResults != null ? (<Paper>
+              Import Results
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Line</TableCell>
+                    <TableCell>Result</TableCell>
+                    <TableCell>Message</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {importResults.map(row => (
+                    <TableRow>
+                      <TableCell>{row.line}</TableCell>
+                      <TableCell>{row.result ? "complete" : "failed"}</TableCell>
+                      <TableCell>{row.message}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Paper>)
+            : null
+          }
+          
+
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
