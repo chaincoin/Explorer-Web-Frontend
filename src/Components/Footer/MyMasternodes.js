@@ -63,26 +63,18 @@ class MyMasternodes extends React.Component {
   componentDidMount() {
 
 
-    MyWalletServices.myMasternodes.pipe(
-      switchMap(myMasternodes => myMasternodes.length > 0 ? combineLatest(myMasternodes.map(myMn => BlockchainServices.masternode(myMn.output))).pipe(
-        map(masternodeList =>[masternodeList,myMasternodes])
-      ): of([[],[]]))
+    this.subscription = MyWalletServices.myMasternodes.pipe(
+      switchMap(myMasternodes =>{
+        if (myMasternodes.length == 0) return of([]);
+        return combineLatest(myMasternodes.map(myMn => BlockchainServices.masternode(myMn.output).pipe(map(mn =>({myMn, mn})))))
+      })
     ).subscribe(
-      ([masternodeList, myMasternodes]) =>{
+      (rows) =>{
         var mnProblems = false;
 
-        masternodeList.forEach(mn =>{
-          if (mn == null || mn.status != "ENABLED") mnProblems = mnProblems + 1;
+        rows.forEach(row =>{
+          if (row.mn == null || row.mn.status != "ENABLED") mnProblems = mnProblems + 1;
         });
-
-        var rows = [];
-        for(var i = 0; i < myMasternodes.length; i++)
-        {
-          rows.push({
-            myMn: myMasternodes[i],
-            mn: masternodeList[i]
-          })
-        }
 
         this.setState({
           rows: rows,
@@ -92,7 +84,7 @@ class MyMasternodes extends React.Component {
   }
 
   componentWillUnmount = () => {
-    if (this.subscription != null) this.subscription.unsubscribe();
+    this.subscription.unsubscribe();
   }
 
 
