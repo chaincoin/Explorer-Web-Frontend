@@ -10,20 +10,19 @@ const notificationsChanged = new Subject();
 
 
 
-var firebaseConfig = {
-    apiKey: "AIzaSyD0P5F8zfmS1fuIDtK_HAOa-AeKTZw91MY",
-    authDomain: "chaincoinexplorer.firebaseapp.com",
-    databaseURL: "https://chaincoinexplorer.firebaseio.com",
-    projectId: "chaincoinexplorer",
-    storageBucket: "chaincoinexplorer.appspot.com",
-    messagingSenderId: "316900835772",
-    appId: "1:316900835772:web:91c5ce11ca192dc0"
-};
+
 
 // Initialize Firebase
 var messaging = null;
 try{
-    window.firebase.initializeApp(firebaseConfig); 
+    window.firebase.initializeApp({
+        authDomain: "chaincoinexplorer.firebaseapp.com",
+        databaseURL: "https://chaincoinexplorer.firebaseio.com",
+        projectId: "chaincoinexplorer",
+        storageBucket: "chaincoinexplorer.appspot.com",
+        messagingSenderId: "316900835772",
+        appId: "1:316900835772:web:91c5ce11ca192dc0"
+    }); 
 
     messaging = window.firebase.messaging(); 
     messaging.usePublicVapidKey("BPIxwVCl8BcMHksgYoO5lBim_hxbE48snFExKNLB56VZ5Cg1VMnwRk1quiKgvOg7YFFIFwo3qAbnSVhYZGeqcME");
