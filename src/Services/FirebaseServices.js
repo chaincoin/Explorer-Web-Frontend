@@ -59,7 +59,7 @@ firebaseId.subscribe((newFirebaseId) =>{
         window.localStorage["firebaseId"] = newFirebaseId;
     }
     else if (oldFirebaseId != null && newFirebaseId != null && oldFirebaseId != newFirebaseId){
-        DataService.sendHttpRequest({
+        DataService.sendRequest({
             op:"updateNotifications",
             oldFirebaseId: oldFirebaseId,
             newFirebaseId: newFirebaseId
@@ -74,25 +74,20 @@ firebaseId.subscribe((newFirebaseId) =>{
 
 const getFirebaseId = () =>{
 
-    return new Promise((resolve, reject) => {
-        firebaseId.pipe(first()).subscribe((_firebaseId) =>{
-
-            if (_firebaseId != null) {
-                resolve(_firebaseId);
-            }
-            else
-            {
-                messaging.requestPermission()
+    return firebaseId.pipe(
+        first(),
+        switchMap(
+            _firebaseId => _firebaseId != null ? 
+            of(_firebaseId):
+            from(messaging.requestPermission()
                 .then(() => messaging.getToken())
                 .then((_firebaseId) => {
-                    firebaseId.next(_firebaseId);
-                    resolve(_firebaseId);
+                    firebaseId.next(_firebaseId)
+                    return _firebaseId;
                 })
-                .catch(reject);
-            }
-            
-        });
-    });
+            )
+        )
+    );
 }
 
 const notifications = Observable.create(function(observer) {
@@ -128,7 +123,7 @@ const notifications = Observable.create(function(observer) {
 }));
 
 const deleteNotifications = () => {
-    return firebaseId.pipe(
+    return getFirebaseId().pipe(
         switchMap((firebaseId) => {
             if (firebaseId == null) return of(false); //TODO: throw error
             return DataService.sendRequest({
@@ -141,7 +136,7 @@ const deleteNotifications = () => {
 
 
 const saveBlockNotification = () => {
-    return firebaseId.pipe(
+    return getFirebaseId().pipe(
         switchMap((firebaseId) => {
             if (firebaseId == null) return of(false); //TODO: throw error
             return DataService.sendRequest({
@@ -155,7 +150,7 @@ const saveBlockNotification = () => {
 
 
 const deleteBlockNotification = () => {
-    return firebaseId.pipe(
+    return getFirebaseId().pipe(
         switchMap((firebaseId) => {
             if (firebaseId == null) return of(false); //TODO: throw error
             return DataService.sendRequest({
@@ -217,7 +212,7 @@ var MasternodeNotification = (output) =>{ //TODO: This is a memory leak
 
 
 const saveMasternodeNotification = (output) => {
-    return firebaseId.pipe(
+    return getFirebaseId().pipe(
         switchMap((firebaseId) => {
             if (firebaseId == null) return of(false); //TODO: throw error
             return DataService.sendRequest({
@@ -232,7 +227,7 @@ const saveMasternodeNotification = (output) => {
 
 
 const deleteMasternodeNotification = (output) => {
-    return firebaseId.pipe(
+    return getFirebaseId().pipe(
         switchMap((firebaseId) => {
             if (firebaseId == null) return of(false); //TODO: throw error
             return DataService.sendRequest({
@@ -248,7 +243,7 @@ const deleteMasternodeNotification = (output) => {
 
 const saveAddressNotification = (address) => {
 
-    return firebaseId.pipe(
+    return getFirebaseId().pipe(
         switchMap((firebaseId) => {
             if (firebaseId == null) return of(false); //TODO: throw error
             return DataService.sendRequest({
@@ -263,7 +258,7 @@ const saveAddressNotification = (address) => {
 
 
 const deleteAddressNotification = (address) => {
-    return firebaseId.pipe(
+    return getFirebaseId().pipe(
         switchMap((firebaseId) => {
             if (firebaseId == null) return of(false); //TODO: throw error
             return DataService.sendRequest({
