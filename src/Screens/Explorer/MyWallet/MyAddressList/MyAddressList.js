@@ -14,6 +14,9 @@ import Button from '@material-ui/core/Button';
 import { Link } from "react-router-dom";
 
 
+
+import WatchAddress from './WatchAddress'
+import CreateAddress from './CreateAddress'
 import ImportWif from './ImportWif'
 
 import TablePaginationActions from '../../../../Components/TablePaginationActions';
@@ -96,52 +99,6 @@ class MyAddresses extends React.Component {
   }
 
 
-  handleCreateAddress(){
-    var name = prompt("Please enter a name for the address");
-    if (name == null) return;
-
-    var keyPair = bitcoin.ECPair.makeRandom({ network: BlockchainServices.Chaincoin }); // eslint-disable-line no-undef
-    var WIF = keyPair.toWIF();
-    //var address = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: Chaincoin }).address;
-                
-    var address = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin }).address; // eslint-disable-line no-undef
-
-    MyWalletServices.addMyAddress(name, address, WIF); //TODO: handle error
-  }
-/*
-  handleImportAddress(){
-    var WIF = prompt("Please enter WIF");
-    if (WIF == null || WIF == "") return;
-
-    var name = prompt("Please enter a name for the address");
-    if (name == null) return;
-
-    var keyPair = bitcoin.ECPair.fromWIF(WIF, BlockchainServices.Chaincoin); // eslint-disable-line no-undef
-    var address = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin }).address; // eslint-disable-line no-undef
-
-    MyWalletServices.addMyAddress(name,address, WIF);
-  }*/
-
-  handleWatchAddress(){
-    var name = prompt("Please enter a name for the address");
-    if (name == null) return;
-
-    var address = prompt("Please enter the address");
-    if (address == null) return;
-
-    BlockchainServices.validateAddress(address).then(function(response){
-      if (response.isvalid){
-          MyWalletServices.addMyAddress(name,address);
-      }
-      else{
-          alert("invalid address");
-      }
-        
-    });
-  }
-
-
-
   labelDisplayedRows(){
     return "";
   }
@@ -154,14 +111,8 @@ class MyAddresses extends React.Component {
 
     return (
       <div>
-        <Button variant="contained" color="primary" className={classes.button} onClick={this.handleCreateAddress}>
-          Create Address
-        </Button>
-
-        <Button variant="contained" color="primary" className={classes.button} onClick={this.handleWatchAddress}>
-          Watch Address
-        </Button>
-
+        <CreateAddress/>
+        <WatchAddress />
         <ImportWif/>
         
           <Paper>
