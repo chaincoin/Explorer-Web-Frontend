@@ -55,13 +55,13 @@ var walletApi = null;
 				if (db.objectStoreNames.contains("masternodes") == false) masternodesObjectStore = db.createObjectStore("masternodes", { keyPath: "output", unique: true });
 				else masternodesObjectStore = transaction.objectStore("masternodes");
 
-				if (masternodesObjectStore.indexNames.contains("by_name") == false) masternodesObjectStore.createIndex("by_name", "name");
+				if (masternodesObjectStore.indexNames.contains("by_name") == false) masternodesObjectStore.createIndex("by_name", "name"); //TODO: this is case sensitive orders lower and upper case strangle
 
 				var addressesObjectStore = null;
 				if (db.objectStoreNames.contains("addresses") == false) addressesObjectStore = db.createObjectStore("addresses", { keyPath: "address", unique: true });
 				else addressesObjectStore = transaction.objectStore("addresses");
 
-				if (addressesObjectStore.indexNames.contains("by_name") == false) addressesObjectStore.createIndex("by_name", "name");
+				if (addressesObjectStore.indexNames.contains("by_name") == false) addressesObjectStore.createIndex("by_name", "name"); //TODO: this is case sensitive orders lower and upper case strangle
 
 			}
 			
@@ -110,14 +110,30 @@ var walletApi = null;
 		listAddresses: function(request){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
-					var dbRequest = db.transaction(["addresses"], "readonly").objectStore("addresses").getAll();
+					var addressesStore = db.transaction(["addresses"], "readonly").objectStore("addresses");
+					var nameIndex = addressesStore.index("by_name");
+					var dbRequest = nameIndex.openCursor();
+
+					var addresses = [];
+
 					dbRequest.onsuccess = function(event) {
-						resolve(event.target.result);
+
+						var cursor = event.target.result;
+						if (cursor) {
+							addresses.push(cursor.value);
+							cursor.continue();
+						}
+						else
+						{
+							resolve(addresses);
+						}
+
+						
 					};
 					dbRequest.onerror = function(event) {
 						reject();
 					};
-				});
+				})
 			});
 		},
 		getAddress: function(request){
