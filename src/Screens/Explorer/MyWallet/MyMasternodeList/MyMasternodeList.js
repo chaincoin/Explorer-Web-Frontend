@@ -14,7 +14,7 @@ import Button from '@material-ui/core/Button';
 
 import { Link } from "react-router-dom";
 
-
+import AddMasternode from './AddMasternode';
 import ImportMasternodeConf from './ImportMasternodeConf';
 
 import TablePaginationActions from '../../../../Components/TablePaginationActions';
@@ -85,22 +85,7 @@ class MyMasternodes extends React.Component {
     this.subscription.unsubscribe();
   }
 
-  handleAddMasternode(){
-    var name = prompt("Please enter a name for the masternode");
-    if (name == null) return;
 
-    var output = prompt("Please enter the masternode output");
-    if (output == null) return;
-
-
-    if (/^[a-fA-F0-9]{64}-[0-9]{1,8}$/.test(output) == false){
-        alert("invalid masternode output");
-        return;
-    }
-
-
-    MyWalletServices.addMyMasternode(name, output); //TODO: handle error
-  }
 
   labelDisplayedRows(){
     return "";
@@ -117,9 +102,7 @@ class MyMasternodes extends React.Component {
 
     return (
       <div>
-        <Button variant="contained" color="primary" className={classes.button} onClick={this.handleAddMasternode}>
-          Add Masternode
-        </Button>
+        <AddMasternode/>
         <ImportMasternodeConf />
         <Paper>
           <div className={classes.tableWrapper}>
