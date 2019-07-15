@@ -84,7 +84,7 @@ export default function FormDialog() {
   }
 
   return (
-    <div>
+    <React.Fragment>
       <Button variant="contained" color="primary" onClick={handleClickOpen}>
         Import Masternode.conf
       </Button>
@@ -139,6 +139,6 @@ export default function FormDialog() {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </React.Fragment>
   );
 }
