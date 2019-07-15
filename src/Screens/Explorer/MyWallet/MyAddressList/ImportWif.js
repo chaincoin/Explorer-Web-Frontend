@@ -1,19 +1,10 @@
 import React from 'react';
 import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-
-
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
 
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -28,6 +19,7 @@ export default function FormDialog() {
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [wif, setWif] = React.useState("");
+  const [wifValid, setWifValid] = React.useState(false);
 
   const [p2wpkh, setP2wpkh] = React.useState(true);
   const [p2wpkhAddress, setP2wpkhAddress] = React.useState("");
@@ -38,23 +30,54 @@ export default function FormDialog() {
   const [p2sh, setP2sh] = React.useState(true);
   const [p2shAddress, setP2shAddress] = React.useState("");
 
-  const form = React.useRef(null)
+  const form = React.useRef(null);
+
+
+  React.useEffect(() => {
+    console.log('mounted');
+
+    ValidatorForm.addValidationRule('isWifValid', (wif, arg2) => {
+      debugger;
+      console.log(arg2)
+      try{
+        var keyPair = window.bitcoin.ECPair.fromWIF(wif, BlockchainServices.Chaincoin); 
+        return true;
+      }
+      catch(ex){
+        return false;
+      }
+    });
+
+    return () => {
+      console.log('will unmount');
+      debugger
+      //ValidatorForm.removeValidationRule('isWifValid');
+    };
+  }, []);
 
 
 
   const handleImport = () =>{ //TODO: validation and error handling
+debugger;
+    form.current.isFormValid(false).then(valid =>{
+      if (valid == false) return;
 
-    var addType = [p2wpkh,p2pkh,p2sh].filter(type => type).length > 1;
+      var addType = [p2wpkh,p2pkh,p2sh].filter(type => type).length > 1;
 
-    if (p2wpkh){
-      MyWalletServices.addMyAddress(addType ? name + "-P2WPKH" : name,p2wpkhAddress, wif);
-    }
-    if (p2pkh){
-      MyWalletServices.addMyAddress(addType ? name + "-P2PKH" : name,p2pkhAddress, wif);
-    }
-    if (p2sh){
-      MyWalletServices.addMyAddress(addType ? name + "-P2SH" : name,p2shAddress, wif);
-    }
+
+
+      if (p2wpkh){
+        MyWalletServices.addMyAddress(addType ? name + "-P2WPKH" : name,p2wpkhAddress, wif);
+      }
+      if (p2pkh){
+        MyWalletServices.addMyAddress(addType ? name + "-P2PKH" : name,p2pkhAddress, wif);
+      }
+      if (p2sh){
+        MyWalletServices.addMyAddress(addType ? name + "-P2SH" : name,p2shAddress, wif);
+      }
+      
+    })
+    
     
   }
 
@@ -70,11 +93,13 @@ export default function FormDialog() {
       setP2wpkhAddress(p2wpkhAddress);
       setP2pkhAddress(p2pkhAddress);
       setP2shAddress(p2shAddress);
+      setWifValid(true);
     }
     catch(ex){
       setP2wpkhAddress("");
       setP2pkhAddress("");
       setP2shAddress("");
+      setWifValid(false);
     }
     
     setWif(wif);
@@ -92,18 +117,22 @@ export default function FormDialog() {
             Please enter WIF
           </DialogContentText>
 
-          <ValidatorForm ref={form} onError={errors => console.log(errors)}>
+          <ValidatorForm ref={form} onError={errors => console.log(errors)} >
 
             <FormGroup>
               <TextValidator
                 label="Name"
                 onChange={(e) => setName(e.target.value)}
                 value={name}
+                validators={['required']}
+                errorMessages={['name required']}
               />
               <TextValidator
                 label="WIF"
                 onChange={handleWifChange}
                 value={wif}
+                validators={['required','isWifValid']}
+                errorMessages={['WIF required', 'WIF invalid']}
               />
               <FormControlLabel
                 control={
