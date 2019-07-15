@@ -19,7 +19,6 @@ export default function FormDialog() {
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [wif, setWif] = React.useState("");
-  const [wifValid, setWifValid] = React.useState(false);
 
   const [p2wpkh, setP2wpkh] = React.useState(true);
   const [p2wpkhAddress, setP2wpkhAddress] = React.useState("");
@@ -29,6 +28,9 @@ export default function FormDialog() {
 
   const [p2sh, setP2sh] = React.useState(true);
   const [p2shAddress, setP2shAddress] = React.useState("");
+
+
+  const [failedMessageOpen, setFailedMessageOpen] = React.useState(false);
 
   const form = React.useRef(null);
 
@@ -49,8 +51,8 @@ export default function FormDialog() {
     });
 
     return () => {
-      console.log('will unmount');
-      debugger
+
+      //debugger
       //ValidatorForm.removeValidationRule('isWifValid');
     };
   }, []);
@@ -58,23 +60,28 @@ export default function FormDialog() {
 
 
   const handleImport = () =>{ //TODO: validation and error handling
-debugger;
+//debugger;
     form.current.isFormValid(false).then(valid =>{
       if (valid == false) return;
 
       var addType = [p2wpkh,p2pkh,p2sh].filter(type => type).length > 1;
 
 
+      var promises = [];
 
       if (p2wpkh){
-        MyWalletServices.addMyAddress(addType ? name + "-P2WPKH" : name,p2wpkhAddress, wif);
+        promises.push(MyWalletServices.addMyAddress(addType ? name + "-P2WPKH" : name,p2wpkhAddress, wif));
       }
       if (p2pkh){
-        MyWalletServices.addMyAddress(addType ? name + "-P2PKH" : name,p2pkhAddress, wif);
+        promises.push(MyWalletServices.addMyAddress(addType ? name + "-P2PKH" : name,p2pkhAddress, wif));
       }
       if (p2sh){
-        MyWalletServices.addMyAddress(addType ? name + "-P2SH" : name,p2shAddress, wif);
+        promises.push(MyWalletServices.addMyAddress(addType ? name + "-P2SH" : name,p2shAddress, wif));
       }
+
+      Promise.all(promises).then(() => setOpen(false)).catch(err =>{ //TODO: this needs improving, better error message
+        setFailedMessageOpen(true);
+      });
       
     })
     
@@ -93,13 +100,11 @@ debugger;
       setP2wpkhAddress(p2wpkhAddress);
       setP2pkhAddress(p2pkhAddress);
       setP2shAddress(p2shAddress);
-      setWifValid(true);
     }
     catch(ex){
       setP2wpkhAddress("");
       setP2pkhAddress("");
       setP2shAddress("");
-      setWifValid(false);
     }
     
     setWif(wif);
@@ -188,6 +193,24 @@ debugger;
           </Button>
           <Button onClick={handleImport} color="primary">
             Import
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={failedMessageOpen}
+        onClose={(e) => setFailedMessageOpen(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Import Failed"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Import of one or more of the addresses has failed
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={(e) => setFailedMessageOpen(false)} color="primary" autoFocus>
+            Okay
           </Button>
         </DialogActions>
       </Dialog>
