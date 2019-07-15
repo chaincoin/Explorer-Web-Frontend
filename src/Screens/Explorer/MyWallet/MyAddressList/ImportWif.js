@@ -111,7 +111,7 @@ export default function FormDialog() {
   }
 
   return (
-    <div>
+    <React.Fragment>
       <Button variant="contained" color="primary" onClick={(e) => setOpen(true)}>
         Import WIF
       </Button>
@@ -214,6 +214,6 @@ export default function FormDialog() {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </React.Fragment>
   );
 }
