@@ -59,8 +59,8 @@ export default function FormDialog() {
 
 
 
-  const handleImport = () =>{ //TODO: validation and error handling
-//debugger;
+  const handleImport = () =>{
+
     form.current.isFormValid(false).then(valid =>{
       if (valid == false) return;
 
@@ -118,11 +118,8 @@ export default function FormDialog() {
       <Dialog open={open} onClose={(e)=> setOpen(false)} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Import WIF</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Please enter WIF
-          </DialogContentText>
 
-          <ValidatorForm ref={form} onError={errors => console.log(errors)} >
+          <ValidatorForm ref={form} >
 
             <FormGroup>
               <TextValidator
