@@ -8,6 +8,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { Link } from "react-router-dom";
 
 
+import AddMyMasternodeDialog from './Dialogs/AddMyMasternodeDialog'
+import WatchAddressDialog from './Dialogs/WatchAddressDialog'
 
 import MyWalletServices from '../Services/MyWalletServices';
 import FirebaseServices from '../Services/FirebaseServices';
@@ -72,32 +74,39 @@ class MasternodeMenu extends React.Component {
   
   handleMenuAddToMyMNs = () => {
     this.handleMenuClose();
-      var name = prompt("Please enter a name for the masternode");
-      if (name == null) return;
 
-      MyWalletServices.addMyMasternode(name, this.props.output); //TODO: handle error
+    DialogService.showDialog(AddMyMasternodeDialog,{
+      output: this.props.output
+    });
   };
 
   handleMenuRemoveFromMyMns = () => {
     this.handleMenuClose();
 
-    if (window.confirm("Are you sure?") == false) return;
-    MyWalletServices.deleteMyMasternode(this.props.output); //TODO: handle error
+    DialogService.showConfirmation("Remove My Masternode", "Are you sure?")
+    .subscribe((result) =>{
+      debugger;
+      if (result == true) MyWalletServices.deleteMyMasternode(this.props.output);
+    });
   };
 
   handleMenuAddToMyAddresses = () => {
     this.handleMenuClose();
-      var name = prompt("Please enter a name for the address");
-      if (name == null) return;
-
-      MyWalletServices.addMyAddress(name, this.props.payee); //TODO: handle error
+    
+    DialogService.showDialog(WatchAddressDialog,{
+      address: this.props.payee
+    });
   };
 
   handleMenuRemoveFromMyAddresses = () => {
     this.handleMenuClose();
 
-    if (window.confirm("Are you sure?") == false) return;
-    MyWalletServices.deleteMyAddress(this.props.payee); //TODO: handle error
+
+    DialogService.showConfirmation("Remove My Address", "Are you sure?") //TODO: this could be smart and say if we have the private key stored for this address
+    .subscribe((result) =>{
+      debugger;
+      if (result == true) MyWalletServices.deleteMyAddress(this.props.payee);
+    });
   };
 
 

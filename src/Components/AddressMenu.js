@@ -7,6 +7,7 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import { Link } from "react-router-dom";
 
+import WatchAddressDialog from './Dialogs/WatchAddressDialog'
 
 import MyWalletServices from '../Services/MyWalletServices';
 import FirebaseServices from '../Services/FirebaseServices';
@@ -61,17 +62,22 @@ class AddressMenu extends React.Component {
   
   handleMenuAddToMyAddresses = () => {
     this.handleMenuClose();
-      var name = prompt("Please enter a name for the address");
-      if (name == null) return;
 
-      MyWalletServices.addMyAddress(name, this.props.address); //TODO: handle error
+    DialogService.showDialog(WatchAddressDialog,{
+      address: this.props.address
+    });
   };
 
   handleMenuRemoveFromMyAddresses = () => {
     this.handleMenuClose();
 
-    if (window.confirm(this.state.myAddress.WIF == null ? "Are you sure?" : "Are you sure? the private key can not be recovered") == false) return;
-    MyWalletServices.deleteMyAddress(this.props.address); //TODO: handle error
+
+    DialogService.showConfirmation("Remove My Address", this.state.myAddress.WIF == null ? "Are you sure?" : "Are you sure? the private key can not be recovered")
+    .subscribe((result) =>{
+      debugger;
+      if (result == true) MyWalletServices.deleteMyAddress(this.props.address);
+    });
+
   };
 
 

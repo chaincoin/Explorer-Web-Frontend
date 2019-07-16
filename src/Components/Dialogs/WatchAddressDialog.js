@@ -17,7 +17,7 @@ import DialogService from '../../Services/DialogService';
 
 export default (props) => {
   const [name, setName] = React.useState("");
-  const [address, setAddress] = React.useState("");
+  const [address, setAddress] = React.useState((props.address ||""));
   
 
   const form = React.useRef(null);
