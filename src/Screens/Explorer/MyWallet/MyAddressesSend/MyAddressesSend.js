@@ -25,6 +25,8 @@ import Transaction from '../../../../Classes/Transaction';
 
 import BlockchainServices from '../../../../Services/BlockchainServices';
 import MyWalletServices from '../../../../Services/MyWalletServices';
+import DialogService from '../../../../Services/DialogService';
+
 
 import coinSelect from '../../../../Scripts/coinselect/coinselect'; //https://github.com/bitcoinjs/coinselect
 import coinSelectUtils from '../../../../Scripts/coinselect/utils'; //https://github.com/bitcoinjs/coinselect
@@ -117,11 +119,12 @@ class MyAddressesSend extends React.Component {
   handleSendClick = () =>{
     this.refs.form.isFormValid(false).then(valid =>{
       if (valid) this.state.transaction.send().then(() =>{
-        alert("Transaction succesful");
+
+        DialogService.showMessage("Success", "Transaction succesful");
         this.state.transaction.clear();
       })
       .catch(() =>{
-        alert("Transaction failed");
+        DialogService.showMessage("Failed", "Transaction failed");
       })
       
     });

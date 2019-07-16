@@ -16,6 +16,7 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 
 import MyWalletServices from '../../Services/MyWalletServices';
+import DialogService from '../../Services/DialogService';
 
 export default  (props) => {
   const [file, setFile] = React.useState(null);
@@ -26,7 +27,7 @@ export default  (props) => {
   function handleImport() {
     
     if (file == null){
-      alert("Please select a file");
+      DialogService.showMessage("Error", "Please select a file");
       return;
     }
 

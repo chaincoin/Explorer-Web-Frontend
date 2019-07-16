@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 
 import MyWalletServices from '../Services/MyWalletServices';
 import FirebaseServices from '../Services/FirebaseServices';
+import DialogService from '../Services/DialogService';
 
 
 const styles = theme => ({
@@ -78,7 +79,7 @@ class AddressMenu extends React.Component {
     this.handleMenuClose();
     if (FirebaseServices.supported == false)
     {
-      alert("Your browser doesnt support Push Notifications, please try Chrome or Firefox")
+      DialogService.showMessage("Failed", "Your browser doesnt support Push Notifications, please try Chrome or Firefox");
       return;
     }
     FirebaseServices.saveAddressNotification(this.props.address).subscribe(); //TODO: handle error
@@ -94,7 +95,7 @@ class AddressMenu extends React.Component {
   handleMenuExportWif = () => {
     this.handleMenuClose();
 
-    alert(this.state.myAddress.WIF);
+    DialogService.showMessage("WIF", this.state.myAddress.WIF);
   };
 
   componentDidMount() {

@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 
 import MyWalletServices from '../Services/MyWalletServices';
 import FirebaseServices from '../Services/FirebaseServices';
-
+import DialogService from '../Services/DialogService';
 
 const styles = theme => ({
   root: {
@@ -106,7 +106,7 @@ class MasternodeMenu extends React.Component {
 
     if (FirebaseServices.supported == false)
     {
-      alert("Your browser doesnt support Push Notifications, please try Chrome or Firefox")
+      DialogService.showMessage("Failed", "Your browser doesnt support Push Notifications, please try Chrome or Firefox");
       return;
     }
 
