@@ -70,7 +70,7 @@ class ChaincoinExplorerNavBar extends React.Component {
     event.preventDefault();
 
     const { searchInput } = this.state;
-
+debugger;
     combineLatest(
       BlockchainServices.getBlock(searchInput)
       .pipe(
@@ -96,7 +96,7 @@ class ChaincoinExplorerNavBar extends React.Component {
         }),
         catchError(err => of(null))
       ), 
-      BlockchainServices.getMasternode(searchInput)
+      BlockchainServices.masternode(searchInput)
       .pipe(
         map((masternode) =>{
           if (masternode == null) throw new Error('Unabled to find masternode');  //TODO; need to fix api
@@ -108,7 +108,7 @@ class ChaincoinExplorerNavBar extends React.Component {
       first()
     )
     .subscribe(([block, transaction, address, masternode])=>{
-      if (block != null ) this.props.history.push('/Explorer/Block/' + block.height);
+      if (block != null ) this.props.history.push('/Explorer/Block/' + block.hash);
       else if (transaction != null ) this.props.history.push('/Explorer/Transcation/' + transaction.txid);
       else if (address != null ) this.props.history.push('/Explorer/Address/' + address.address);
       else if (masternode != null ) this.props.history.push('/Explorer/Masternode/' + searchInput);
