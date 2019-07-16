@@ -1,5 +1,6 @@
 import React from 'react';
 import { combineLatest } from 'rxjs';
+import { first } from 'rxjs/operators';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -9,6 +10,7 @@ import { Link } from "react-router-dom";
 
 import WatchAddressDialog from './Dialogs/WatchAddressDialog'
 
+import BlockchainServices from '../Services/BlockchainServices';
 import MyWalletServices from '../Services/MyWalletServices';
 import FirebaseServices from '../Services/FirebaseServices';
 import DialogService from '../Services/DialogService';
@@ -34,6 +36,13 @@ class AddressMenu extends React.Component {
 
   subscription = null
  
+
+  componentDidMount() {
+  }
+
+  componentWillUnmount = () => {
+    if (this.subscription != null) this.subscription.unsubscribe();
+  }
 
   handleMenuClick = (event) =>{
 
@@ -104,14 +113,53 @@ class AddressMenu extends React.Component {
     DialogService.showMessage("WIF", this.state.myAddress.WIF);
   };
 
-  componentDidMount() {
+  
+
+
+  handleExportTransactions = () =>{
+    debugger;
+    var pageSize = 100;
+
+    var getNext = (pos, fileData) => {
+        if (fileData == null) fileData = "Transaction, type, pos, Date Time, Amount, Payout\r\n";
+
+
+        return BlockchainServices.getAddressTxs(this.props.address, pos, pageSize > pos ? pos : pageSize).then(txs=> {
+            for (var i = 0; i < txs.length; i++) {
+                var timestamp = new Date(txs[i].time * 1000);
+
+
+                var rowData = txs[i].txid + "," + txs[i].type + "," + (txs[i].type == "vin" ? txs[i].vin : txs[i].vout) + "," + timestamp.toLocaleTimeString() + " " + timestamp.toLocaleDateString() + "," + txs[i].value + "," + (txs[i].payout || "") + "\r\n";
+                fileData = fileData + rowData;
+            }
+
+            if (pos > pageSize) return getNext(pos - pageSize, fileData);
+            else return fileData;
+        });
+    };
+
+
+    BlockchainServices.getAddress(this.props.address).pipe(first()).subscribe(_address =>{
+      return getNext(_address.txCount).then(fileData =>{
+          download(this.props.address + ".csv", fileData);
+      });
+    })
+
+    
+
+    function download(filename, text) {
+      var element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+      element.setAttribute('download', filename);
+
+      element.style.display = 'none';
+      document.body.appendChild(element);
+
+      element.click();
+
+      document.body.removeChild(element);
+    }
   }
-
-  componentWillUnmount = () => {
-    if (this.subscription != null) this.subscription.unsubscribe();
-  }
-
-
 
  
   render() {
@@ -151,7 +199,7 @@ class AddressMenu extends React.Component {
             <MenuItem onClick={this.handleMenuExportWif}>Export WIF</MenuItem> :
             ""
           }
-
+          <MenuItem onClick={this.handleExportTransactions}>Export Transactions</MenuItem>
           {this.props.children}
         </Menu>
       </div>
