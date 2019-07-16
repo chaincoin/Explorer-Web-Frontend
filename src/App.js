@@ -42,6 +42,8 @@ import NotFound from './Screens/NotFound'
 
 import Environment from './Services/Environment';
 
+import DialogContainer from './Components/DialogContainer'
+
 
 import liveFavicon from './images/icons/favicon-16x16-Live.png';
 import stagingFavicon from './images/icons/favicon-16x16-Staging.png';
@@ -189,6 +191,7 @@ const styles = theme => ({
         
         </div>
         <Footer/>
+        <DialogContainer/>
       </div>
     </Router>;
   }

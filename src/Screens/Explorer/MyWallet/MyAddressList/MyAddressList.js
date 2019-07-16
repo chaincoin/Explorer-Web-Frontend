@@ -15,16 +15,18 @@ import { Link } from "react-router-dom";
 
 
 
-import WatchAddress from './WatchAddress'
-import CreateAddress from './CreateAddress'
-import ImportWif from './ImportWif'
+
 
 import TablePaginationActions from '../../../../Components/TablePaginationActions';
 import AddressMenu from '../../../../Components/AddressMenu'
 
+import CreateAddressDialog from '../../../../Components/Dialogs/CreateMyAddressDialog';
+import WatchAddressDialog from '../../../../Components/Dialogs/WatchAddressDialog'
+import ImportWifDialog from '../../../../Components/Dialogs/ImportWifDialog';
+
 import BlockchainServices from '../../../../Services/BlockchainServices';
 import MyWalletServices from '../../../../Services/MyWalletServices';
-
+import DialogService from '../../../../Services/DialogService';
 
 
 const styles = theme => ({
@@ -111,9 +113,18 @@ class MyAddresses extends React.Component {
 
     return (
       <div>
-        <CreateAddress/>
-        <WatchAddress />
-        <ImportWif/>
+        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(CreateAddressDialog)}>
+          Create Address
+        </Button>
+
+
+        
+        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(WatchAddressDialog)}>
+          Watch Address
+        </Button>
+        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(ImportWifDialog)}>
+          Import WIF
+        </Button>
         
           <Paper>
             <div className={classes.tableWrapper}>

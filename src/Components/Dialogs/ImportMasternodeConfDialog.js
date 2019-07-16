@@ -15,21 +15,13 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 
-import MyWalletServices from '../../../../Services/MyWalletServices';
+import MyWalletServices from '../../Services/MyWalletServices';
 
-export default function FormDialog() {
-  const [open, setOpen] = React.useState(false);
+export default  (props) => {
   const [file, setFile] = React.useState(null);
   const [importResults, setImportResults] = React.useState(null);
 
-  function handleClickOpen() {
-    setOpen(true);
-  }
-
-  function handleClose() {
-    setOpen(false);
-  }
-
+  
 
   function handleImport() {
     
@@ -84,61 +76,56 @@ export default function FormDialog() {
   }
 
   return (
-    <React.Fragment>
-      <Button variant="contained" color="primary" onClick={handleClickOpen}>
-        Import Masternode.conf
-      </Button>
-      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Import Masternode.conf</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Please choose your masternode.conf to import into My Masternodes
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="name"
-            type="file"
-            fullWidth
-            onChange={e => setFile(e.target.files[0])}
-          />
+    <Dialog open={true} onClose={props.onClose} aria-labelledby="form-dialog-title">
+      <DialogTitle id="form-dialog-title">Import Masternode.conf</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Please choose your masternode.conf to import into My Masternodes
+        </DialogContentText>
+        <TextField
+          autoFocus
+          margin="dense"
+          id="name"
+          type="file"
+          fullWidth
+          onChange={e => setFile(e.target.files[0])}
+        />
 
-          {
-            importResults != null ? (<Paper>
-              Import Results
-              <Table>
-                <TableHead>
+        {
+          importResults != null ? (<Paper>
+            Import Results
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Line</TableCell>
+                  <TableCell>Result</TableCell>
+                  <TableCell>Message</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {importResults.map(row => (
                   <TableRow>
-                    <TableCell>Line</TableCell>
-                    <TableCell>Result</TableCell>
-                    <TableCell>Message</TableCell>
+                    <TableCell>{row.line}</TableCell>
+                    <TableCell>{row.result ? "complete" : "failed"}</TableCell>
+                    <TableCell>{row.message}</TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {importResults.map(row => (
-                    <TableRow>
-                      <TableCell>{row.line}</TableCell>
-                      <TableCell>{row.result ? "complete" : "failed"}</TableCell>
-                      <TableCell>{row.message}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Paper>)
-            : null
-          }
-          
+                ))}
+              </TableBody>
+            </Table>
+          </Paper>)
+          : null
+        }
+        
 
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleImport} color="primary">
-            Import
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </React.Fragment>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose} color="primary">
+          Cancel
+        </Button>
+        <Button onClick={handleImport} color="primary">
+          Import
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

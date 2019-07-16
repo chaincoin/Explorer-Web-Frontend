@@ -6,7 +6,7 @@ import Tab from '@material-ui/core/Tab';
 
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 
-import MyMasternodeList from './MyMasternodeList/MyMasternodeList';
+import MyMasternodeList from './MyMasternodeList';
 import MyMasternodesGraph from './MyMasternodesGraph';
 
 

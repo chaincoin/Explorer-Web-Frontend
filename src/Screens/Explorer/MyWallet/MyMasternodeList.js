@@ -14,17 +14,17 @@ import Button from '@material-ui/core/Button';
 
 import { Link } from "react-router-dom";
 
-import AddMasternode from './AddMasternode';
-import ImportMasternodeConf from './ImportMasternodeConf';
-
-import TablePaginationActions from '../../../../Components/TablePaginationActions';
-import MasternodeMenu from '../../../../Components/MasternodeMenu';
+import AddMyMasternodeDialog from '../../../Components/Dialogs/AddMyMasternodeDialog';
+import ImportMasternodeConfDialog from '../../../Components/Dialogs/ImportMasternodeConfDialog';
 
 
+import TablePaginationActions from '../../../Components/TablePaginationActions';
+import MasternodeMenu from '../../../Components/MasternodeMenu';
 
-import BlockchainServices from '../../../../Services/BlockchainServices';
-import MyWalletServices from '../../../../Services/MyWalletServices';
 
+import BlockchainServices from '../../../Services/BlockchainServices';
+import MyWalletServices from '../../../Services/MyWalletServices';
+import DialogService from '../../../Services/DialogService';
 
 const styles = theme => ({
   root: {
@@ -91,6 +91,15 @@ class MyMasternodes extends React.Component {
     return "";
   }
 
+
+  handleAddMasternode() {
+    ;
+  }
+
+  handleAddMasternode() {
+    DialogService.showDialog(AddMyMasternodeDialog);
+  }
+  ImportMasternodeConfDialog
  
   render() {
     const { classes } = this.props;
@@ -102,8 +111,15 @@ class MyMasternodes extends React.Component {
 
     return (
       <div>
-        <AddMasternode/>
-        <ImportMasternodeConf />
+        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(AddMyMasternodeDialog)}>
+          Add Masternode
+        </Button>
+
+        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(ImportMasternodeConfDialog)}>
+        Import Masternode.conf
+        </Button>
+
+
         <Paper>
           <div className={classes.tableWrapper}>
             <Table className={classes.table}>

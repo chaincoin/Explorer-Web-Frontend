@@ -7,21 +7,18 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
 import FormGroup from '@material-ui/core/FormGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 
-import { TextValidator, SelectValidator, ValidatorForm} from 'react-material-ui-form-validator';
-import Checkbox from '@material-ui/core/Checkbox';
-import MenuItem from '@material-ui/core/MenuItem';
+import { TextValidator, ValidatorForm} from 'react-material-ui-form-validator';
 
-import MyWalletServices from '../../../../Services/MyWalletServices';
-import BlockchainServices from '../../../../Services/BlockchainServices';
 
-export default function FormDialog() {
-  const [open, setOpen] = React.useState(false);
+import MyWalletServices from '../../Services/MyWalletServices';
+import BlockchainServices from '../../Services/BlockchainServices';
+import DialogService from '../../Services/DialogService';
+
+export default (props) => {
   const [name, setName] = React.useState("");
   const [address, setAddress] = React.useState("");
   
-  const [failedMessageOpen, setFailedMessageOpen] = React.useState(false);
 
   const form = React.useRef(null);
 
@@ -46,8 +43,8 @@ export default function FormDialog() {
       if (valid == false) return;
 
       MyWalletServices.addMyAddress(name,address)
-      .then(() => setOpen(false))
-      .catch(err => setFailedMessageOpen(true)); 
+      .then(props.onClose)
+      .catch(err => DialogService.showMessage("Failed", "Failed to watch address")); 
     });
   }
 
@@ -55,11 +52,7 @@ export default function FormDialog() {
   
 
   return (
-    <React.Fragment>
-      <Button variant="contained" color="primary" onClick={(e) => setOpen(true)}>
-      Watch Address
-      </Button>
-      <Dialog open={open} onClose={(e)=> setOpen(false)} aria-labelledby="form-dialog-title">
+    <Dialog open={true} onClose={props.onClose} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Watch Address</DialogTitle>
         <DialogContent>
 
@@ -85,7 +78,7 @@ export default function FormDialog() {
 
         </DialogContent>
         <DialogActions>
-          <Button onClick={(e)=> setOpen(false)} color="primary">
+          <Button onClick={props.onClose} color="primary">
             Cancel
           </Button>
           <Button onClick={handleWatch} color="primary">
@@ -93,24 +86,5 @@ export default function FormDialog() {
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog
-        open={failedMessageOpen}
-        onClose={(e) => setFailedMessageOpen(false)}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{"Watch Failed"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Failed to watch address
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={(e) => setFailedMessageOpen(false)} color="primary" autoFocus>
-            Okay
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </React.Fragment>
   );
 }
