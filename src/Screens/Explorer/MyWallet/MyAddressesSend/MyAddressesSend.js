@@ -120,7 +120,7 @@ class MyAddressesSend extends React.Component {
     this.refs.form.isFormValid(false).then(valid =>{
       if (valid) this.state.transaction.send().then(() =>{
 
-        DialogService.showMessage("Success", "Transaction succesful");
+        DialogService.showMessage("Success", "Transaction successful");
         this.state.transaction.clear();
       })
       .catch(() =>{

@@ -59,7 +59,7 @@ export default  (props) => {
           .then(() => resolve({
             line: index + 1,
             result: true,
-            message: "added succesfully"
+            message: "added successfully"
           }))
           .catch((err) => resolve({
             line: index + 1,
