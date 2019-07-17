@@ -130,7 +130,7 @@ class RichList extends React.Component {
                 <TableBody>
                   {rows.map(row => (
                     <TableRow key={row.id}>
-                      <TableCell component="th" scope="row"><Link to={"/Explorer/Address/" + row.address}>{row.address}</Link></TableCell>
+                      <TableCell component="th" scope="row"><Link to={"/Explorer/Address/" + row.address}>{row.label == null ? row.address : row.label + " " +  row.address}</Link></TableCell>
                       <TableCell>{TimeToString(row.lastActivity)}</TableCell>
                       <TableCell>{row.balance}</TableCell>
                       <TableCell><AddressMenu address={row.address} /></TableCell>

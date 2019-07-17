@@ -34,7 +34,7 @@ class AddressDetailsHeader extends React.Component {
     <div>
       <Card>
         <CardHeader>
-        Address: {address.address}
+        Address: {address.label == null ? address.address : address.label + " " +  address.address}
         <div className={classes.menuButton}>
           <AddressMenu address={address.address} hideViewAddress={true} />
         </div>
