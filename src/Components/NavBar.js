@@ -164,6 +164,11 @@ debugger;
                   Mem Pool
                   </DropdownItem>
                 </Link>
+                <Link to="/Explorer/ChainTips">
+                  <DropdownItem>
+                  Chain Tips
+                  </DropdownItem>
+                </Link>
               </DropdownMenu>
             </UncontrolledDropdown>
             <UncontrolledDropdown nav inNavbar>
