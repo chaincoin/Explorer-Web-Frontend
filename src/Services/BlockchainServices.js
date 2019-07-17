@@ -302,7 +302,18 @@ const BlockCount = DataService.webSocket.pipe(
     })
   );
   
-  
+  var chainTips = DataService.webSocket.pipe(
+    switchMap(webSocket => webSocket ?
+      DataService.subscription("ChainTips"):
+      interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
+        op: "getChainTips",
+      }))))
+    ),
+    shareReplay({
+      bufferSize: 1,
+      refCount: true
+    })
+  );
 
   var peerInfo = DataService.webSocket.pipe(
     switchMap(webSocket => webSocket ?
@@ -430,6 +441,7 @@ const BlockCount = DataService.webSocket.pipe(
     masternodeWinners,
 
     peerInfo,
+    chainTips,
 
     memPoolInfo,
     rawMemPool,
