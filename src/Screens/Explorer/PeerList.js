@@ -5,21 +5,15 @@ import Table from '@material-ui/core/Table';
 import TableHead from '@material-ui/core/TableHead';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
-import TableFooter from '@material-ui/core/TableFooter';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
 
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
-import { Link } from "react-router-dom";
-
 import TablePaginationActions from '../../Components/TablePaginationActions';
 
-import MasternodeMenu from '../../Components/MasternodeMenu'
 
 import BlockchainServices from '../../Services/BlockchainServices';
 import MyWalletServices from '../../Services/MyWalletServices';
@@ -42,6 +36,7 @@ const styles = theme => ({
 
 class PeerList extends React.Component {
   state = {
+    tab: 0,
     rows: [
      
     ],
@@ -85,7 +80,7 @@ class PeerList extends React.Component {
  
   render() {
     const { classes } = this.props;
-    const { rowsPerPage, page } = this.state;
+    const { rowsPerPage, page, tab } = this.state;
     var { rows } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
@@ -93,50 +88,81 @@ class PeerList extends React.Component {
     return (
       <Card>
         <CardHeader>
-          Peers
+          <Tabs value={tab} onChange={(event, tab) => this.setState({ tab })} variant="scrollable" scrollButtons="auto">
+            <Tab label="Peer List" classes={{ label: 'details-tab' }} />
+            <Tab label="Add Nodes" classes={{ label: 'details-tab' }} />
+          </Tabs>
         </CardHeader>
         <CardBody>
           <Paper>
-            <div className={classes.tableWrapper}>
-              <Table className={classes.table}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Address</TableCell>
-                    <TableCell>Connection Time</TableCell>
-                    <TableCell>Version</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowPos) => (
-                    <TableRow >
-                      <TableCell component="th" scope="row">{row.addr}</TableCell>
-                      <TableCell>{TimeToString(row.conntime)}</TableCell>
-                      <TableCell>{row.version}</TableCell>
-                    </TableRow>
-                  ))}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 48 * emptyRows }}>
-                      <TableCell colSpan={2} />
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            <TablePagination
-              labelRowsPerPage=""
-              rowsPerPageOptions={[]}
-              labelDisplayedRows={this.labelDisplayedRows}
-              colSpan={2}
-              count={rows.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              SelectProps={{
-                native: true,
-              }}
-              onChangePage={this.handleChangePage}
-              onChangeRowsPerPage={this.handleChangeRowsPerPage}
-              ActionsComponent={TablePaginationActions}
-            />
+
+            {tab == 0 ?(
+              <React.Fragment>
+                <div className={classes.tableWrapper}>
+                  <Table className={classes.table}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Address</TableCell>
+                        <TableCell>Connection Time</TableCell>
+                        <TableCell>Version</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowPos) => (
+                        <TableRow >
+                          <TableCell component="th" scope="row">{row.addr}</TableCell>
+                          <TableCell>{TimeToString(row.conntime)}</TableCell>
+                          <TableCell>{row.version}</TableCell>
+                        </TableRow>
+                      ))}
+                      {emptyRows > 0 && (
+                        <TableRow style={{ height: 48 * emptyRows }}>
+                          <TableCell colSpan={2} />
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                <TablePagination
+                  labelRowsPerPage=""
+                  rowsPerPageOptions={[]}
+                  labelDisplayedRows={this.labelDisplayedRows}
+                  colSpan={2}
+                  count={rows.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  SelectProps={{
+                    native: true,
+                  }}
+                  onChangePage={this.handleChangePage}
+                  onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                  ActionsComponent={TablePaginationActions}
+                />
+              </React.Fragment>
+            ): null}
+
+
+            {tab == 1 ?(
+              <React.Fragment>
+                <p>
+                  If your chaincoin has 0 connections then this can be copied into chaincoin.conf. <br/>
+                  Remeber to restart chaincoind to load changes to chaincoin.conf
+                </p>
+                
+                <div className={classes.tableWrapper}>
+                  <Table className={classes.table}>
+                    <TableBody>
+                      {rows.map((row) => (
+                        <TableRow >
+                          <TableCell component="th" scope="row">addnode={row.addr}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </React.Fragment>
+            ): null}
+            
           </Paper>
         </CardBody>
       </Card>
