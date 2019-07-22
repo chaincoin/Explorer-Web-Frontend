@@ -54,8 +54,9 @@ export default  (props) => {
         });
 
         var name = lineParts[0];
+        var privateKey = lineParts[2];
         var output = lineParts[3] + "-" + lineParts[4];
-        return new Promise((resolve) => MyWalletServices.addMyMasternode(name, output)
+        return new Promise((resolve) => MyWalletServices.addMyMasternode(name, output, privateKey)
           .then(() => resolve({
             line: index + 1,
             result: true,
