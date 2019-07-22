@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import AddMyMasternodeDialog from './Dialogs/AddMyMasternodeDialog'
 import WatchAddressDialog from './Dialogs/WatchAddressDialog'
 
+import BlockchainServices from '../Services/BlockchainServices';
 import MyWalletServices from '../Services/MyWalletServices';
 import FirebaseServices from '../Services/FirebaseServices';
 import DialogService from '../Services/DialogService';
@@ -23,7 +24,7 @@ const styles = theme => ({
 class MasternodeMenu extends React.Component {
   state = {
     menuAnchorEl: null,
-    addToMyMns: true,
+    myMn: null,
     addToMyAddresses: true,
     addMasternodeSubscription:true
   };
@@ -38,12 +39,10 @@ class MasternodeMenu extends React.Component {
     this.subscription = combineLatest(MyWalletServices.myMasternodes, MyWalletServices.myAddresses, FirebaseServices.MasternodeNotification(this.props.output)).subscribe(
       ([myMasternodes, myAddresses, masternodeSubscription]) =>{
 
-        var addToMyMns = true;
+        var myMn = null;
         if (myMasternodes != null)
         {
-          myMasternodes.forEach(myMn =>{
-            if (myMn.output == this.props.output) addToMyMns = false;
-          });
+          myMn = myMasternodes.find(myMn =>myMn.output == this.props.output);
         }
         
         var addToMyAddresses = true;
@@ -57,7 +56,7 @@ class MasternodeMenu extends React.Component {
 
         this.setState({
           menuAnchorEl: currentTarget,
-          addToMyMns: addToMyMns,
+          myMn: myMn,
           addToMyAddresses:addToMyAddresses,
           addMasternodeSubscription:masternodeSubscription == false
         });
@@ -71,6 +70,14 @@ class MasternodeMenu extends React.Component {
     this.setState({ menuAnchorEl: null });
   };
 
+
+  handleMenuStartMasternode = () =>{
+    debugger;
+    var keyPair = window.bitcoin.ECPair.fromWIF(this.state.myMn.privateKey, BlockchainServices.Chaincoin);
+
+    var s = keyPair.sign(window.bitcoin.crypto.sha256(new ArrayBuffer(8)));
+
+  }
   
   handleMenuAddToMyMNs = () => {
     this.handleMenuClose();
@@ -143,7 +150,7 @@ class MasternodeMenu extends React.Component {
  
   render() {
     const { classes, payee, output, hideViewMasternode } = this.props;
-    const { menuAnchorEl, addToMyMns, addToMyAddresses, addMasternodeSubscription } = this.state;
+    const { menuAnchorEl, myMn, addToMyAddresses, addMasternodeSubscription } = this.state;
 
     
 
@@ -165,7 +172,12 @@ class MasternodeMenu extends React.Component {
             <MenuItem  onClick={this.handleMenuClose}>View Address</MenuItem>
           </Link>
           {
-            addToMyMns == true?
+            myMn != null && myMn.privateKey != null?
+            <MenuItem onClick={this.handleMenuStartMasternode}>Start Masternode</MenuItem> :
+            null
+          }
+          {
+            myMn == null?
             <MenuItem onClick={this.handleMenuAddToMyMNs}>Add to My Masternodes</MenuItem> :
             <MenuItem onClick={this.handleMenuRemoveFromMyMns}>Remove from My Masternodes</MenuItem>
           }
