@@ -114,10 +114,11 @@ const myMasternodes = Observable.create(function(observer) {
   }));
 
 
-  var addMyMasternode = (name, output) =>{ 
+  var addMyMasternode = (name, output, privateKey) =>{ 
     return window.walletApi.createMasternode({
         name:name,
-        output: output
+        output: output,
+        privateKey: privateKey
     }).then(() => {
         broadcastEvent("myMasternodeAdded");
         myMasternodeAdded.next();
