@@ -427,6 +427,20 @@ var getBlockHash = (blockId) =>{ //TODO: This is a memory leak
     });
   };
 
+
+  var GenerateMasternodeBoardcastHashes = (masternodeBroadcastData) =>{
+    return DataService.sendRequest({
+      op: "GenerateMasternodeBoardcastHashes",
+      masternodeBroadcastData: masternodeBroadcastData
+    });
+  };
+
+  var SendMasternodeBoardcastHashes = (masternodeBroadcastData) =>{
+    return DataService.sendRequest({
+      op: "SendMasternodeBoardcast",
+      masternodeBroadcastData: masternodeBroadcastData
+    });
+  };
   
 
   var Chaincoin = {
@@ -488,5 +502,7 @@ var getBlockHash = (blockId) =>{ //TODO: This is a memory leak
 
     sendRawTransaction,
 
+    GenerateMasternodeBoardcastHashes,
+    SendMasternodeBoardcastHashes,
     Chaincoin
   }

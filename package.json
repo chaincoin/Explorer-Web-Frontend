@@ -20,7 +20,8 @@
     "react-router-dom": "^5.0.0",
     "react-scripts": "3.0.0",
     "reactstrap": "^8.0.0",
-    "rxjs": "^6.5.1"
+    "rxjs": "^6.5.1",
+    "secp256k1": "^3.7.1"
   },
   "scripts": {
     "start": "react-scripts start",

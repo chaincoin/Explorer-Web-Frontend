@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { combineLatest } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { combineLatest, from, of, throwError } from 'rxjs';
+import { switchMap, map, first, withLatestFrom  } from 'rxjs/operators';
 
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
@@ -10,6 +10,7 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import { Link } from "react-router-dom";
 
+import secp256k1 from "secp256k1";
 
 import AddMyMasternodeDialog from './Dialogs/AddMyMasternodeDialog'
 import WatchAddressDialog from './Dialogs/WatchAddressDialog'
@@ -19,9 +20,9 @@ import MyWalletServices from '../Services/MyWalletServices';
 import FirebaseServices from '../Services/FirebaseServices';
 import DialogService from '../Services/DialogService';
 
-import MasternodeBroadcastMessage from 'Z:\\Software\\Chaincoin\\Tools\\Chaincoin Client\\Messages\\MasternodeBroadcastMessage';
-import MasternodePingMessage from 'Z:\\Software\\Chaincoin\\Tools\\Chaincoin Client\\Messages\\MasternodePingMessage';
-import { first } from 'rxjs/operators';
+
+
+import Utils from 'Z:/Software/Chaincoin/Tools/Chaincoin Client/utils'
 
 const styles = theme => ({
   root: {
@@ -88,47 +89,69 @@ class MasternodeMenu extends React.Component {
       return buffer;
     }
 
+    var addressKeyPair = window.bitcoin.ECPair.fromWIF(this.state.myAddress.WIF, BlockchainServices.Chaincoin);
+    var mnKeyPair = window.bitcoin.ECPair.fromWIF(this.state.myMn.privateKey, BlockchainServices.Chaincoin);
+
+    var masternode = BlockchainServices.masternode(this.state.myMn.output).pipe(
+      switchMap(mn => mn != null? of(mn): throwError(new Error("Failed to find MN in masternode list")))
+    );
+
+
     BlockchainServices.blockCount.
     pipe(
       switchMap(blockCount => BlockchainServices.getBlockHash(blockCount - 12)),
-      first()
+      withLatestFrom(masternode),
+      first(),
+      map(([blockHash, masternode]) =>{
+
+        const colonPos = masternode.address.lastIndexOf(':');
+        const address = masternode.address.substring(0,colonPos);
+        const port = masternode.address.substring(colonPos + 1);
+
+        debugger;
+        return {
+          masternodeOutPoint: this.state.myMn.output,
+          addr: {address:address, port:parseInt(port)},
+          payee: masternode.payee,
+          pubKeyCollateralAddress:addressKeyPair.publicKey.toString("hex"),
+          pubKeyMasternode:mnKeyPair.publicKey.toString("hex"),
+          sig: null,
+          sigTime: Math.floor(new Date().getTime() / 1000),
+  
+          nProtocolVersion: 70015,
+          lastPing: {
+            blockHash: blockHash,
+            sigTime: Math.floor(new Date().getTime() / 1000),
+            vchSig: null,
+            fSentinelIsCurrent: true,
+            nSentinelVersion: 66304,
+            nDaemonVersion: 160400
+          }
+        }
+      }),
+      switchMap(masternodeBroadcastData => from(BlockchainServices.GenerateMasternodeBoardcastHashes(masternodeBroadcastData))
+      .pipe(
+          map(hashes =>{
+
+            const masternodePingSig = secp256k1.sign(Buffer.from(hashes.masternodePingHash,"hex"), mnKeyPair.privateKey);
+            const masternodeBroadcastSig = secp256k1.sign(Buffer.from(hashes.masternodeBroadcastHash,"hex"), addressKeyPair.privateKey);
+
+            masternodeBroadcastData.lastPing.vchSig = Utils.encodeSignature(masternodePingSig.signature, masternodePingSig.recovery,mnKeyPair.compressed).toString("hex");
+            masternodeBroadcastData.sig = Utils.encodeSignature(masternodeBroadcastSig.signature, masternodeBroadcastSig.recovery,addressKeyPair.compressed).toString("hex");
+
+            return masternodeBroadcastData;
+          })
+        )
+      ),
+      switchMap(masternodeBroadcastData => from(BlockchainServices.SendMasternodeBoardcastHashes(masternodeBroadcastData)))
     )
     .subscribe((blockHash) =>{
 debugger;
-      var addressKeyPair = window.bitcoin.ECPair.fromWIF(this.state.myAddress.WIF, BlockchainServices.Chaincoin);
-      var mnKeyPair = window.bitcoin.ECPair.fromWIF(this.state.myMn.privateKey, BlockchainServices.Chaincoin);
-
-      var output = this.state.myMn.output.split("-");
+      
 
 
-      var masternodeOutput = {txid: Buffer.from([...Buffer.from(output[0],"hex")].reverse()),vout: parseInt(output[1])};
-
-      var masternodePing = new MasternodePingMessage(
-        masternodeOutput,
-        Buffer.from([...Buffer.from(blockHash,"hex")].reverse()),
-        window.BigInt(Math.floor(new Date().getTime() / 1000)),
-        null,
-        true,
-        66304,
-        160400
-      );
-
-      masternodePing.sign(mnKeyPair);
-
-      var masternodeBroadcast = new MasternodeBroadcastMessage(
-        masternodeOutput,
-        {address:"[2a01:4f9:2b:20af:0:0:5:2]", port:11994},
-        payeeToBufffer("CV55x9mMa8tFDkTD3ykzn569G99znMqSHX"),
-        addressKeyPair.publicKey,
-        mnKeyPair.publicKey,
-        null,
-        window.BigInt(Math.floor(new Date().getTime() / 1000)),
-        70015,
-        masternodePing
-      );
-
-      masternodeBroadcast.sign(addressKeyPair);
-debugger;
+    },(error) =>{
+      DialogService.showMessage("Failed", "Oh no, something went wrong :(");
     })
 
 
