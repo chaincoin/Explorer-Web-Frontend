@@ -1,5 +1,8 @@
 import React from 'react';
+
 import { combineLatest } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -16,6 +19,10 @@ import MyWalletServices from '../Services/MyWalletServices';
 import FirebaseServices from '../Services/FirebaseServices';
 import DialogService from '../Services/DialogService';
 
+import MasternodeBroadcastMessage from 'Z:\\Software\\Chaincoin\\Tools\\Chaincoin Client\\Messages\\MasternodeBroadcastMessage';
+import MasternodePingMessage from 'Z:\\Software\\Chaincoin\\Tools\\Chaincoin Client\\Messages\\MasternodePingMessage';
+import { first } from 'rxjs/operators';
+
 const styles = theme => ({
   root: {
   }
@@ -25,7 +32,7 @@ class MasternodeMenu extends React.Component {
   state = {
     menuAnchorEl: null,
     myMn: null,
-    addToMyAddresses: true,
+    mnAddress: true,
     addMasternodeSubscription:true
   };
 
@@ -45,20 +52,18 @@ class MasternodeMenu extends React.Component {
           myMn = myMasternodes.find(myMn =>myMn.output == this.props.output);
         }
         
-        var addToMyAddresses = true;
+        var myAddress = null;
         if (myAddresses != null)
         {
-          myAddresses.forEach(myAddress =>{
-            if (myAddress.address == this.props.payee) addToMyAddresses = false;
-          });
+          myAddress = myAddresses.find(myAddress => myAddress.address == this.props.payee);
         }
         
 
         this.setState({
           menuAnchorEl: currentTarget,
           myMn: myMn,
-          addToMyAddresses:addToMyAddresses,
-          addMasternodeSubscription:masternodeSubscription == false
+          myAddress: myAddress,
+          addMasternodeSubscription: masternodeSubscription == false
         });
     });
     
@@ -73,10 +78,63 @@ class MasternodeMenu extends React.Component {
 
   handleMenuStartMasternode = () =>{
     debugger;
-    var keyPair = window.bitcoin.ECPair.fromWIF(this.state.myMn.privateKey, BlockchainServices.Chaincoin);
 
-    var s = keyPair.sign(window.bitcoin.crypto.sha256(new ArrayBuffer(8)));
+    var payeeToBufffer = (payee) =>{
+      var buffer = Buffer.alloc(payee.length);
+      for(var i = 0; i < payee.length; i++)
+      {
+        buffer[i] = payee.charCodeAt(i);
+      }
+      return buffer;
+    }
 
+    BlockchainServices.blockCount.
+    pipe(
+      switchMap(blockCount => BlockchainServices.getBlockHash(blockCount - 12)),
+      first()
+    )
+    .subscribe((blockHash) =>{
+debugger;
+      var addressKeyPair = window.bitcoin.ECPair.fromWIF(this.state.myAddress.WIF, BlockchainServices.Chaincoin);
+      var mnKeyPair = window.bitcoin.ECPair.fromWIF(this.state.myMn.privateKey, BlockchainServices.Chaincoin);
+
+      var output = this.state.myMn.output.split("-");
+
+
+      var masternodeOutput = {txid: Buffer.from([...Buffer.from(output[0],"hex")].reverse()),vout: parseInt(output[1])};
+
+      var masternodePing = new MasternodePingMessage(
+        masternodeOutput,
+        Buffer.from([...Buffer.from(blockHash,"hex")].reverse()),
+        window.BigInt(Math.floor(new Date().getTime() / 1000)),
+        null,
+        true,
+        66304,
+        160400
+      );
+
+      masternodePing.sign(mnKeyPair);
+
+      var masternodeBroadcast = new MasternodeBroadcastMessage(
+        masternodeOutput,
+        {address:"[2a01:4f9:2b:20af:0:0:5:2]", port:11994},
+        payeeToBufffer("CV55x9mMa8tFDkTD3ykzn569G99znMqSHX"),
+        addressKeyPair.publicKey,
+        mnKeyPair.publicKey,
+        null,
+        window.BigInt(Math.floor(new Date().getTime() / 1000)),
+        70015,
+        masternodePing
+      );
+
+      masternodeBroadcast.sign(addressKeyPair);
+debugger;
+    })
+
+
+    
+
+    
   }
   
   handleMenuAddToMyMNs = () => {
@@ -150,7 +208,7 @@ class MasternodeMenu extends React.Component {
  
   render() {
     const { classes, payee, output, hideViewMasternode } = this.props;
-    const { menuAnchorEl, myMn, addToMyAddresses, addMasternodeSubscription } = this.state;
+    const { menuAnchorEl, myMn, myAddress, addMasternodeSubscription } = this.state;
 
     
 
@@ -172,7 +230,7 @@ class MasternodeMenu extends React.Component {
             <MenuItem  onClick={this.handleMenuClose}>View Address</MenuItem>
           </Link>
           {
-            myMn != null && myMn.privateKey != null?
+            myMn != null && myMn.privateKey != null && myAddress != null && myAddress.WIF != null && myAddress.WIF != ""?
             <MenuItem onClick={this.handleMenuStartMasternode}>Start Masternode</MenuItem> :
             null
           }
@@ -182,7 +240,7 @@ class MasternodeMenu extends React.Component {
             <MenuItem onClick={this.handleMenuRemoveFromMyMns}>Remove from My Masternodes</MenuItem>
           }
           {
-            addToMyAddresses == true?
+            myAddress == null?
             <MenuItem onClick={this.handleMenuAddToMyAddresses}>Add to My Addresses</MenuItem> :
             <MenuItem onClick={this.handleMenuRemoveFromMyAddresses}>Remove from My Addresses</MenuItem>
           }

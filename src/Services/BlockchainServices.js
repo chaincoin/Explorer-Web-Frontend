@@ -18,6 +18,35 @@ const BlockCount = DataService.webSocket.pipe(
 );
 
 
+var blockHashObservables = {}
+
+var getBlockHash = (blockId) =>{ //TODO: This is a memory leak
+
+  var observable = blockHashObservables[blockId];
+  
+
+  if (observable == null){
+
+    observable = DataService.webSocket.pipe(
+      switchMap(webSocket => webSocket ?
+        DataService.subscription("BlockHash", {blockId:blockId}):
+        BlockCount.pipe(switchMap(blockCount => from(DataService.sendRequest({
+          op: "getBlockHash",
+          blockId: blockId
+        }))))
+      ),
+      shareReplay({
+        bufferSize: 1,
+        refCount: true
+      })
+    );
+
+    blockHashObservables[blockId] = observable;
+  } 
+
+  return observable;
+}
+
   var blockObservables = {}
 
   var getBlock = (hash) =>{ //TODO: This is a memory leak
@@ -428,6 +457,7 @@ const BlockCount = DataService.webSocket.pipe(
 
   export default { 
     blockCount: BlockCount, 
+    getBlockHash: getBlockHash,
     getBlock: getBlock,
     getBlocks,
     getTransaction:getTransaction,

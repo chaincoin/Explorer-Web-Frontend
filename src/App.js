@@ -75,6 +75,7 @@ import stagingAppleTouchIcon120 from './images/icons/apple-icon-120x120-Staging.
 import testAppleTouchIcon120 from './images/icons/apple-icon-120x120-Test.png';
 
 
+
 ES6Promise.polyfill();
 
 const styles = theme => ({
