@@ -70,7 +70,7 @@ class ChaincoinExplorerNavBar extends React.Component {
     event.preventDefault();
 
     const { searchInput } = this.state;
-debugger;
+
     combineLatest(
       BlockchainServices.getBlock(searchInput)
       .pipe(

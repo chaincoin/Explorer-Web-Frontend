@@ -97,7 +97,7 @@ const styles = theme => ({
     ValidatorForm.addValidationRule('isChaincoinOutput', (output) => /^[a-fA-F0-9]{64}-[0-9]{1,8}$/.test(output));
 
     ValidatorForm.addValidationRule('isWifValid', (wif) => {
-      debugger;
+
       if ((wif || "") == "") return true;
       try{
         var keyPair = window.bitcoin.ECPair.fromWIF(wif, BlockchainServices.Chaincoin); 

@@ -182,6 +182,25 @@ var walletApi = null;
 				});
 			});
 		},
+		updateMasternode:function(request){
+			return dbPromise.then(function(db){
+				return new Promise(function(resolve, reject) {
+			
+					var dbRequest = db.transaction("masternodes", "readwrite").objectStore("masternodes").put({
+						name: request.name,
+						output:request.output,
+						privateKey:request.privateKey
+					});
+					
+					dbRequest.onsuccess = function(event) {
+						resolve();
+					};
+					dbRequest.onerror = function(event) {
+						reject();
+					};
+				});
+			});
+		},
 		listMasternodes: function(request){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {

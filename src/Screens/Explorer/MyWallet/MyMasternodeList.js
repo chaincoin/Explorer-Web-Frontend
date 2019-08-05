@@ -14,7 +14,7 @@ import Button from '@material-ui/core/Button';
 
 import { Link } from "react-router-dom";
 
-import AddMyMasternodeDialog from '../../../Components/Dialogs/AddMyMasternodeDialog';
+import AddMyMasternodeDialog from '../../../Components/Dialogs/MyMasternodeDialog';
 import ImportMasternodeConfDialog from '../../../Components/Dialogs/ImportMasternodeConfDialog';
 
 

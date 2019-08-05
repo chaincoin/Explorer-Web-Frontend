@@ -7,6 +7,7 @@ import BlockchainServices from './BlockchainServices'
 
 
 const myMasternodeAdded = new Subject();
+const myMasternodeUpdated = new Subject();
 const myMasternodeDeleted = new Subject();
 
 const myAddressAdded = new Subject();
@@ -87,7 +88,7 @@ const myMasternodes = Observable.create(function(observer) {
         window.walletApi.listMasternodes()
         .then(data =>{
 
-            if (_data == null || _data.length != data.length)
+            if (_data == null || JSON.stringify(_data) != JSON.stringify(data)) 
             {
                 _data = data;
                 observer.next(data)
@@ -97,6 +98,7 @@ const myMasternodes = Observable.create(function(observer) {
     };
 
     var myMasternodeAddedSubscription = myMasternodeAdded.subscribe(listMasternodes);
+    var myMasternodeUpdatedSubscription = myMasternodeUpdated.subscribe(listMasternodes);
     var myMasternodeDeletedSubscription = myMasternodeDeleted.subscribe(listMasternodes);
 
     var intervalId = setInterval(listMasternodes, 30000);
@@ -105,6 +107,7 @@ const myMasternodes = Observable.create(function(observer) {
     return () => {
         clearInterval(intervalId);
         myMasternodeAddedSubscription.unsubscribe();
+        myMasternodeUpdatedSubscription.unsubscribe();
         myMasternodeDeletedSubscription.unsubscribe();
     }
   
@@ -113,6 +116,9 @@ const myMasternodes = Observable.create(function(observer) {
     refCount: true
   }));
 
+  var myMasternode = (output) =>{
+    return myMasternodes.pipe(map(myMns => myMns.find(myMn => myMn.output == output)));  //TODO: this needs to be smarter now
+  }
 
   var addMyMasternode = (name, output, privateKey) =>{ 
     return window.walletApi.createMasternode({
@@ -122,6 +128,17 @@ const myMasternodes = Observable.create(function(observer) {
     }).then(() => {
         broadcastEvent("myMasternodeAdded");
         myMasternodeAdded.next();
+    });
+  }
+
+  var UpdateMyMasternode = (name, output, privateKey) =>{ 
+    return window.walletApi.updateMasternode({
+        name:name,
+        output: output,
+        privateKey: privateKey
+    }).then(() => {
+        broadcastEvent("myMasternodeUpdated");
+        myMasternodeUpdated.next();
     });
   }
 
@@ -252,7 +269,9 @@ export default {
     deleteMyAddress,
 
     myMasternodes,
+    myMasternode,
     addMyMasternode,
+    UpdateMyMasternode,
     deleteMyMasternode,
 
 
@@ -280,6 +299,7 @@ var broadcastEvent = (event) =>{
 window.addEventListener('storage', function(e) {
 
     if(e.key == "myMasternodeAdded") myMasternodeAdded.next();
+    else if(e.key == "myMasternodeUpdated") myMasternodeUpdated.next();
     else if(e.key == "myMasternodeDeleted") myMasternodeDeleted.next();
     else if(e.key == "myAddressAdded") myAddressAdded.next()
     else if(e.key == "myAddressDeleted") myAddressDeleted.next()

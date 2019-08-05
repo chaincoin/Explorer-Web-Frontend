@@ -83,7 +83,7 @@ class AddressMenu extends React.Component {
 
     DialogService.showConfirmation("Remove My Address", this.state.myAddress.WIF == null ? "Are you sure?" : "Are you sure? the private key can not be recovered")
     .subscribe((result) =>{
-      debugger;
+
       if (result == true) MyWalletServices.deleteMyAddress(this.props.address);
     });
 
@@ -117,7 +117,7 @@ class AddressMenu extends React.Component {
 
 
   handleExportTransactions = () =>{
-    debugger;
+
     var pageSize = 100;
 
     var getNext = (pos, fileData) => {

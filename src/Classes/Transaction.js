@@ -248,7 +248,7 @@ class Transaction { //TODO: think this could be better but will do for now
                 inputs.forEach(input => {
                     if (input.myAddress.address.startsWith(BlockchainServices.Chaincoin.bech32))
                     {
-                        debugger;
+
                         var keyPair = window.bitcoin.ECPair.fromWIF(input.myAddress.WIF, BlockchainServices.Chaincoin);
                         const p2wpkh = window.bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin })
                         txb.addInput(input.unspent.txid, input.unspent.vout, null, p2wpkh.output); 

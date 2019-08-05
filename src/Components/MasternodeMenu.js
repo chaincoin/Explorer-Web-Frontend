@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 
 import secp256k1 from "secp256k1";
 
-import AddMyMasternodeDialog from './Dialogs/AddMyMasternodeDialog'
+import MyMasternodeDialog from './Dialogs/MyMasternodeDialog'
 import WatchAddressDialog from './Dialogs/WatchAddressDialog'
 
 import BlockchainServices from '../Services/BlockchainServices';
@@ -78,7 +78,7 @@ class MasternodeMenu extends React.Component {
 
 
   handleMenuStartMasternode = () =>{
-    debugger;
+
 
     var payeeToBufffer = (payee) =>{
       var buffer = Buffer.alloc(payee.length);
@@ -108,7 +108,6 @@ class MasternodeMenu extends React.Component {
         const address = masternode.address.substring(0,colonPos);
         const port = masternode.address.substring(colonPos + 1);
 
-        debugger;
         return {
           masternodeOutPoint: this.state.myMn.output,
           addr: {address:address, port:parseInt(port)},
@@ -146,24 +145,18 @@ class MasternodeMenu extends React.Component {
       switchMap(masternodeBroadcastData => from(BlockchainServices.SendMasternodeBoardcastHashes(masternodeBroadcastData)))
     )
     .subscribe((blockHash) =>{
-debugger;
-      
-
-
+      DialogService.showMessage("Success", "Masternode Start successfully broadcasted");
+      this.handleMenuClose();
     },(error) =>{
       DialogService.showMessage("Failed", "Oh no, something went wrong :(");
-    })
-
-
-    
-
-    
+      this.handleMenuClose();
+    })    
   }
   
   handleMenuAddToMyMNs = () => {
     this.handleMenuClose();
 
-    DialogService.showDialog(AddMyMasternodeDialog,{
+    DialogService.showDialog(MyMasternodeDialog,{
       output: this.props.output
     });
   };
@@ -173,7 +166,7 @@ debugger;
 
     DialogService.showConfirmation("Remove My Masternode", "Are you sure?")
     .subscribe((result) =>{
-      debugger;
+
       if (result == true) MyWalletServices.deleteMyMasternode(this.props.output);
     });
   };
@@ -192,7 +185,7 @@ debugger;
 
     DialogService.showConfirmation("Remove My Address", "Are you sure?") //TODO: this could be smart and say if we have the private key stored for this address
     .subscribe((result) =>{
-      debugger;
+
       if (result == true) MyWalletServices.deleteMyAddress(this.props.payee);
     });
   };
@@ -208,6 +201,13 @@ debugger;
     }
 
     FirebaseServices.saveMasternodeNotification(this.props.output).subscribe(); //TODO: handle error
+  };
+
+  handleMenuEditMyMn = () => {
+    this.handleMenuClose();
+
+    DialogService.showDialog(MyMasternodeDialog,{ output: this.props.output});
+
   };
 
   handleMenuRemoveMasternodeSubscription = () => {
@@ -241,6 +241,7 @@ debugger;
           Menu
         </Button>
         <Menu id="simple-menu" anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={this.handleMenuClose} >
+          {this.props.children}
           {
             hideViewMasternode == true ?
             "" :
@@ -260,7 +261,8 @@ debugger;
           {
             myMn == null?
             <MenuItem onClick={this.handleMenuAddToMyMNs}>Add to My Masternodes</MenuItem> :
-            <MenuItem onClick={this.handleMenuRemoveFromMyMns}>Remove from My Masternodes</MenuItem>
+            [<MenuItem onClick={this.handleMenuEditMyMn}>Edit My Masternodes</MenuItem>,
+            <MenuItem onClick={this.handleMenuRemoveFromMyMns}>Remove from My Masternodes</MenuItem>]
           }
           {
             myAddress == null?
@@ -272,7 +274,7 @@ debugger;
             <MenuItem onClick={this.handleMenuAddMasternodeSubscription}>Add Masternode Subscription</MenuItem> :
             <MenuItem onClick={this.handleMenuRemoveMasternodeSubscription}>Remove Masternode Subscription</MenuItem>
           }
-          {this.props.children}
+          
         </Menu>
       </div>
       
