@@ -8,7 +8,9 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import { Link } from "react-router-dom";
 
-import WatchAddressDialog from './Dialogs/WatchAddressDialog'
+import MyAddressDialog from './Dialogs/MyAddressDialog'
+
+
 
 import BlockchainServices from '../Services/BlockchainServices';
 import MyWalletServices from '../Services/MyWalletServices';
@@ -72,10 +74,16 @@ class AddressMenu extends React.Component {
   handleMenuAddToMyAddresses = () => {
     this.handleMenuClose();
 
-    DialogService.showDialog(WatchAddressDialog,{
+    DialogService.showDialog(MyAddressDialog,{
       address: this.props.address
     });
   };
+
+  handleMenuEditMyAddress = () => {
+    this.handleMenuClose();
+
+    DialogService.showDialog(MyAddressDialog,{ address: this.props.address});
+  }
 
   handleMenuRemoveFromMyAddresses = () => {
     this.handleMenuClose();
@@ -186,7 +194,9 @@ class AddressMenu extends React.Component {
           {
             myAddress == null?
             <MenuItem onClick={this.handleMenuAddToMyAddresses}>Add to My Addresses</MenuItem> :
-            <MenuItem onClick={this.handleMenuRemoveFromMyAddresses}>Remove from My Addresses</MenuItem>
+            [<MenuItem onClick={this.handleMenuEditMyAddress}>Edit My Address</MenuItem>,
+              <MenuItem onClick={this.handleMenuRemoveFromMyAddresses}>Remove from My Addresses</MenuItem>]
+            
           }
           {
             addAddressSubscription == true?

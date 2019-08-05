@@ -13,7 +13,7 @@ import { Link } from "react-router-dom";
 import secp256k1 from "secp256k1";
 
 import MyMasternodeDialog from './Dialogs/MyMasternodeDialog'
-import WatchAddressDialog from './Dialogs/WatchAddressDialog'
+import MyAddressDialog from './Dialogs/MyAddressDialog'
 
 import BlockchainServices from '../Services/BlockchainServices';
 import MyWalletServices from '../Services/MyWalletServices';
@@ -161,6 +161,13 @@ class MasternodeMenu extends React.Component {
     });
   };
 
+  handleMenuEditMyMn = () => {
+    this.handleMenuClose();
+
+    DialogService.showDialog(MyMasternodeDialog,{ output: this.props.output});
+
+  };
+
   handleMenuRemoveFromMyMns = () => {
     this.handleMenuClose();
 
@@ -174,7 +181,7 @@ class MasternodeMenu extends React.Component {
   handleMenuAddToMyAddresses = () => {
     this.handleMenuClose();
     
-    DialogService.showDialog(WatchAddressDialog,{
+    DialogService.showDialog(MyAddressDialog,{
       address: this.props.payee
     });
   };
@@ -203,12 +210,7 @@ class MasternodeMenu extends React.Component {
     FirebaseServices.saveMasternodeNotification(this.props.output).subscribe(); //TODO: handle error
   };
 
-  handleMenuEditMyMn = () => {
-    this.handleMenuClose();
 
-    DialogService.showDialog(MyMasternodeDialog,{ output: this.props.output});
-
-  };
 
   handleMenuRemoveMasternodeSubscription = () => {
     this.handleMenuClose();

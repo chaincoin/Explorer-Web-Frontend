@@ -149,6 +149,25 @@ var walletApi = null;
 				});
 			});
 		},
+		updateAddress:function(request){
+			return dbPromise.then(function(db){
+				return new Promise(function(resolve, reject) {
+			
+					var dbRequest = db.transaction("addresses", "readwrite").objectStore("addresses").put({
+						name: request.name,
+						address: request.address,
+						WIF:request.WIF
+					});
+					
+					dbRequest.onsuccess = function(event) {
+						resolve();
+					};
+					dbRequest.onerror = function(event) {
+						reject();
+					};
+				});
+			});
+		},
 		deleteAddress: function(request){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {

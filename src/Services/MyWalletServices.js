@@ -11,6 +11,7 @@ const myMasternodeUpdated = new Subject();
 const myMasternodeDeleted = new Subject();
 
 const myAddressAdded = new Subject();
+const myAddressUpdated = new Subject();
 const myAddressDeleted = new Subject();
 
 const inputLockStateAdded = new Subject();
@@ -28,7 +29,7 @@ const myAddresses = Observable.create(function(observer) {
 
         window.walletApi.listAddresses().then(data =>{
   
-            if (_data == null || _data.length != data.length)
+            if (_data == null || JSON.stringify(_data) != JSON.stringify(data))
             {
                 _data = data;
                 observer.next(data)
@@ -38,6 +39,8 @@ const myAddresses = Observable.create(function(observer) {
     };
 
     var myAddressAddedSubscription = myAddressAdded.subscribe(listAddresses);
+    var myAddressUpdatedSubscription = myAddressUpdated.subscribe(listAddresses);
+    
     var myAddressDeletedSubscription = myAddressDeleted.subscribe(listAddresses);
 
     var intervalId = setInterval(listAddresses, 30000);
@@ -46,6 +49,7 @@ const myAddresses = Observable.create(function(observer) {
     return () => {
         clearInterval(intervalId);
         myAddressAddedSubscription.unsubscribe();
+        myAddressUpdatedSubscription.unsubscribe();
         myAddressDeletedSubscription.unsubscribe();
     }
   
@@ -53,6 +57,10 @@ const myAddresses = Observable.create(function(observer) {
     bufferSize: 1,
     refCount: true
   }));
+
+  const myAddress = (address) =>{
+    return myAddresses.pipe(map(myAddresses => myAddresses.find(myMn => myMn.address == address)));  //TODO: this needs to be smarter now
+  }
 
 
   var addMyAddress = (name, address, WIF) =>{ 
@@ -64,6 +72,18 @@ const myAddresses = Observable.create(function(observer) {
     }).then(() => {
         broadcastEvent("myAddressAdded");
         myAddressAdded.next();
+    });
+  }
+
+  var updateMyAddress = (name, address, WIF) =>{ 
+
+    return window.walletApi.updateAddress({
+        name:name,
+        address: address,
+        WIF:WIF
+    }).then(() => {
+        broadcastEvent("myAddressUpdated");
+        myAddressUpdated.next();
     });
   }
 
@@ -265,7 +285,9 @@ const myMasternodes = Observable.create(function(observer) {
 
 export default {
     myAddresses,
+    myAddress,
     addMyAddress,
+    updateMyAddress,
     deleteMyAddress,
 
     myMasternodes,
@@ -301,9 +323,10 @@ window.addEventListener('storage', function(e) {
     if(e.key == "myMasternodeAdded") myMasternodeAdded.next();
     else if(e.key == "myMasternodeUpdated") myMasternodeUpdated.next();
     else if(e.key == "myMasternodeDeleted") myMasternodeDeleted.next();
-    else if(e.key == "myAddressAdded") myAddressAdded.next()
-    else if(e.key == "myAddressDeleted") myAddressDeleted.next()
-    else if(e.key == "inputLockStateAdded") inputLockStateAdded.next()
-    else if(e.key == "inputLockStateUpdated") inputLockStateUpdated.next()
-    else if(e.key == "inputLockStateDeleted") inputLockStateDeleted.next()
+    else if(e.key == "myAddressAdded") myAddressAdded.next();
+    else if(e.key == "myAddressUpdated") myAddressUpdated.next();
+    else if(e.key == "myAddressDeleted") myAddressDeleted.next();
+    else if(e.key == "inputLockStateAdded") inputLockStateAdded.next();
+    else if(e.key == "inputLockStateUpdated") inputLockStateUpdated.next();
+    else if(e.key == "inputLockStateDeleted") inputLockStateDeleted.next();
 });

@@ -94,6 +94,15 @@ const styles = theme => ({
 
   componentDidMount() {
 
+    ValidatorForm.addValidationRule('isChaincoinAddress', (address) => {
+      try {
+        window.bitcoin.address.toOutputScript(address,BlockchainServices.Chaincoin)
+        return true
+      } catch (e) {
+        return false
+      }
+    });
+    
     ValidatorForm.addValidationRule('isChaincoinOutput', (output) => /^[a-fA-F0-9]{64}-[0-9]{1,8}$/.test(output));
 
     ValidatorForm.addValidationRule('isWifValid', (wif) => {
