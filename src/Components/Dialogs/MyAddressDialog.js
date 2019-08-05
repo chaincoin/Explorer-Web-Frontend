@@ -45,7 +45,7 @@ export default (props) => {
     form.current.isFormValid(false).then(valid =>{
       if (valid == false) return;//TODO: need to make sure the WIF is correct for this address
 
-      MyWalletServices.updateMyAddress(name,address)
+      MyWalletServices.updateMyAddress(name,address,wif)
       .then(props.onClose)
       .catch(err => DialogService.showMessage("Failed", "Failed to update My Address"));
 
