@@ -35,24 +35,9 @@ export default (props) => {
 
 
   React.useEffect(() => {
-    console.log('mounted');
 
-    ValidatorForm.addValidationRule('isWifValid', (wif, arg2) => {
-      debugger;
-      console.log(arg2)
-      try{
-        var keyPair = window.bitcoin.ECPair.fromWIF(wif, BlockchainServices.Chaincoin); 
-        return true;
-      }
-      catch(ex){
-        return false;
-      }
-    });
 
     return () => {
-
-      //debugger
-      //ValidatorForm.removeValidationRule('isWifValid');
     };
   }, []);
 
