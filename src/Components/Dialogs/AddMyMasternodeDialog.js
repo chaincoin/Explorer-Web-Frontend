@@ -12,16 +12,18 @@ import { TextValidator, ValidatorForm} from 'react-material-ui-form-validator';
 import MyWalletServices from '../../Services/MyWalletServices';
 import DialogService from '../../Services/DialogService';
 
+
 export default (props) => {
   const [name, setName] = React.useState("");
   const [output, setOutput] = React.useState((props.output ||""));
+  const [privateKey, setPrivateKey] = React.useState();
 
   const form = React.useRef(null);
 
 
   React.useEffect(() => {
 
-    ValidatorForm.addValidationRule('isChaincoinOutput', (output) => /^[a-fA-F0-9]{64}-[0-9]{1,8}$/.test(output));
+    
 
   }, []);
 
@@ -63,6 +65,13 @@ export default (props) => {
               value={output}
               validators={['required', 'isChaincoinOutput']}
               errorMessages={['required',"Invalid"]}
+            />
+             <TextValidator
+              label="Masternode Private Key"
+              onChange={(e) => setPrivateKey(e.target.value)}
+              value={privateKey}
+              validators={['isWifValid']}
+              errorMessages={["Invalid"]}
             />
           </FormGroup>
         </ValidatorForm>
