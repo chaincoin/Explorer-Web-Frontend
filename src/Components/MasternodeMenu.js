@@ -263,7 +263,7 @@ class MasternodeMenu extends React.Component {
           {
             myMn == null?
             <MenuItem onClick={this.handleMenuAddToMyMNs}>Add to My Masternodes</MenuItem> :
-            [<MenuItem onClick={this.handleMenuEditMyMn}>Edit My Masternodes</MenuItem>,
+            [<MenuItem onClick={this.handleMenuEditMyMn}>Edit My Masternode</MenuItem>,
             <MenuItem onClick={this.handleMenuRemoveFromMyMns}>Remove from My Masternodes</MenuItem>]
           }
           {
