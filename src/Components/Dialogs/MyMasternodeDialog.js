@@ -46,6 +46,8 @@ export default (props) => {
     form.current.isFormValid(false).then(valid =>{
       if (valid == false) return;
 
+      //TODO: need to make sure the private key is correct for this MN
+
       if (editing)
       {
 
