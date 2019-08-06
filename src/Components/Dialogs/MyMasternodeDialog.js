@@ -51,7 +51,7 @@ export default (props) => {
       if (editing)
       {
 
-        MyWalletServices.UpdateMyMasternode(name, output)
+        MyWalletServices.UpdateMyMasternode(name, output, privateKey)
         .then(() => props.onClose())
         .catch(err => {
           DialogService.showMessage("Failed","Failed to update My Mn")
@@ -59,7 +59,7 @@ export default (props) => {
       }
       else
       {
-        MyWalletServices.addMyMasternode(name, output)
+        MyWalletServices.addMyMasternode(name, output, privateKey)
         .then(() => props.onClose())
         .catch(err => {
           DialogService.showMessage("Failed","Failed to add My Mn")
