@@ -1,13 +1,16 @@
 import crypto from 'crypto';
 
-import { Observable, Subject, combineLatest,  } from 'rxjs';
-import { shareReplay, switchMap, map } from 'rxjs/operators';
+import { Observable, Subject, BehaviorSubject, combineLatest, throwError, of } from 'rxjs';
+import { shareReplay, switchMap, map, first } from 'rxjs/operators';
 
 
 import bigDecimal from 'js-big-decimal';
 import BlockchainServices from './BlockchainServices'
 
 const cryptoAlgorithm = 'aes-256-ctr'
+
+const isWalletEncrypted = new BehaviorSubject(window.walletApi.isWalletEncrypted());
+
 
 const myMasternodeAdded = new Subject();
 const myMasternodeUpdated = new Subject();
@@ -286,10 +289,6 @@ const myMasternodes = Observable.create(function(observer) {
 );
 
 
-const isWalletEncrypted = () =>{
-  const walletPasswordVerification = window.localStorage["walletPasswordVerification"];
-  return walletPasswordVerification != null  && walletPasswordVerification != "";
-}
 
 
 
@@ -300,7 +299,7 @@ const checkWalletPassword = (password) =>{
     const decrypted = decrypt(password, walletPasswordVerification);
     const hash = window.bitcoin.crypto.sha256(Buffer.from(password, 'utf8'))
 
-    return decrypted == hash;
+    return decrypted == hash.toString("hex");
   }
   catch(ex)
   {
@@ -308,8 +307,39 @@ const checkWalletPassword = (password) =>{
   }
 }
 
+
+
 const setWalletPassword = (newPassword) =>{
 
+  return isWalletEncrypted.pipe(
+    first(),
+    switchMap(walletEncrypted =>{
+      if (walletEncrypted) return throwError("Wallet password already set");
+
+      const hash = window.bitcoin.crypto.sha256(Buffer.from(newPassword, 'utf8'));
+      const walletPasswordVerification = encrypt(newPassword, hash.toString("hex"));
+
+      window.localStorage["walletPasswordVerification"] = walletPasswordVerification;
+      isWalletEncrypted.next(true);
+      return of(true);
+    })
+  );
+  
+}
+
+const removeWalletPassword = (password) =>{
+  debugger
+  return isWalletEncrypted.pipe(
+    first(),
+    switchMap(walletEncrypted =>{
+      if (walletEncrypted == false) return throwError("Wallet password not set");
+      if (checkWalletPassword(password) == false) return throwError("Wallet password incorrect");
+
+      window.localStorage["walletPasswordVerification"] = "";
+      isWalletEncrypted.next(false);
+      return of(true);
+    })
+  );
 }
 
 const changeWalletPassword = (oldPassword, newPassword) =>{
@@ -361,6 +391,7 @@ export default {
     checkWalletPassword,
     setWalletPassword,
     changeWalletPassword,
+    removeWalletPassword,
     encrypt,
     decrypt
 }
