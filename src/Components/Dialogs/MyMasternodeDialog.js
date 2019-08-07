@@ -54,7 +54,7 @@ export default (props) => {
         MyWalletServices.UpdateMyMasternode(name, output, privateKey)
         .then(() => props.onClose())
         .catch(err => {
-          DialogService.showMessage("Failed","Failed to update My Mn")
+          DialogService.showMessage("Failed","Failed to update My Mn").subscribe()
         }); 
       }
       else
@@ -62,7 +62,7 @@ export default (props) => {
         MyWalletServices.addMyMasternode(name, output, privateKey)
         .then(() => props.onClose())
         .catch(err => {
-          DialogService.showMessage("Failed","Failed to add My Mn")
+          DialogService.showMessage("Failed","Failed to add My Mn").subscribe()
         }); 
       }
       
