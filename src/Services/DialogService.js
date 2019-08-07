@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BehaviorSubject, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 import MessageDialog from '../Components/Dialogs/MessageDialog'
 import ConfirmationDialog from '../Components/Dialogs/ConfirmationDialog'
@@ -14,51 +14,74 @@ const dialogsSubject = new BehaviorSubject([]);
 
 const showDialog = (Component,args) =>{
 
-    var dialog = {
-        jsx: (<Component onClose={e => removeDialog(dialog, e)} {...args}/>),
-        subject: new ReplaySubject(1)
-    }
-    
-    dialogsSubject.next(dialogsSubject._value.concat([dialog]));
+    return Observable.create(function(observer) {
 
-    return dialog.subject;
+        var dialog = {
+            jsx: (<Component onClose={e => dialogComplete(dialog, e)} {...args}/>),
+            observer: observer
+        }
+
+        dialogsSubject.next(dialogsSubject._value.concat([dialog]));
+
+        return () =>{
+            removeDialog(dialog)
+        }
+    })
 }
 
 const showMessage = (title, message) =>{
 
-    var dialog = {
-        jsx: (<MessageDialog title={title} message={message} onClose={e => removeDialog(dialog, e)}/>),
-        subject: new ReplaySubject(1)
-    }
     
-    dialogsSubject.next(dialogsSubject._value.concat([dialog]));
 
-    return dialog.subject;
+    return Observable.create(function(observer) {
+
+        var dialog = {
+            jsx: (<MessageDialog title={title} message={message} onClose={e => dialogComplete(dialog, e)}/>),
+            observer: observer
+        }
+
+        dialogsSubject.next(dialogsSubject._value.concat([dialog]));
+
+        return () =>{
+            removeDialog(dialog)
+        }
+    })
 }
 
 const showConfirmation = (title, message) =>{
 
-    var dialog = {
-        jsx: (<ConfirmationDialog title={title} message={message} onClose={e => removeDialog(dialog, e)}/>),
-        subject: new ReplaySubject(1)
-    }
-    
-    dialogsSubject.next(dialogsSubject._value.concat([dialog]));
+    return Observable.create(function(observer) {
 
-    return dialog.subject;
+        var dialog = {
+            jsx: (<ConfirmationDialog title={title} message={message} onClose={e => dialogComplete(dialog, e)}/>),
+            observer: observer
+        }
+
+        dialogsSubject.next(dialogsSubject._value.concat([dialog]));
+
+        return () =>{
+            removeDialog(dialog)
+        }
+    })
 }
 
 
+const dialogComplete = (dialog, result) =>{
+    dialog.observer.next(result);
+    dialog.observer.complete(result);
+    dialog.observer = null;
+    removeDialog(dialog);
+}
 
-const removeDialog = (dialog, e) =>{
+const removeDialog = (dialog) =>{
     const dialogs = dialogsSubject._value.concat([]);
+    const index = dialogs.indexOf(dialog);
 
-    dialogs.splice(dialogs.indexOf(dialog),1);
-
-    dialogsSubject.next(dialogs);
-
-    dialog.subject.next(e);
-    dialog.subject.complete(e);
+    if (index > -1)
+    {
+        dialogs.splice(dialogs.indexOf(dialog),1);
+        dialogsSubject.next(dialogs);
+    }
 }
 
 
