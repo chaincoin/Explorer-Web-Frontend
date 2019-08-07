@@ -29,7 +29,7 @@ export default (props) => {
 
       MyWalletServices.addMyAddress(name,address)
       .then(props.onClose)
-      .catch(err => DialogService.showMessage("Failed", "Failed to watch address")); 
+      .catch(err => DialogService.showMessage("Failed", "Failed to watch address").subscribe()); 
     });
   }
 
