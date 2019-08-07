@@ -77,7 +77,7 @@ class MasternodeMenu extends React.Component {
   };
 
 
-  handleMenuStartMasternode = () =>{
+  handleMenuStartMasternode = () =>{ //TODO: move this logic to wallet service
 
     DialogService.showConfirmation("Start Masternode", "Are you sure you want to broadcast start masternode message").subscribe(result =>{
       if (result == false) return;
