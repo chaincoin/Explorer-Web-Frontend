@@ -147,9 +147,9 @@ class MasternodeMenu extends React.Component {
         switchMap(masternodeBroadcastData => from(BlockchainServices.SendMasternodeBoardcastHashes(masternodeBroadcastData)))
       )
       .subscribe((blockHash) =>{
-        DialogService.showMessage("Success", "Masternode Start successfully broadcasted");
+        DialogService.showMessage("Success", "Masternode Start successfully broadcasted").subscribe();
       },(error) =>{
-        DialogService.showMessage("Failed", "Oh no, something went wrong :(");
+        DialogService.showMessage("Failed", "Oh no, something went wrong :(").subscribe();
       });    
 
     });
@@ -162,13 +162,13 @@ class MasternodeMenu extends React.Component {
 
     DialogService.showDialog(MyMasternodeDialog,{
       output: this.props.output
-    });
+    }).subscribe();
   };
 
   handleMenuEditMyMn = () => {
     this.handleMenuClose();
 
-    DialogService.showDialog(MyMasternodeDialog,{ output: this.props.output});
+    DialogService.showDialog(MyMasternodeDialog,{ output: this.props.output}).subscribe();
 
   };
 
@@ -187,7 +187,7 @@ class MasternodeMenu extends React.Component {
     
     DialogService.showDialog(MyAddressDialog,{
       address: this.props.payee
-    });
+    }).subscribe();
   };
 
   handleMenuRemoveFromMyAddresses = () => {
@@ -207,7 +207,7 @@ class MasternodeMenu extends React.Component {
 
     if (FirebaseServices.supported == false)
     {
-      DialogService.showMessage("Failed", "Your browser doesnt support Push Notifications, please try Chrome or Firefox");
+      DialogService.showMessage("Failed", "Your browser doesnt support Push Notifications, please try Chrome or Firefox").subscribe();
       return;
     }
 
