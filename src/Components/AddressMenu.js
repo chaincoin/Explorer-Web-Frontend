@@ -76,13 +76,13 @@ class AddressMenu extends React.Component {
 
     DialogService.showDialog(MyAddressDialog,{
       address: this.props.address
-    });
+    }).subscribe();
   };
 
   handleMenuEditMyAddress = () => {
     this.handleMenuClose();
 
-    DialogService.showDialog(MyAddressDialog,{ address: this.props.address});
+    DialogService.showDialog(MyAddressDialog,{ address: this.props.address}).subscribe();
   }
 
   handleMenuRemoveFromMyAddresses = () => {
@@ -102,7 +102,7 @@ class AddressMenu extends React.Component {
     this.handleMenuClose();
     if (FirebaseServices.supported == false)
     {
-      DialogService.showMessage("Failed", "Your browser doesnt support Push Notifications, please try Chrome or Firefox");
+      DialogService.showMessage("Failed", "Your browser doesnt support Push Notifications, please try Chrome or Firefox").subscribe();
       return;
     }
     FirebaseServices.saveAddressNotification(this.props.address).subscribe(); //TODO: handle error
@@ -118,7 +118,7 @@ class AddressMenu extends React.Component {
   handleMenuExportWif = () => {
     this.handleMenuClose();
 
-    DialogService.showMessage("WIF", this.state.myAddress.WIF);
+    DialogService.showMessage("WIF", this.state.myAddress.WIF).subscribe();
   };
 
   
