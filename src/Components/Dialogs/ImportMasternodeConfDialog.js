@@ -27,7 +27,7 @@ export default  (props) => {
   function handleImport() {
     
     if (file == null){
-      DialogService.showMessage("Error", "Please select a file");
+      DialogService.showMessage("Error", "Please select a file").subscribe();
       return;
     }
 
