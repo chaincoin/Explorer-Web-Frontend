@@ -64,7 +64,7 @@ export default (props) => {
       }
 
       Promise.all(promises).then(props.onClose).catch(err =>{ //TODO: this needs improving, better error message
-        DialogService.showMessage("Failed","Import of one or more of the addresses has failed");
+        DialogService.showMessage("Failed","Import of one or more of the addresses has failed").subscribe();
       });
       
     })
