@@ -13,6 +13,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 import MyWalletServices from '../../Services/MyWalletServices';
 import BlockchainServices from '../../Services/BlockchainServices';
 import DialogService from '../../Services/DialogService';
+import { switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 export default  (props) => {
   const [name, setName] = React.useState("");
@@ -34,20 +36,33 @@ export default  (props) => {
 
     form.current.isFormValid(false).then(valid =>{
       if (valid == false) return;
-      
-      var keyPair = window.bitcoin.ECPair.makeRandom({ network: BlockchainServices.Chaincoin }); 
-      var WIF = keyPair.toWIF();     
 
-      var address = null;
+
+      var saveAddress = (WIF) =>{
+        var keyPair = window.bitcoin.ECPair.makeRandom({ network: BlockchainServices.Chaincoin }); 
+        var WIF = keyPair.toWIF();     
+
+        var address = null;
+        
+        if (addressType == "p2wpkh") address = window.bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin }).address; 
+        else if (addressType == "p2pkh") address = window.bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin }).address; 
+        else if (addressType == "p2sh") address = window.bitcoin.payments.p2sh({redeem: window.bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin }), network: BlockchainServices.Chaincoin}).address; 
+        else return;
+        
+        MyWalletServices.addMyAddress(name, address, WIF)
+        .then(props.onClose)
+        .catch(err => DialogService.showMessage("Failed", "Failed to create address").subscribe()); 
+      }
+
+      /*MyWalletServices.isWalletEncrypted.pipe(
+        switchMap(walletEncrypted =>{
+          if (walletEncrypted) return 
+          else return of(saveAddress(WIF))
+
+        }
+      )*/
       
-      if (addressType == "p2wpkh") address = window.bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin }).address; 
-      else if (addressType == "p2pkh") address = window.bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin }).address; 
-      else if (addressType == "p2sh") address = window.bitcoin.payments.p2sh({redeem: window.bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin }), network: BlockchainServices.Chaincoin}).address; 
-      else return;
       
-      MyWalletServices.addMyAddress(name, address, WIF)
-      .then(props.onClose)
-      .catch(err => DialogService.showMessage("Failed", "Failed to create address")); 
     });
     
   }
