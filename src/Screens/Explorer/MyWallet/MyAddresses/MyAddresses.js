@@ -7,7 +7,7 @@ import Tab from '@material-ui/core/Tab';
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import { Link } from "react-router-dom";
 
-import MyAddressList from './MyAddressList/MyAddressList';
+import MyAddressList from './MyAddressList';
 import MyAddressesSend from './MyAddressesSend/MyAddressesSend';
 import MyAddressesGraph from './MyAddressesGraph';
 

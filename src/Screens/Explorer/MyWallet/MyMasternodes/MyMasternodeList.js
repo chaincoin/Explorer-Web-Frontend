@@ -14,17 +14,17 @@ import Button from '@material-ui/core/Button';
 
 import { Link } from "react-router-dom";
 
-import AddMyMasternodeDialog from '../../../Components/Dialogs/MyMasternodeDialog';
-import ImportMasternodeConfDialog from '../../../Components/Dialogs/ImportMasternodeConfDialog';
+import AddMyMasternodeDialog from '../../../../Components/Dialogs/MyMasternodeDialog';
+import ImportMasternodeConfDialog from '../../../../Components/Dialogs/ImportMasternodeConfDialog';
 
 
-import TablePaginationActions from '../../../Components/TablePaginationActions';
-import MasternodeMenu from '../../../Components/MasternodeMenu';
+import TablePaginationActions from '../../../../Components/TablePaginationActions';
+import MasternodeMenu from '../../../../Components/MasternodeMenu';
 
 
-import BlockchainServices from '../../../Services/BlockchainServices';
-import MyWalletServices from '../../../Services/MyWalletServices';
-import DialogService from '../../../Services/DialogService';
+import BlockchainServices from '../../../../Services/BlockchainServices';
+import MyWalletServices from '../../../../Services/MyWalletServices';
+import DialogService from '../../../../Services/DialogService';
 
 const styles = theme => ({
   root: {

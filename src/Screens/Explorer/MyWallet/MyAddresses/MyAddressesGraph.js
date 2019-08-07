@@ -3,11 +3,11 @@ import { combineLatest } from 'rxjs';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
-import Graph from '../../../Components/PayOutGraph';
+import Graph from '../../../../Components/PayOutGraph';
 import Paper from '@material-ui/core/Paper';
 
-import BlockchainServices from '../../../Services/BlockchainServices';
-import MyWalletServices from '../../../Services/MyWalletServices';
+import BlockchainServices from '../../../../Services/BlockchainServices';
+import MyWalletServices from '../../../../Services/MyWalletServices';
 
 const styles = {
   root: {

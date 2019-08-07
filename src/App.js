@@ -30,8 +30,8 @@ import PeerList from './Screens/Explorer/PeerList'
 import ChainTips from './Screens/Explorer/ChainTips'
 
 
-import MyAddresses from './Screens/Explorer/MyWallet/MyAddresses'
-import MyMasternodes from './Screens/Explorer/MyWallet/MyMasternodes'
+import MyAddresses from './Screens/Explorer/MyWallet/MyAddresses/MyAddresses'
+import MyMasternodes from './Screens/Explorer/MyWallet/MyMasternodes/MyMasternodes'
 
 
 import BountyList from './Screens/BountyList'

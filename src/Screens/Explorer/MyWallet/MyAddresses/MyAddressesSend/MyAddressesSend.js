@@ -21,15 +21,14 @@ import Recipients from './Recipients';
 import CoinControl from './CoinControl';
 
 
-import Transaction from '../../../../Classes/Transaction';
+import Transaction from '../../../../../Classes/Transaction';
 
-import BlockchainServices from '../../../../Services/BlockchainServices';
-import MyWalletServices from '../../../../Services/MyWalletServices';
-import DialogService from '../../../../Services/DialogService';
+import BlockchainServices from '../../../../../Services/BlockchainServices';
+import MyWalletServices from '../../../../../Services/MyWalletServices';
+import DialogService from '../../../../../Services/DialogService';
 
 
-import coinSelect from '../../../../Scripts/coinselect/coinselect'; //https://github.com/bitcoinjs/coinselect
-import coinSelectUtils from '../../../../Scripts/coinselect/utils'; //https://github.com/bitcoinjs/coinselect
+
 
 
 
