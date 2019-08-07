@@ -1,10 +1,13 @@
+import crypto from 'crypto';
+
 import { Observable, Subject, combineLatest,  } from 'rxjs';
 import { shareReplay, switchMap, map } from 'rxjs/operators';
+
 
 import bigDecimal from 'js-big-decimal';
 import BlockchainServices from './BlockchainServices'
 
-
+const cryptoAlgorithm = 'aes-256-ctr'
 
 const myMasternodeAdded = new Subject();
 const myMasternodeUpdated = new Subject();
@@ -283,6 +286,56 @@ const myMasternodes = Observable.create(function(observer) {
 );
 
 
+const isWalletEncrypted = () =>{
+  const walletPasswordVerification = window.localStorage["walletPasswordVerification"];
+  return walletPasswordVerification != null  && walletPasswordVerification != "";
+}
+
+
+
+const checkWalletPassword = (password) =>{
+  var walletPasswordVerification = window.localStorage["walletPasswordVerification"];
+
+  try{
+    const decrypted = decrypt(password, walletPasswordVerification);
+    const hash = window.bitcoin.crypto.sha256(Buffer.from(password, 'utf8'))
+
+    return decrypted == hash;
+  }
+  catch(ex)
+  {
+    return false;
+  }
+}
+
+const setWalletPassword = (newPassword) =>{
+
+}
+
+const changeWalletPassword = (oldPassword, newPassword) =>{
+
+}
+
+
+
+const encrypt = (password, decrypted) =>{
+  var cipher = crypto.createCipher(cryptoAlgorithm,password)
+  var crypted = cipher.update(decrypted,'utf8','hex')
+  crypted += cipher.final('hex');
+
+  return crypted;
+}
+
+const decrypt = (password, encrypted) =>{
+  var decipher = crypto.createDecipher(cryptoAlgorithm,password)
+  var dec = decipher.update(encrypted,'hex','utf8')
+  dec += decipher.final('utf8');
+  return dec;
+}
+
+
+
+
 export default {
     myAddresses,
     myAddress,
@@ -302,8 +355,14 @@ export default {
     updateInputLockState,
     deleteInputLockState,
 
-    inputAddresses
+    inputAddresses,
 
+    isWalletEncrypted,
+    checkWalletPassword,
+    setWalletPassword,
+    changeWalletPassword,
+    encrypt,
+    decrypt
 }
 
 
