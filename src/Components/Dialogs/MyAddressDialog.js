@@ -47,7 +47,7 @@ export default (props) => {
 
       MyWalletServices.updateMyAddress(name,address,wif)
       .then(props.onClose)
-      .catch(err => DialogService.showMessage("Failed", "Failed to update My Address"));
+      .catch(err => DialogService.showMessage("Failed", "Failed to update My Address").subscribe());
 
     });
   }
