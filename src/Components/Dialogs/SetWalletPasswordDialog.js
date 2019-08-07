@@ -1,3 +1,6 @@
+import { throwError } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+
 import React from 'react';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -13,7 +16,6 @@ import { TextValidator, ValidatorForm} from 'react-material-ui-form-validator';
 import Checkbox from '@material-ui/core/Checkbox';
 
 import MyWalletServices from '../../Services/MyWalletServices';
-import BlockchainServices from '../../Services/BlockchainServices';
 import DialogService from '../../Services/DialogService';
 
 export default (props) => {
@@ -41,9 +43,14 @@ export default (props) => {
       if (valid == false) return;
 
       if (password != confirmPassword){
-        DialogService.showMessage("Error","Password doesnt match confirmation password");
+        DialogService.showMessage("Error","Password doesnt match confirmation password").subscribe();
         return;
       }
+
+      MyWalletServices.setWalletPassword(password).subscribe(props.onClose);
+
+      //,(err) => DialogService.showMessage(err)
+      
       
     });
 
@@ -63,13 +70,15 @@ export default (props) => {
               value={password}
               validators={['required']}
               errorMessages={['required']}
+              type="password"
             />
             <TextValidator
-              label="WIF"
+              label="Confirm"
               onChange={(e) => setConfirmPassword(e.target.value)}
               value={confirmPassword}
               validators={['required']}
               errorMessages={['required']}
+              type="password"
             />
             
           </FormGroup>
@@ -85,7 +94,7 @@ export default (props) => {
           Cancel
         </Button>
         <Button onClick={handleSetWalletPassword} color="primary">
-          Set Wallet Password
+          Set
         </Button>
       </DialogActions>
     </Dialog>
