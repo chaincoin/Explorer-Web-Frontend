@@ -1,5 +1,5 @@
+
 import React from 'react';
-import update from 'react-addons-update'; // ES6
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
@@ -24,9 +24,13 @@ import CreateAddressDialog from '../../../../Components/Dialogs/CreateMyAddressD
 import WatchAddressDialog from '../../../../Components/Dialogs/WatchAddressDialog'
 import ImportWifDialog from '../../../../Components/Dialogs/ImportWifDialog';
 
+import SetWalletPasswordDialog from '../../../../Components/Dialogs/SetWalletPasswordDialog';
+
 import BlockchainServices from '../../../../Services/BlockchainServices';
 import MyWalletServices from '../../../../Services/MyWalletServices';
 import DialogService from '../../../../Services/DialogService';
+
+import RemoveWalletPassword from '../../../../Observables/RemoveWalletPasswordObservable';
 
 
 const styles = theme => ({
@@ -58,6 +62,7 @@ class MyAddresses extends React.Component {
     loading: true,
     error: null,
 
+    walletEncrypted:false
   };
 
 
@@ -72,6 +77,11 @@ class MyAddresses extends React.Component {
   handleChangeRowsPerPage = event => {
     this.setState({ page: 0, rowsPerPage: parseInt(event.target.value) });
   };
+
+  handleRemoveWalletPassword = () =>{
+    debugger;
+    RemoveWalletPassword.subscribe();
+  }
 
   componentDidMount() {
     this.myAddressesSubscription = MyWalletServices.myAddresses.subscribe(myAddresses =>{ //TODO: this could be done better
@@ -92,11 +102,15 @@ class MyAddresses extends React.Component {
 
       });
     });
+
+    this.isWalletEncryptedSubscription = MyWalletServices.isWalletEncrypted.subscribe((walletEncrypted) =>this.setState({walletEncrypted}))
   }
 
   componentWillUnmount() {
     this.myAddressesSubscription.unsubscribe();
     this.addressSubscriptions.forEach(v => v.unsubscribe());
+
+    this.isWalletEncryptedSubscription.unsubscribe();
 
   }
 
@@ -107,24 +121,35 @@ class MyAddresses extends React.Component {
  
   render() {
     const { classes } = this.props;
-    const { rowsPerPage, page } = this.state;
+    const { rowsPerPage, page, walletEncrypted } = this.state;
     var { rows } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
     return (
       <div>
-        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(CreateAddressDialog)}>
+        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(CreateAddressDialog).subscribe()}>
           Create Address
         </Button>
 
 
         
-        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(WatchAddressDialog)}>
+        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(WatchAddressDialog).subscribe()}>
           Watch Address
         </Button>
-        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(ImportWifDialog)}>
+        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(ImportWifDialog).subscribe()}>
           Import WIF
         </Button>
+
+        {
+          walletEncrypted ? 
+          <Button variant="contained" color="primary" className={classes.button} onClick={this.handleRemoveWalletPassword}>
+            Remove Wallet Password
+          </Button> :
+          <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(SetWalletPasswordDialog).subscribe()}>
+            Set Wallet Password
+          </Button> 
+        }
+        
         
           <Paper>
             <div className={classes.tableWrapper}>
