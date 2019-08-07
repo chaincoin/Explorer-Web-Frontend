@@ -111,11 +111,11 @@ class MyMasternodes extends React.Component {
 
     return (
       <div>
-        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(AddMyMasternodeDialog)}>
+        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(AddMyMasternodeDialog).subscribe()}>
           Add Masternode
         </Button>
 
-        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(ImportMasternodeConfDialog)}>
+        <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(ImportMasternodeConfDialog).subscribe()}>
         Import Masternode.conf
         </Button>
 
