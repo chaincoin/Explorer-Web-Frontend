@@ -88,6 +88,10 @@ var walletApi = null;
 
 
 	walletApi = {
+		isWalletEncrypted: function(){
+			const walletPasswordVerification = window.localStorage["walletPasswordVerification"];
+			return walletPasswordVerification != null  && walletPasswordVerification != "";
+		},
 		createAddress:function(request){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
