@@ -119,11 +119,11 @@ class MyAddressesSend extends React.Component {
     this.refs.form.isFormValid(false).then(valid =>{
       if (valid) this.state.transaction.send().then(() =>{
 
-        DialogService.showMessage("Success", "Transaction successful");
+        DialogService.showMessage("Success", "Transaction successful").subscribe();
         this.state.transaction.clear();
       })
       .catch(() =>{
-        DialogService.showMessage("Failed", "Transaction failed");
+        DialogService.showMessage("Failed", "Transaction failed").subscribe();
       })
       
     });
