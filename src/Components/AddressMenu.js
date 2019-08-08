@@ -1,6 +1,6 @@
 import React from 'react';
-import { combineLatest } from 'rxjs';
-import { first } from 'rxjs/operators';
+import { combineLatest, of } from 'rxjs';
+import { first, switchMap } from 'rxjs/operators';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -17,6 +17,7 @@ import MyWalletServices from '../Services/MyWalletServices';
 import FirebaseServices from '../Services/FirebaseServices';
 import DialogService from '../Services/DialogService';
 
+import DecryptPrivateKey from '../Observables/DecryptPrivateKeyObservable';
 
 const styles = theme => ({
   root: {
@@ -118,7 +119,15 @@ class AddressMenu extends React.Component {
   handleMenuExportWif = () => {
     this.handleMenuClose();
 
-    DialogService.showMessage("WIF", this.state.myAddress.WIF).subscribe();
+    MyWalletServices.isWalletEncrypted.pipe(
+      switchMap(walletEncrypted => walletEncrypted ? 
+        DecryptPrivateKey(this.state.myAddress.encryptedWIF):
+        of(this.state.myAddress.WIF)
+      ),
+      switchMap(WIF => DialogService.showMessage("WIF", WIF))
+    ).subscribe();
+
+
   };
 
   
@@ -174,7 +183,6 @@ class AddressMenu extends React.Component {
     const { classes,address, hideViewAddress } = this.props;
     const { menuAnchorEl, myAddress, addAddressSubscription } = this.state;
 
-    
 
     return (
       <div className={classes.root}>
@@ -205,7 +213,7 @@ class AddressMenu extends React.Component {
           }
 
           {
-            myAddress != null && myAddress.WIF != null?
+            myAddress != null && (myAddress.WIF != null || myAddress.encryptedWIF != null) ?
             <MenuItem onClick={this.handleMenuExportWif}>Export WIF</MenuItem> :
             ""
           }

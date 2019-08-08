@@ -99,7 +99,8 @@ var walletApi = null;
 					var dbRequest = db.transaction("addresses", "readwrite").objectStore("addresses").add({
 						name: request.name,
 						address: request.address,
-						WIF:request.WIF
+						WIF:request.WIF,
+						encryptedWIF: request.encryptedWIF
 					});
 					
 					dbRequest.onsuccess = function(event) {
@@ -160,7 +161,8 @@ var walletApi = null;
 					var dbRequest = db.transaction("addresses", "readwrite").objectStore("addresses").put({
 						name: request.name,
 						address: request.address,
-						WIF:request.WIF
+						WIF:request.WIF,
+						encryptedWIF: request.encryptedWIF
 					});
 					
 					dbRequest.onsuccess = function(event) {
@@ -193,7 +195,8 @@ var walletApi = null;
 					var dbRequest = db.transaction("masternodes", "readwrite").objectStore("masternodes").add({
 						name: request.name,
 						output: request.output,
-						privateKey:request.privateKey
+						privateKey:request.privateKey,
+						encryptedPrivateKey: request.encryptedPrivateKey
 					});
 					
 					dbRequest.onsuccess = function(event) {
@@ -212,7 +215,8 @@ var walletApi = null;
 					var dbRequest = db.transaction("masternodes", "readwrite").objectStore("masternodes").put({
 						name: request.name,
 						output:request.output,
-						privateKey:request.privateKey
+						privateKey:request.privateKey,
+						encryptedPrivateKey: request.encryptedPrivateKey
 					});
 					
 					dbRequest.onsuccess = function(event) {

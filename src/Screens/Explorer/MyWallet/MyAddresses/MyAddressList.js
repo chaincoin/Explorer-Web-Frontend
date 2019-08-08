@@ -79,7 +79,6 @@ class MyAddresses extends React.Component {
   };
 
   handleRemoveWalletPassword = () =>{
-    debugger;
     RemoveWalletPassword.subscribe();
   }
 

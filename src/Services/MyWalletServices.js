@@ -69,24 +69,26 @@ const myAddresses = Observable.create(function(observer) {
   }
 
 
-  var addMyAddress = (name, address, WIF) =>{ 
+  var addMyAddress = (name, address, WIF, encryptedWIF) =>{ 
 
     return window.walletApi.createAddress({
         name:name,
         address: address,
-        WIF:WIF
+        WIF:WIF,
+        encryptedWIF: encryptedWIF
     }).then(() => {
         broadcastEvent("myAddressAdded");
         myAddressAdded.next();
     });
   }
 
-  var updateMyAddress = (name, address, WIF) =>{ 
+  var updateMyAddress = (name, address, WIF, encryptedWIF) =>{ 
 
     return window.walletApi.updateAddress({
         name:name,
         address: address,
-        WIF:WIF
+        WIF:WIF,
+        encryptedWIF:encryptedWIF
     }).then(() => {
         broadcastEvent("myAddressUpdated");
         myAddressUpdated.next();
@@ -146,22 +148,24 @@ const myMasternodes = Observable.create(function(observer) {
     return myMasternodes.pipe(map(myMns => myMns.find(myMn => myMn.output == output)));  //TODO: this needs to be smarter now
   }
 
-  var addMyMasternode = (name, output, privateKey) =>{ 
+  var addMyMasternode = (name, output, privateKey, encryptedPrivateKey) =>{ 
     return window.walletApi.createMasternode({
         name:name,
         output: output,
-        privateKey: privateKey
+        privateKey: privateKey,
+        encryptedPrivateKey: encryptedPrivateKey
     }).then(() => {
         broadcastEvent("myMasternodeAdded");
         myMasternodeAdded.next();
     });
   }
 
-  var UpdateMyMasternode = (name, output, privateKey) =>{ 
+  var UpdateMyMasternode = (name, output, privateKey, encryptedPrivateKey) =>{ 
     return window.walletApi.updateMasternode({
         name:name,
         output: output,
-        privateKey: privateKey
+        privateKey: privateKey,
+        encryptedPrivateKey: encryptedPrivateKey
     }).then(() => {
         broadcastEvent("myMasternodeUpdated");
         myMasternodeUpdated.next();
@@ -328,7 +332,7 @@ const setWalletPassword = (newPassword) =>{
 }
 
 const removeWalletPassword = (password) =>{
-  debugger
+
   return isWalletEncrypted.pipe(
     first(),
     switchMap(walletEncrypted =>{
