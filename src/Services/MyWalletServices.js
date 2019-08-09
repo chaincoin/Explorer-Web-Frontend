@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-import { Observable, Subject, BehaviorSubject, combineLatest, throwError, of } from 'rxjs';
+import { Observable, Subject, BehaviorSubject, combineLatest, throwError, of, from } from 'rxjs';
 import { shareReplay, switchMap, map, first } from 'rxjs/operators';
 
 
@@ -245,7 +245,7 @@ const myMasternodes = Observable.create(function(observer) {
   var inputAddresses = myAddresses
   .pipe(
   switchMap(myAddresses => combineLatest(
-    myAddresses.filter(myAddress => myAddress.WIF != null).map(myAddress => 
+    myAddresses.filter(myAddress => myAddress.WIF != null || myAddress.encryptedWIF != null).map(myAddress => 
       combineLatest(
         BlockchainServices.getAddress(myAddress.address),
         BlockchainServices.getAddressUnspent(myAddress.address),
@@ -317,9 +317,20 @@ const setWalletPassword = (newPassword) =>{
 
   return isWalletEncrypted.pipe(
     first(),
-    switchMap(walletEncrypted =>{
-      if (walletEncrypted) return throwError("Wallet password already set");
+    switchMap(walletEncrypted => walletEncrypted ? throwError("Wallet password already set") : myAddresses),
+    first(),
+    switchMap(myAddresses =>{
+debugger;
+      var encryptedMyAddresses = myAddresses.filter(myAddress => myAddress.WIF != null).map(myAddress => Object.assign({}, myAddress,{
+        WIF:null,
+        encryptedWIF:encrypt(newPassword, myAddress.WIF)
+      }));
 
+      return from(window.walletApi.encryptWallet({
+        addresses: encryptedMyAddresses
+      }));
+    }),
+    switchMap(() =>{
       const hash = window.bitcoin.crypto.sha256(Buffer.from(newPassword, 'utf8'));
       const walletPasswordVerification = encrypt(newPassword, hash.toString("hex"));
 

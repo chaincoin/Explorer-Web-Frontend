@@ -1,10 +1,10 @@
 import React from 'react';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, from } from 'rxjs';
 
 import bigDecimal from 'js-big-decimal';
 
-import { combineLatest, forkJoin } from 'rxjs';
-import { mergeMap, map  } from 'rxjs/operators';
+import { combineLatest, of } from 'rxjs';
+import { first, switchMap  } from 'rxjs/operators';
 
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
@@ -22,6 +22,8 @@ import CoinControl from './CoinControl';
 
 
 import Transaction from '../../../../../Classes/Transaction';
+
+import GetWalletPassword from '../../../../../Observables/GetWalletPasswordObservable';
 
 import BlockchainServices from '../../../../../Services/BlockchainServices';
 import MyWalletServices from '../../../../../Services/MyWalletServices';
@@ -117,14 +119,23 @@ class MyAddressesSend extends React.Component {
  
   handleSendClick = () =>{
     this.refs.form.isFormValid(false).then(valid =>{
-      if (valid) this.state.transaction.send().then(() =>{
 
+      if (valid == false) return;
+
+      MyWalletServices.isWalletEncrypted.pipe(
+        first(),
+        switchMap(walletEncrypted => walletEncrypted ? 
+          GetWalletPassword:
+          of(null)
+        ),
+        switchMap(walletPassword => from(this.state.transaction.send(walletPassword)))
+      ).subscribe(() => {
         DialogService.showMessage("Success", "Transaction successful").subscribe();
         this.state.transaction.clear();
-      })
-      .catch(() =>{
+      },
+      () =>{
         DialogService.showMessage("Failed", "Transaction failed").subscribe();
-      })
+      });
       
     });
   }

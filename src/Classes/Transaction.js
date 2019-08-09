@@ -238,7 +238,7 @@ class Transaction { //TODO: think this could be better but will do for now
         this.userSelectedInputIds.next({});
     }
 
-    send = () =>{
+    send = (walletPassword) =>{
         return new Promise((resolve, reject) =>{
             combineLatest(this.transactionDetails, this.selectedInputs, this.outputs, this.changeAddress).pipe(first()).subscribe(([transactionDetails,inputs, outputs, changeAddress]) =>{
                 const { changeSatoshi, dust } = transactionDetails;

@@ -413,6 +413,32 @@ var walletApi = null;
 					};
 				});
 			});
+		},
+		encryptWallet:function(request){
+			return dbPromise.then(function(db){
+				return new Promise(function(resolve, reject) {
+			debugger;
+					var transaction = db.transaction("addresses", "readwrite");
+					var addressesStore = transaction.objectStore("addresses");
+
+					request.addresses.forEach(address =>{
+						addressesStore.put({
+							name: address.name,
+							address: address.address,
+							WIF:address.WIF,
+							encryptedWIF: address.encryptedWIF
+						})
+					});
+
+					transaction.oncomplete = function(event) {
+						resolve();
+					};
+					transaction.onerror = function(event) {
+						reject();
+					};
+					
+				});
+			});
 		}
 	}
 
