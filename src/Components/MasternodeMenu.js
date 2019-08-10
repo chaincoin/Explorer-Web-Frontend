@@ -92,16 +92,7 @@ class MasternodeMenu extends React.Component {
           of(null):
           GetWalletPasswordObservable
         )
-      ).subscribe((walletPassword) =>{
-        var payeeToBufffer = (payee) =>{
-          var buffer = Buffer.alloc(payee.length);
-          for(var i = 0; i < payee.length; i++)
-          {
-            buffer[i] = payee.charCodeAt(i);
-          }
-          return buffer;
-        }
-        
+      ).subscribe((walletPassword) =>{      
         
 
         var addressKeyPair = window.bitcoin.ECPair.fromWIF(walletPassword == null ? this.state.myAddress.WIF : MyWalletServices.decrypt(walletPassword,this.state.myAddress.encryptedWIF), BlockchainServices.Chaincoin);
@@ -333,7 +324,7 @@ class MasternodeMenu extends React.Component {
             <MenuItem  onClick={this.handleMenuClose}>View Address</MenuItem>
           </Link>
           {
-            myMn != null && myMn.privateKey != null && myAddress != null && myAddress.WIF != null && myAddress.WIF != ""?
+            myMn != null && (myMn.privateKey != null || myMn.encryptedPrivateKey) && myAddress != null && (myAddress.WIF != null || myAddress.encryptedWIF != null)?
             <MenuItem onClick={this.handleMenuStartMasternode}>Start Masternode</MenuItem> :
             null
           }
@@ -346,14 +337,7 @@ class MasternodeMenu extends React.Component {
             ]
           }
 
-          {
-            myMn != null && (myMn.privateKey != null || myMn.encryptedPrivateKey != null) ?
-            [
-              <MenuItem onClick={this.handleExportPrivateKey}>Export Private Key</MenuItem>,
-              <MenuItem onClick={this.handleClearPrivateKey}>Clear Private Key</MenuItem>  
-            ]:
-            <MenuItem onClick={this.handleSetPrivateKey}>Set Private Key</MenuItem>
-          }
+          
           
           {
             myAddress == null?
@@ -364,6 +348,15 @@ class MasternodeMenu extends React.Component {
             addMasternodeSubscription == true?
             <MenuItem onClick={this.handleMenuAddMasternodeSubscription}>Add Masternode Subscription</MenuItem> :
             <MenuItem onClick={this.handleMenuRemoveMasternodeSubscription}>Remove Masternode Subscription</MenuItem>
+          }
+
+          {
+            myMn != null && (myMn.privateKey != null || myMn.encryptedPrivateKey != null) ?
+            [
+              <MenuItem onClick={this.handleExportPrivateKey}>Export Private Key</MenuItem>,
+              <MenuItem onClick={this.handleClearPrivateKey}>Clear Private Key</MenuItem>  
+            ]:
+            <MenuItem onClick={this.handleSetPrivateKey}>Set Private Key</MenuItem>
           }
           
         </Menu>
