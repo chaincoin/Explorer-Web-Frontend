@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-import { Observable, Subject, BehaviorSubject, combineLatest, throwError, of, from } from 'rxjs';
+import { Observable, Subject, BehaviorSubject, combineLatest, throwError, of, from, zip } from 'rxjs';
 import { shareReplay, switchMap, map, first } from 'rxjs/operators';
 
 
@@ -234,7 +234,7 @@ const myMasternodes = Observable.create(function(observer) {
 
   var inputAddresses = myAddresses
   .pipe(
-  switchMap(myAddresses => combineLatest(
+  switchMap(myAddresses => zip(...
     myAddresses.filter(myAddress => myAddress.WIF != null || myAddress.encryptedWIF != null).map(myAddress => 
       combineLatest(
         BlockchainServices.getAddress(myAddress.address),
@@ -256,7 +256,7 @@ const myMasternodes = Observable.create(function(observer) {
 
                     var isMatureCoins = unspent.payout == null ? true : confirmations > 102;
                     var inMemPool = memPool.find(r => r.vin.find(v => v.txid == unspent.txid && v.vout == unspent.vout )) != null;
-                    var inMnList = Object.keys(masternodeList).find(output => output == unspent.txid + "-" + unspent.vout)  != null;
+                    var inMnList = masternodeList[unspent.txid + "-" + unspent.vout] != null;
                     var lockState = inputLockStates[unspent.txid + "-" + unspent.vout];
                     return {
                         myAddress,
@@ -314,7 +314,13 @@ const setWalletPassword = (newPassword) =>{
       const walletPasswordVerification = encrypt(newPassword, hash.toString("hex"));
 
       window.localStorage["walletPasswordVerification"] = walletPasswordVerification;
+
       isWalletEncrypted.next(true);
+      broadcastEvent("walletEncrypted");
+
+      myAddressUpdated.next();
+      broadcastEvent("myAddressUpdated");
+
       return of(true);
     })
   );
@@ -331,7 +337,13 @@ debugger;
     switchMap(walletEncrypted =>{
 
       window.localStorage["walletPasswordVerification"] = "";
+
       isWalletEncrypted.next(false);
+      broadcastEvent("walletDecrypted");
+
+      myAddressUpdated.next();
+      broadcastEvent("myAddressUpdated");
+      
       return of(true);
     })
   );
@@ -340,7 +352,6 @@ debugger;
 const changeWalletPassword = (oldPassword, newPassword) =>{
 
 }
-
 
 
 const encrypt = (password, decrypted) =>{
@@ -414,4 +425,6 @@ window.addEventListener('storage', function(e) {
     else if(e.key == "inputLockStateAdded") inputLockStateAdded.next();
     else if(e.key == "inputLockStateUpdated") inputLockStateUpdated.next();
     else if(e.key == "inputLockStateDeleted") inputLockStateDeleted.next();
+    else if(e.key == "walletEncrypted") isWalletEncrypted.next(true);
+    else if(e.key == "walletDecrypted") isWalletEncrypted.next(false);
 });
