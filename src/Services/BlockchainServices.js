@@ -6,10 +6,10 @@ import Environment from './Environment';
 
 
 
-const BestBlockHash = DataService.webSocket.pipe(
+const BestBlockHash = DataService.webSocket.pipe( 
   switchMap(webSocket => webSocket ?
     DataService.subscription("BestBlockHash"):
-    interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
+    interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({  //TODO: this should check to see if the data has changed before triggering event
       op: "getBestBlockHash"
     }))))
   ),
