@@ -4,10 +4,26 @@ import { shareReplay, switchMap } from 'rxjs/operators';
 import DataService from './DataService'
 import Environment from './Environment';
 
+
+
+const BestBlockHash = DataService.webSocket.pipe(
+  switchMap(webSocket => webSocket ?
+    DataService.subscription("BestBlockHash"):
+    interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
+      op: "getBestBlockHash"
+    }))))
+  ),
+  shareReplay({
+    bufferSize: 1,
+    refCount: true
+  })
+);
+
+
 const BlockCount = DataService.webSocket.pipe(
   switchMap(webSocket => webSocket ?
     DataService.subscription("BlockCount"):
-    interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
+    BestBlockHash.pipe(switchMap(() => from(DataService.sendRequest({
       op: "getBlockCount"
     }))))
   ),
@@ -30,7 +46,7 @@ var getBlockHash = (blockId) =>{ //TODO: This is a memory leak
     observable = DataService.webSocket.pipe(
       switchMap(webSocket => webSocket ?
         DataService.subscription("BlockHash", {blockId:blockId}):
-        BlockCount.pipe(switchMap(blockCount => from(DataService.sendRequest({
+        BestBlockHash.pipe(switchMap(blockCount => from(DataService.sendRequest({
           op: "getBlockHash",
           blockId: blockId
         }))))
@@ -59,7 +75,7 @@ var getBlockHash = (blockId) =>{ //TODO: This is a memory leak
       blockObservable = DataService.webSocket.pipe(
         switchMap(webSocket => webSocket ?
           DataService.subscription("BlockExtended", {hash:hash}):
-          BlockCount.pipe(switchMap(blockCount => from(DataService.sendRequest({
+          BestBlockHash.pipe(switchMap(blockCount => from(DataService.sendRequest({
             op: "getBlockExtended",
             hash: hash
           }))))
@@ -87,7 +103,7 @@ var getBlockHash = (blockId) =>{ //TODO: This is a memory leak
       observable = DataService.webSocket.pipe(
         switchMap(webSocket => webSocket ?
           DataService.subscription("BlocksExtended",{blockId:blockId,pageSize:pageSize}):
-          BlockCount.pipe(switchMap(blockCount => from(DataService.sendRequest({
+          BestBlockHash.pipe(switchMap(blockCount => from(DataService.sendRequest({
             op: "getBlocksExtended",
             blockId: blockId,
             pageSize: pageSize,
@@ -116,7 +132,7 @@ var getBlockHash = (blockId) =>{ //TODO: This is a memory leak
       transactionObservable = DataService.webSocket.pipe(
         switchMap(webSocket => webSocket ?
           DataService.subscription("TransactionExtended",{transactionId:txid}):
-          BlockCount.pipe(switchMap(blockCount => from(DataService.sendRequest({
+          BestBlockHash.pipe(switchMap(blockCount => from(DataService.sendRequest({
             op: "getTransactionExtended",
             transactionId: txid,
           }))))
@@ -173,7 +189,7 @@ var getBlockHash = (blockId) =>{ //TODO: This is a memory leak
       addressObservable = DataService.webSocket.pipe(
         switchMap(webSocket => webSocket ?
           DataService.subscription("Address",{address:addressId}):
-          BlockCount.pipe(switchMap(blockCount => from(DataService.sendRequest({
+          BestBlockHash.pipe(switchMap(blockCount => from(DataService.sendRequest({
             op: "getAddress",
             address: addressId
           }))))
@@ -471,6 +487,7 @@ var getBlockHash = (blockId) =>{ //TODO: This is a memory leak
 
   export default { 
     blockCount: BlockCount, 
+    bestBlockHash: BestBlockHash,
     getBlockHash: getBlockHash,
     getBlock: getBlock,
     getBlocks,
