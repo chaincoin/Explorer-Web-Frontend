@@ -61,7 +61,7 @@ class MyAddresses extends React.Component {
 
         this.addressSubscriptions.forEach(v => v.unsubscribe());
         this.setState({
-          myAddresses: myAddresses 
+          myAddresses: myAddresses.map(myAddress => Object.assign({},myAddress)) 
         }, () =>{
 
           this.addressSubscriptions = myAddresses.map((address, index) => {
