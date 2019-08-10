@@ -92,6 +92,9 @@ var walletApi = null;
 			const walletPasswordVerification = window.localStorage["walletPasswordVerification"];
 			return walletPasswordVerification != null  && walletPasswordVerification != "";
 		},
+		getWalletPasswordVerification: function(){
+			return window.localStorage["walletPasswordVerification"];
+		},
 		createAddress:function(request){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {

@@ -31,6 +31,7 @@ import MyWalletServices from '../../../../Services/MyWalletServices';
 import DialogService from '../../../../Services/DialogService';
 
 import RemoveWalletPassword from '../../../../Observables/RemoveWalletPasswordObservable';
+import ExportMyWalletData from '../../../../Observables/ExportMyWalletData';
 
 
 const styles = theme => ({
@@ -78,9 +79,27 @@ class MyAddresses extends React.Component {
     this.setState({ page: 0, rowsPerPage: parseInt(event.target.value) });
   };
 
-  handleRemoveWalletPassword = () =>{
-    RemoveWalletPassword.subscribe();
+  handleExportMyWalletData = () =>{
+    ExportMyWalletData.subscribe(config => download("ChaincoinExplorer MyWallet.conf", JSON.stringify(config)));
+
+
+    function download(filename, text) {
+      var element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+      element.setAttribute('download', filename);
+
+      element.style.display = 'none';
+      document.body.appendChild(element);
+
+      element.click();
+
+      document.body.removeChild(element);
+    }
   }
+
+
+  
+
 
   componentDidMount() {
     this.myAddressesSubscription = MyWalletServices.myAddresses.subscribe(myAddresses =>{ //TODO: this could be done better
@@ -143,13 +162,17 @@ class MyAddresses extends React.Component {
 
         {
           walletEncrypted ? 
-          <Button variant="contained" color="primary" className={classes.button} onClick={this.handleRemoveWalletPassword}>
+          <Button variant="contained" color="primary" className={classes.button} onClick={() => RemoveWalletPassword.subscribe()}>
             Remove Wallet Password
           </Button> :
           <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(SetWalletPasswordDialog).subscribe()}>
             Set Wallet Password
           </Button> 
         }
+
+          <Button variant="contained" color="primary" className={classes.button} onClick={() => this.handleExportMyWalletData()}>
+            Export Wallet Data
+          </Button> 
         
         
           <Paper>

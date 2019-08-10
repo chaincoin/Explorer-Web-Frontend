@@ -370,7 +370,12 @@ const decrypt = (password, encrypted) =>{
 }
 
 
-
+const myWalletExportData = combineLatest(myAddresses, myMasternodes, inputLockStates).pipe(
+  map(([myAddresses,myMasternodes,inputLockStates]) => ({
+    walletPasswordVerification: window.localStorage["walletPasswordVerification"], //TODO: shouldnt be accessing walletPasswordVerification data like this
+    myAddresses, myMasternodes, inputLockStates
+  }))
+);
 
 export default {
     myAddresses,
@@ -393,13 +398,16 @@ export default {
 
     inputAddresses,
 
+    
     isWalletEncrypted,
     checkWalletPassword,
     setWalletPassword,
     changeWalletPassword,
     removeWalletPassword,
     encrypt,
-    decrypt
+    decrypt,
+    myWalletExportData
+
 }
 
 
