@@ -249,7 +249,7 @@ class Transaction { //TODO: think this could be better but will do for now
                     if (input.myAddress.address.startsWith(BlockchainServices.Chaincoin.bech32))
                     {
 
-                        var keyPair = window.bitcoin.ECPair.fromWIF(input.myAddress.WIF, BlockchainServices.Chaincoin);
+                        var keyPair = window.bitcoin.ECPair.fromWIF(walletPassword == null ? input.myAddress.WIF : MyWalletServices.decrypt(walletPassword,input.myAddress.encryptedWIF), BlockchainServices.Chaincoin);
                         const p2wpkh = window.bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin })
                         txb.addInput(input.unspent.txid, input.unspent.vout, null, p2wpkh.output); 
                     }
@@ -269,7 +269,7 @@ class Transaction { //TODO: think this could be better but will do for now
 
                 inputs.forEach((input,i) => {
 
-                    var keyPair = window.bitcoin.ECPair.fromWIF(input.myAddress.WIF, BlockchainServices.Chaincoin);
+                    var keyPair = window.bitcoin.ECPair.fromWIF(walletPassword == null ? input.myAddress.WIF : MyWalletServices.decrypt(walletPassword,input.myAddress.encryptedWIF), BlockchainServices.Chaincoin);
                 
                     if (input.myAddress.address.startsWith(BlockchainServices.Chaincoin.bech32))
                     {
