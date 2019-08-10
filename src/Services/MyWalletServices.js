@@ -312,7 +312,7 @@ const setWalletPassword = (newPassword) =>{
 
   return isWalletEncrypted.pipe(
     first(),
-    switchMap(walletEncrypted => walletEncrypted ? throwError("Wallet password already set") : of()),
+    switchMap(walletEncrypted => walletEncrypted ? throwError("Wallet password already set") : of(true)),
     switchMap(() => from(window.walletApi.encryptWallet((wif) => encrypt(newPassword, wif)))),
     switchMap(() =>{
       const hash = window.bitcoin.crypto.sha256(Buffer.from(newPassword, 'utf8'));
@@ -330,11 +330,8 @@ const removeWalletPassword = (password) =>{
 debugger;
   return isWalletEncrypted.pipe(
     first(),
-    switchMap(walletEncrypted => walletEncrypted == false ? throwError("Wallet password not set") : of("")),
-    switchMap(() => {
-      debugger;
-      return checkWalletPassword(password) == false ? throwError("Wallet password incorrect") : of("")
-    }),
+    switchMap(walletEncrypted => walletEncrypted == false ? throwError("Wallet password not set") : of(true)),
+    switchMap(() => checkWalletPassword(password) == false ? throwError("Wallet password incorrect") : of(true)),
     switchMap(() => from(window.walletApi.decryptWallet(encryptedWif => decrypt(password, encryptedWif)))),
     switchMap(walletEncrypted =>{
 

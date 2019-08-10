@@ -42,9 +42,6 @@ export default (props) => {
   }, []);
 
 
-  const handleSetWif = () =>{
-    GetAddressWif(props.address).subscribe((wif))
-  }
 
   const handleSave = () =>{ 
     form.current.isFormValid(false).then(valid =>{

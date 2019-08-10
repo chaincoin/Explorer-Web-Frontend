@@ -195,7 +195,7 @@ var walletApi = null;
 		createMasternode:function(request){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
-			
+			debugger;
 					var dbRequest = db.transaction("masternodes", "readwrite").objectStore("masternodes").add({
 						name: request.name,
 						output: request.output,
@@ -422,9 +422,9 @@ var walletApi = null;
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
 			debugger;
-					var transaction = db.transaction("addresses", "readwrite");
+					var transaction = db.transaction(["addresses","masternodes"], "readwrite");
 					var addressesStore = transaction.objectStore("addresses");
-
+					var masternodesStore = transaction.objectStore("masternodes");
 
 					var getAllAddressesRequest = addressesStore.getAll();
 
@@ -444,6 +444,22 @@ var walletApi = null;
 
 					};
 
+					var getAllMasternodesRequest = masternodesStore.getAll();
+
+					getAllMasternodesRequest.onsuccess = function(event){
+						event.target.result.forEach(masternode =>{
+
+							if (masternode.privateKey != null)
+							{
+								var update = {
+									privateKey: null,
+									encryptedPrivateKey:encryptFunc(masternode.privateKey)
+								};
+								masternodesStore.put(Object.assign({}, masternode,update))
+							}
+						})
+					};
+
 					transaction.oncomplete = function(event) {
 						resolve();
 					};
@@ -458,15 +474,14 @@ var walletApi = null;
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
 			debugger;
-					var transaction = db.transaction("addresses", "readwrite");
+					var transaction = db.transaction(["addresses","masternodes"], "readwrite");
 					var addressesStore = transaction.objectStore("addresses");
-
+					var masternodesStore = transaction.objectStore("masternodes");
 
 					var getAllAddressesRequest = addressesStore.getAll();
 
 					getAllAddressesRequest.onsuccess = function(event){
 						event.target.result.forEach(address =>{
-
 							if (address.encryptedWIF != null)
 							{
 								var update = {
@@ -475,9 +490,25 @@ var walletApi = null;
 								};
 								addressesStore.put(Object.assign({}, address,update))
 							}
-							
 						})
 
+					};
+
+
+					var getAllMasternodesRequest = masternodesStore.getAll();
+
+					getAllMasternodesRequest.onsuccess = function(event){
+						event.target.result.forEach(masternode =>{
+
+							if (masternode.encryptedPrivateKey != null)
+							{
+								var update = {
+									privateKey:decryptFunc(masternode.encryptedPrivateKey),
+									encryptedPrivateKey:null
+								};
+								masternodesStore.put(Object.assign({}, masternode,update))
+							}
+						})
 					};
 
 					transaction.oncomplete = function(event) {

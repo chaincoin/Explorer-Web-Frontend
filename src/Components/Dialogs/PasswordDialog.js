@@ -58,7 +58,7 @@ export default (props) => {
 
           <FormGroup>
             <TextValidator
-              label="Password"
+              label={props.passwordLabel || "Password"}
               onChange={(e) => setPassword(e.target.value)}
               value={password}
               validators={['required']}

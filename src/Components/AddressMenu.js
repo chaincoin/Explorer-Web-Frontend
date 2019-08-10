@@ -93,13 +93,14 @@ class AddressMenu extends React.Component {
   handleMenuRemoveFromMyAddresses = () => {
     this.handleMenuClose();
 
-
-    DialogService.showConfirmation("Remove My Address", this.state.myAddress.WIF == null ? "Are you sure?" : "Are you sure? the private key can not be recovered")
-    .subscribe((result) =>{
-
-      if (result == true) MyWalletServices.deleteMyAddress(this.props.address);
+    MyWalletServices.isWalletEncrypted.pipe(
+      first(),
+      switchMap(walletEncrypted => walletEncrypted == false ? of(""): GetWalletPasswordObservable),
+      switchMap(() => DialogService.showConfirmation("Remove My Address", this.state.myAddress.WIF == null ? "Are you sure?" : "Are you sure? the private key can not be recovered")),
+      filter(confirm => confirm == true)
+    ).subscribe(() =>{
+      MyWalletServices.deleteMyAddress(this.props.address);
     });
-
   };
 
 
@@ -124,6 +125,7 @@ class AddressMenu extends React.Component {
     this.handleMenuClose();
 
     MyWalletServices.isWalletEncrypted.pipe(
+      first(),
       switchMap(walletEncrypted => walletEncrypted ? 
         DecryptPrivateKey(this.state.myAddress.encryptedWIF):
         of(this.state.myAddress.WIF)
@@ -139,6 +141,7 @@ class AddressMenu extends React.Component {
 
     GetAddressWif(this.props.address).pipe(
       switchMap(wif => MyWalletServices.isWalletEncrypted.pipe(
+        first(),
         switchMap(walletEncrypted => walletEncrypted == false ? 
           of([wif, null]):
           EncryptPrivateKeyObservable(wif).pipe(
@@ -158,6 +161,7 @@ class AddressMenu extends React.Component {
     this.handleMenuClose();
 
     MyWalletServices.isWalletEncrypted.pipe(
+      first(),
       switchMap(walletEncrypted => walletEncrypted == false ? of(""): GetWalletPasswordObservable),
       switchMap(() => DialogService.showConfirmation("Clear WIF", "are you sure? this WIF cannot be recovered")),
       filter(confirm => confirm == true)

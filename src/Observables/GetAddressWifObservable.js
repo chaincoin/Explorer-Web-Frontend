@@ -8,6 +8,7 @@ import BlockchainServices from '../Services/BlockchainServices'
 
 export default (address) => GetPassword({
     title:"Set WIF",
+    passwordLabel: "WIF",
     checkPassword: (wif) =>{
 
         try{

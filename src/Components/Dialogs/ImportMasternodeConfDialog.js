@@ -17,6 +17,9 @@ import Paper from '@material-ui/core/Paper';
 
 import MyWalletServices from '../../Services/MyWalletServices';
 import DialogService from '../../Services/DialogService';
+import { first, switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
+import GetWalletPasswordObservable from '../../Observables/GetWalletPasswordObservable';
 
 export default  (props) => {
   const [file, setFile] = React.useState(null);
@@ -38,38 +41,45 @@ export default  (props) => {
       
       var lines = e.target.result.split('\n');
 
-      var promises = lines.map((line,index) => {
+      MyWalletServices.isWalletEncrypted.pipe(
+        first(),
+        switchMap(walletEncrypted => walletEncrypted == false ? of(null) : GetWalletPasswordObservable)
+      ).subscribe(walletPassword => {
+        var promises = lines.map((line,index) => {
 
-        if (line.startsWith("#")) return Promise.resolve({
-          line: index + 1,
-          result: false,
-          message: "comment"
-        });
-
-        var lineParts = line.replace(new RegExp(" +", "g"), " ").replace(new RegExp("\r", "g"), "").split(' ');
-        if (lineParts.length != 5) return Promise.resolve({
-          line: index + 1,
-          result: false,
-          message: "invalid line format"
-        });
-
-        var name = lineParts[0];
-        var privateKey = lineParts[2];
-        var output = lineParts[3] + "-" + lineParts[4];
-        return new Promise((resolve) => MyWalletServices.addMyMasternode(name, output, privateKey)
-          .then(() => resolve({
-            line: index + 1,
-            result: true,
-            message: "added successfully"
-          }))
-          .catch((err) => resolve({
+          if (line.startsWith("#")) return Promise.resolve({
             line: index + 1,
             result: false,
-            message: "failed - " + (err || "unknown")
-          })));
-      });
+            message: "comment"
+          });
+  
+          var lineParts = line.replace(new RegExp(" +", "g"), " ").replace(new RegExp("\r", "g"), "").split(' ');
+          if (lineParts.length != 5) return Promise.resolve({
+            line: index + 1,
+            result: false,
+            message: "invalid line format"
+          });
+  
+          var name = lineParts[0];
+          var privateKey = lineParts[2];
+          var output = lineParts[3] + "-" + lineParts[4];
+          return new Promise((resolve) => MyWalletServices.addMyMasternode(name, output, walletPassword == null ? privateKey : null,  walletPassword == null ? null : MyWalletServices.encrypt(walletPassword, privateKey))
+            .then(() => resolve({
+              line: index + 1,
+              result: true,
+              message: "added successfully"
+            }))
+            .catch((err) => resolve({
+              line: index + 1,
+              result: false,
+              message: "failed - " + (err || "unknown")
+            })));
+        });
+  
+        Promise.all(promises).then(results => setImportResults(results));
+      })
 
-      Promise.all(promises).then(results => setImportResults(results));
+      
 
     };
 
