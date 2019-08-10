@@ -157,18 +157,22 @@ var walletApi = null;
 		updateAddress:function(request){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
-			
-					var dbRequest = db.transaction("addresses", "readwrite").objectStore("addresses").put({
-						name: request.name,
-						address: request.address,
-						WIF:request.WIF,
-						encryptedWIF: request.encryptedWIF
-					});
-					
-					dbRequest.onsuccess = function(event) {
+			debugger;
+					const transaction = db.transaction(["addresses"], "readwrite")
+					const addressStore = transaction.objectStore("addresses")
+					const getAddressRequest = addressStore.get(request.address);
+
+
+					getAddressRequest.onsuccess = (event) =>{
+						debugger;
+						addressStore.put(Object.assign({},event.target.result,request))
+					};
+
+					transaction.oncomplete = function(event) {
+						debugger;
 						resolve();
 					};
-					dbRequest.onerror = function(event) {
+					transaction.onerror = function(event) {
 						reject();
 					};
 				});
@@ -414,21 +418,67 @@ var walletApi = null;
 				});
 			});
 		},
-		encryptWallet:function(request){
+		encryptWallet:function(encryptFunc){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
 			debugger;
 					var transaction = db.transaction("addresses", "readwrite");
 					var addressesStore = transaction.objectStore("addresses");
 
-					request.addresses.forEach(address =>{
-						addressesStore.put({
-							name: address.name,
-							address: address.address,
-							WIF:address.WIF,
-							encryptedWIF: address.encryptedWIF
+
+					var getAllAddressesRequest = addressesStore.getAll();
+
+					getAllAddressesRequest.onsuccess = function(event){
+						event.target.result.forEach(address =>{
+
+							if (address.WIF != null)
+							{
+								var update = {
+									WIF:null,
+									encryptedWIF:encryptFunc(address.WIF)
+								};
+								addressesStore.put(Object.assign({}, address,update))
+							}
+							
 						})
-					});
+
+					};
+
+					transaction.oncomplete = function(event) {
+						resolve();
+					};
+					transaction.onerror = function(event) {
+						reject();
+					};
+					
+				});
+			});
+		},
+		decryptWallet:function(decryptFunc){
+			return dbPromise.then(function(db){
+				return new Promise(function(resolve, reject) {
+			debugger;
+					var transaction = db.transaction("addresses", "readwrite");
+					var addressesStore = transaction.objectStore("addresses");
+
+
+					var getAllAddressesRequest = addressesStore.getAll();
+
+					getAllAddressesRequest.onsuccess = function(event){
+						event.target.result.forEach(address =>{
+
+							if (address.encryptedWIF != null)
+							{
+								var update = {
+									WIF:decryptFunc(address.encryptedWIF),
+									encryptedWIF:null
+								};
+								addressesStore.put(Object.assign({}, address,update))
+							}
+							
+						})
+
+					};
 
 					transaction.oncomplete = function(event) {
 						resolve();

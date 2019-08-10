@@ -1,6 +1,6 @@
 import React from 'react';
 import { combineLatest, of } from 'rxjs';
-import { first, switchMap } from 'rxjs/operators';
+import { first, switchMap, map, filter } from 'rxjs/operators';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -18,6 +18,10 @@ import FirebaseServices from '../Services/FirebaseServices';
 import DialogService from '../Services/DialogService';
 
 import DecryptPrivateKey from '../Observables/DecryptPrivateKeyObservable';
+
+import GetAddressWif from '../Observables/GetAddressWifObservable';
+import GetWalletPasswordObservable from '../Observables/GetWalletPasswordObservable';
+import EncryptPrivateKeyObservable from '../Observables/EncryptPrivateKeyObservable';
 
 const styles = theme => ({
   root: {
@@ -126,10 +130,43 @@ class AddressMenu extends React.Component {
       ),
       switchMap(WIF => DialogService.showMessage("WIF", WIF))
     ).subscribe();
+  };
+
+
+  handleMenuSetWif = () => {
+    this.handleMenuClose();
+
+
+    GetAddressWif(this.props.address).pipe(
+      switchMap(wif => MyWalletServices.isWalletEncrypted.pipe(
+        switchMap(walletEncrypted => walletEncrypted == false ? 
+          of([wif, null]):
+          EncryptPrivateKeyObservable(wif).pipe(
+            map(encryptedWif => [null,encryptedWif])
+          )
+        )
+      ))
+    )
+    .subscribe(([wif, encryptedWif]) =>{
+      MyWalletServices.updateMyAddress({address: this.props.address, WIF: wif, encryptedWIF: encryptedWif })
+    });
 
 
   };
+  
+  handleMenuClearWif = () => {
+    this.handleMenuClose();
 
+    MyWalletServices.isWalletEncrypted.pipe(
+      switchMap(walletEncrypted => walletEncrypted == false ? of(""): GetWalletPasswordObservable),
+      switchMap(() => DialogService.showConfirmation("Clear WIF", "are you sure? this WIF cannot be recovered")),
+      filter(confirm => confirm == true)
+    ).subscribe(() =>{
+      MyWalletServices.updateMyAddress({address: this.props.address, WIF: null, encryptedWIF: null })
+    });
+
+
+  };
   
 
 
@@ -214,9 +251,13 @@ class AddressMenu extends React.Component {
 
           {
             myAddress != null && (myAddress.WIF != null || myAddress.encryptedWIF != null) ?
-            <MenuItem onClick={this.handleMenuExportWif}>Export WIF</MenuItem> :
-            ""
+            <React.Fragment>
+              <MenuItem onClick={this.handleMenuExportWif}>Export WIF</MenuItem>
+              <MenuItem onClick={this.handleMenuClearWif}>Clear WIF</MenuItem>  
+            </React.Fragment>:
+            <MenuItem onClick={this.handleMenuSetWif}>Set WIF</MenuItem>
           }
+          
           <MenuItem onClick={this.handleExportTransactions}>Export Transactions</MenuItem>
           {this.props.children}
         </Menu>

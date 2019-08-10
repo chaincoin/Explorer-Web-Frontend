@@ -82,14 +82,9 @@ const myAddresses = Observable.create(function(observer) {
     });
   }
 
-  var updateMyAddress = (name, address, WIF, encryptedWIF) =>{ 
+  var updateMyAddress = (address) =>{ 
 
-    return window.walletApi.updateAddress({
-        name:name,
-        address: address,
-        WIF:WIF,
-        encryptedWIF:encryptedWIF
-    }).then(() => {
+    return window.walletApi.updateAddress(address).then(() => {
         broadcastEvent("myAddressUpdated");
         myAddressUpdated.next();
     });
@@ -317,19 +312,8 @@ const setWalletPassword = (newPassword) =>{
 
   return isWalletEncrypted.pipe(
     first(),
-    switchMap(walletEncrypted => walletEncrypted ? throwError("Wallet password already set") : myAddresses),
-    first(),
-    switchMap(myAddresses =>{
-debugger;
-      var encryptedMyAddresses = myAddresses.filter(myAddress => myAddress.WIF != null).map(myAddress => Object.assign({}, myAddress,{
-        WIF:null,
-        encryptedWIF:encrypt(newPassword, myAddress.WIF)
-      }));
-
-      return from(window.walletApi.encryptWallet({
-        addresses: encryptedMyAddresses
-      }));
-    }),
+    switchMap(walletEncrypted => walletEncrypted ? throwError("Wallet password already set") : of()),
+    switchMap(() => from(window.walletApi.encryptWallet((wif) => encrypt(newPassword, wif)))),
     switchMap(() =>{
       const hash = window.bitcoin.crypto.sha256(Buffer.from(newPassword, 'utf8'));
       const walletPasswordVerification = encrypt(newPassword, hash.toString("hex"));
@@ -343,12 +327,16 @@ debugger;
 }
 
 const removeWalletPassword = (password) =>{
-
+debugger;
   return isWalletEncrypted.pipe(
     first(),
+    switchMap(walletEncrypted => walletEncrypted == false ? throwError("Wallet password not set") : of("")),
+    switchMap(() => {
+      debugger;
+      return checkWalletPassword(password) == false ? throwError("Wallet password incorrect") : of("")
+    }),
+    switchMap(() => from(window.walletApi.decryptWallet(encryptedWif => decrypt(password, encryptedWif)))),
     switchMap(walletEncrypted =>{
-      if (walletEncrypted == false) return throwError("Wallet password not set");
-      if (checkWalletPassword(password) == false) return throwError("Wallet password incorrect");
 
       window.localStorage["walletPasswordVerification"] = "";
       isWalletEncrypted.next(false);

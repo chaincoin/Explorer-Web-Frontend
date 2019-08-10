@@ -10,6 +10,7 @@ import FormGroup from '@material-ui/core/FormGroup';
 
 import { TextValidator, ValidatorForm} from 'react-material-ui-form-validator';
 
+import GetAddressWif from '../../Observables/GetAddressWifObservable'
 
 import MyWalletServices from '../../Services/MyWalletServices';
 import BlockchainServices from '../../Services/BlockchainServices';
@@ -19,7 +20,7 @@ export default (props) => {
   const [name, setName] = React.useState("");
   const [address, setAddress] = React.useState((props.address ||""));
   const [wif, setWif] = React.useState((props.wif ||""));
-  
+  const [encryptedWif, setEncryptedWif] = React.useState((props.encryptedWif ||""));
 
   const form = React.useRef(null);
 
@@ -31,6 +32,7 @@ export default (props) => {
       {
         setName(myAddress.name);
         setWif(myAddress.WIF);
+        setEncryptedWif(myAddress.encryptedWIF);
       }
     });
     
@@ -40,17 +42,21 @@ export default (props) => {
   }, []);
 
 
+  const handleSetWif = () =>{
+    GetAddressWif(props.address).subscribe((wif))
+  }
 
   const handleSave = () =>{ 
     form.current.isFormValid(false).then(valid =>{
-      if (valid == false) return;//TODO: need to make sure the WIF is correct for this address
+      if (valid == false) return;
 
-      MyWalletServices.updateMyAddress(name,address,wif)
+      MyWalletServices.updateMyAddress({name, address}) //TODO: partial update of address
       .then(props.onClose)
       .catch(err => DialogService.showMessage("Failed", "Failed to update My Address").subscribe());
 
     });
   }
+
 
 
   
@@ -78,16 +84,15 @@ export default (props) => {
                 errorMessages={['required',"Invalid"]}
                 disabled={true}
               />
-              <TextValidator
-                label="WIF"
-                onChange={(e) => setWif(e.target.value)}
-                value={wif}
-                validators={['isWifValid']}
-                errorMessages={["Invalid"]}
-              />
+
+            
+
             </FormGroup>
           </ValidatorForm>
 
+
+          
+          
         </DialogContent>
         <DialogActions>
           <Button onClick={props.onClose} color="primary">
