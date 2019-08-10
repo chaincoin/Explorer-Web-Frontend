@@ -1,3 +1,6 @@
+import { from, of } from 'rxjs';
+import { first, switchMap } from 'rxjs/operators';
+
 import React from 'react';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -12,8 +15,10 @@ import { TextValidator, ValidatorForm} from 'react-material-ui-form-validator';
 
 
 import MyWalletServices from '../../Services/MyWalletServices';
-import BlockchainServices from '../../Services/BlockchainServices';
 import DialogService from '../../Services/DialogService';
+import GetWalletPasswordObservable from '../../Observables/GetWalletPasswordObservable';
+
+
 
 export default (props) => {
   const [name, setName] = React.useState("");
@@ -26,10 +31,21 @@ export default (props) => {
   const handleWatch = () =>{ 
     form.current.isFormValid(false).then(valid =>{
       if (valid == false) return;
+      
+      MyWalletServices.isWalletEncrypted.pipe(
+        first(),
+        switchMap(walletEncrypted => walletEncrypted == false ? 
+          of(null):
+          GetWalletPasswordObservable
+        ),
+        switchMap(() => from(MyWalletServices.addMyAddress(name,address)))
+      ).subscribe(
+        props.onClose,
+        err =>{ //TODO: this needs improving, better error message
+          DialogService.showMessage("Failed", "Failed to watch address").subscribe()
+        }
+      );      
 
-      MyWalletServices.addMyAddress(name,address)
-      .then(props.onClose)
-      .catch(err => DialogService.showMessage("Failed", "Failed to watch address").subscribe()); 
     });
   }
 
