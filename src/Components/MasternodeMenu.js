@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { combineLatest, from, of, throwError } from 'rxjs';
-import { switchMap, map, first, withLatestFrom  } from 'rxjs/operators';
+import { switchMap, map, first, withLatestFrom, filter  } from 'rxjs/operators';
 
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
@@ -23,6 +23,10 @@ import DialogService from '../Services/DialogService';
 
 
 import Utils from 'Z:/Software/Chaincoin/Tools/Chaincoin Client/utils'
+import DecryptPrivateKeyObservable from '../Observables/DecryptPrivateKeyObservable';
+import GetWalletPasswordObservable from '../Observables/GetWalletPasswordObservable';
+import EncryptPrivateKeyObservable from '../Observables/EncryptPrivateKeyObservable';
+import GetMasternodePrivateKeyObservable from '../Observables/GetMasternodePrivateKeyObservable';
 
 const styles = theme => ({
   root: {
@@ -172,6 +176,55 @@ class MasternodeMenu extends React.Component {
 
   };
 
+  handleExportPrivateKey = () =>{
+    this.handleMenuClose();
+
+
+    MyWalletServices.isWalletEncrypted.pipe(
+      first(),
+      switchMap(walletEncrypted => walletEncrypted ? 
+        DecryptPrivateKeyObservable(this.state.myMn.encryptedPrivateKey):
+        of(this.state.myMn.privateKey)
+      ),
+      switchMap(WIF => DialogService.showMessage("WIF", WIF))
+    ).subscribe();
+  }
+
+  handleClearPrivateKey = () =>{
+    this.handleMenuClose();
+
+
+    MyWalletServices.isWalletEncrypted.pipe(
+      first(),
+      switchMap(walletEncrypted => walletEncrypted == false ? of(""): GetWalletPasswordObservable),
+      switchMap(() => DialogService.showConfirmation("Clear Private Key", "are you sure? this private key cannot be recovered")),
+      filter(confirm => confirm == true)
+    ).subscribe(() =>{
+      debugger;
+      MyWalletServices.UpdateMyMasternode({output: this.props.output, privateKey: null, encryptedPrivateKey: null })
+    });
+  }
+
+  handleSetPrivateKey = () => {
+    this.handleMenuClose();
+
+    GetMasternodePrivateKeyObservable.pipe(
+      switchMap(privateKey => MyWalletServices.isWalletEncrypted.pipe(
+        first(),
+        switchMap(walletEncrypted => walletEncrypted == false ? 
+          of([privateKey, null]):
+          EncryptPrivateKeyObservable(privateKey).pipe(
+            map(encryptedPrivateKey => [null,encryptedPrivateKey])
+          )
+        )
+      ))
+    )
+    .subscribe(([privateKey, encryptedPrivateKey]) =>{
+      MyWalletServices.UpdateMyMasternode({output: this.props.output, privateKey: privateKey, encryptedPrivateKey: encryptedPrivateKey })
+    });
+  }
+
+
   handleMenuRemoveFromMyMns = () => {
     this.handleMenuClose();
 
@@ -267,9 +320,21 @@ class MasternodeMenu extends React.Component {
           {
             myMn == null?
             <MenuItem onClick={this.handleMenuAddToMyMNs}>Add to My Masternodes</MenuItem> :
-            [<MenuItem onClick={this.handleMenuEditMyMn}>Edit My Masternode</MenuItem>,
-            <MenuItem onClick={this.handleMenuRemoveFromMyMns}>Remove from My Masternodes</MenuItem>]
+            [
+              <MenuItem onClick={this.handleMenuEditMyMn}>Edit My Masternode</MenuItem>,
+              <MenuItem onClick={this.handleMenuRemoveFromMyMns}>Remove from My Masternodes</MenuItem>,
+            ]
           }
+
+          {
+            myMn != null && (myMn.privateKey != null || myMn.encryptedPrivateKey != null) ?
+            [
+              <MenuItem onClick={this.handleExportPrivateKey}>Export Private Key</MenuItem>,
+              <MenuItem onClick={this.handleClearPrivateKey}>Clear Private Key</MenuItem>  
+            ]:
+            <MenuItem onClick={this.handleSetPrivateKey}>Set Private Key</MenuItem>
+          }
+          
           {
             myAddress == null?
             <MenuItem onClick={this.handleMenuAddToMyAddresses}>Add to My Addresses</MenuItem> :

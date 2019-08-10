@@ -18,7 +18,6 @@ export default (props) => {
   const [editing, setEditing] = React.useState(false);
   const [name, setName] = React.useState((props.name ||""));
   const [output, setOutput] = React.useState((props.output ||""));
-  const [privateKey, setPrivateKey] = React.useState((props.privateKey ||""));
 
   const form = React.useRef(null);
 
@@ -31,7 +30,6 @@ export default (props) => {
       if (myMn != null)
       {
         setName(myMn.name);
-        setPrivateKey(myMn.privateKey);
       }
     });
     
@@ -51,7 +49,7 @@ export default (props) => {
       if (editing)
       {
 
-        MyWalletServices.UpdateMyMasternode(name, output, privateKey)
+        MyWalletServices.UpdateMyMasternode(name, output)
         .then(() => props.onClose())
         .catch(err => {
           DialogService.showMessage("Failed","Failed to update My Mn").subscribe()
@@ -59,7 +57,7 @@ export default (props) => {
       }
       else
       {
-        MyWalletServices.addMyMasternode(name, output, privateKey)
+        MyWalletServices.addMyMasternode(name, output)
         .then(() => props.onClose())
         .catch(err => {
           DialogService.showMessage("Failed","Failed to add My Mn").subscribe()
@@ -94,13 +92,6 @@ export default (props) => {
               validators={['required', 'isChaincoinOutput']}
               errorMessages={['required',"Invalid"]}
               disabled={editing}
-            />
-             <TextValidator
-              label="Masternode Private Key"
-              onChange={(e) => setPrivateKey(e.target.value)}
-              value={privateKey}
-              validators={['isWifValid']}
-              errorMessages={["Invalid"]}
             />
           </FormGroup>
         </ValidatorForm>

@@ -215,20 +215,25 @@ var walletApi = null;
 		updateMasternode:function(request){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
-			
-					var dbRequest = db.transaction("masternodes", "readwrite").objectStore("masternodes").put({
-						name: request.name,
-						output:request.output,
-						privateKey:request.privateKey,
-						encryptedPrivateKey: request.encryptedPrivateKey
-					});
-					
-					dbRequest.onsuccess = function(event) {
+
+					const transaction = db.transaction(["masternodes"], "readwrite")
+					const masternodesStore = transaction.objectStore("masternodes")
+					const getMasternodeRequest = masternodesStore.get(request.output);
+
+
+					getMasternodeRequest.onsuccess = (event) =>{
+						debugger;
+						masternodesStore.put(Object.assign({},event.target.result,request))
+					};
+
+					transaction.oncomplete = function(event) {
+						debugger;
 						resolve();
 					};
-					dbRequest.onerror = function(event) {
+					transaction.onerror = function(event) {
 						reject();
 					};
+
 				});
 			});
 		},

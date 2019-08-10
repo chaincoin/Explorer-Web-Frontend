@@ -155,13 +155,8 @@ const myMasternodes = Observable.create(function(observer) {
     });
   }
 
-  var UpdateMyMasternode = (name, output, privateKey, encryptedPrivateKey) =>{ 
-    return window.walletApi.updateMasternode({
-        name:name,
-        output: output,
-        privateKey: privateKey,
-        encryptedPrivateKey: encryptedPrivateKey
-    }).then(() => {
+  var UpdateMyMasternode = (masternode) =>{ 
+    return window.walletApi.updateMasternode(masternode).then(() => {
         broadcastEvent("myMasternodeUpdated");
         myMasternodeUpdated.next();
     });

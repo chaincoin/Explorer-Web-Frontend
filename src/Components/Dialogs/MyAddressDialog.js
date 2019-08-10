@@ -19,8 +19,6 @@ import DialogService from '../../Services/DialogService';
 export default (props) => {
   const [name, setName] = React.useState("");
   const [address, setAddress] = React.useState((props.address ||""));
-  const [wif, setWif] = React.useState((props.wif ||""));
-  const [encryptedWif, setEncryptedWif] = React.useState((props.encryptedWif ||""));
 
   const form = React.useRef(null);
 
@@ -31,8 +29,6 @@ export default (props) => {
       if (myAddress != null)
       {
         setName(myAddress.name);
-        setWif(myAddress.WIF);
-        setEncryptedWif(myAddress.encryptedWIF);
       }
     });
     

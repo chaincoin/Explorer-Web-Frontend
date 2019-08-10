@@ -255,10 +255,10 @@ class AddressMenu extends React.Component {
 
           {
             myAddress != null && (myAddress.WIF != null || myAddress.encryptedWIF != null) ?
-            <React.Fragment>
-              <MenuItem onClick={this.handleMenuExportWif}>Export WIF</MenuItem>
+            [
+              <MenuItem onClick={this.handleMenuExportWif}>Export WIF</MenuItem>,
               <MenuItem onClick={this.handleMenuClearWif}>Clear WIF</MenuItem>  
-            </React.Fragment>:
+            ]:
             <MenuItem onClick={this.handleMenuSetWif}>Set WIF</MenuItem>
           }
           
