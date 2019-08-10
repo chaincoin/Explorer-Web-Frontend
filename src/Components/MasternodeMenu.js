@@ -228,11 +228,16 @@ class MasternodeMenu extends React.Component {
   handleMenuRemoveFromMyMns = () => {
     this.handleMenuClose();
 
-    DialogService.showConfirmation("Remove My Masternode", "Are you sure?")
-    .subscribe((result) =>{
 
-      if (result == true) MyWalletServices.deleteMyMasternode(this.props.output);
+    MyWalletServices.isWalletEncrypted.pipe(
+      first(),
+      switchMap(walletEncrypted => walletEncrypted == false ? of(""): GetWalletPasswordObservable),
+      switchMap(() => DialogService.showConfirmation("Remove My Masternode", this.state.myMn.encryptedPrivateKey == null && this.state.myMn.privateKey == null ? "Are you sure?" : "Are you sure? the private key can not be recovered")),
+      filter(confirm => confirm == true)
+    ).subscribe(() =>{
+      MyWalletServices.deleteMyMasternode(this.props.output);
     });
+
   };
 
   handleMenuAddToMyAddresses = () => {
@@ -247,11 +252,15 @@ class MasternodeMenu extends React.Component {
     this.handleMenuClose();
 
 
-    DialogService.showConfirmation("Remove My Address", "Are you sure?") //TODO: this could be smart and say if we have the private key stored for this address
-    .subscribe((result) =>{
-
-      if (result == true) MyWalletServices.deleteMyAddress(this.props.payee);
+    MyWalletServices.isWalletEncrypted.pipe(
+      first(),
+      switchMap(walletEncrypted => walletEncrypted == false ? of(""): GetWalletPasswordObservable),
+      switchMap(() => DialogService.showConfirmation("Remove My Address", this.state.myAddress.WIF == null && this.state.myAddress.encryptedWIF == null ? "Are you sure?" : "Are you sure? the private key can not be recovered")),
+      filter(confirm => confirm == true)
+    ).subscribe(() =>{
+      MyWalletServices.deleteMyAddress(this.props.payee);
     });
+
   };
 
 

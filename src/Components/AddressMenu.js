@@ -96,7 +96,7 @@ class AddressMenu extends React.Component {
     MyWalletServices.isWalletEncrypted.pipe(
       first(),
       switchMap(walletEncrypted => walletEncrypted == false ? of(""): GetWalletPasswordObservable),
-      switchMap(() => DialogService.showConfirmation("Remove My Address", this.state.myAddress.WIF == null ? "Are you sure?" : "Are you sure? the private key can not be recovered")),
+      switchMap(() => DialogService.showConfirmation("Remove My Address", this.state.myAddress.WIF == null && this.state.myAddress.encryptedWIF == null ? "Are you sure?" : "Are you sure? the private key can not be recovered")),
       filter(confirm => confirm == true)
     ).subscribe(() =>{
       MyWalletServices.deleteMyAddress(this.props.address);
