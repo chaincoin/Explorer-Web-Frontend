@@ -157,19 +157,17 @@ var walletApi = null;
 		updateAddress:function(request){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
-			debugger;
+
 					const transaction = db.transaction(["addresses"], "readwrite")
 					const addressStore = transaction.objectStore("addresses")
 					const getAddressRequest = addressStore.get(request.address);
 
 
 					getAddressRequest.onsuccess = (event) =>{
-						debugger;
 						addressStore.put(Object.assign({},event.target.result,request))
 					};
 
 					transaction.oncomplete = function(event) {
-						debugger;
 						resolve();
 					};
 					transaction.onerror = function(event) {
@@ -195,7 +193,7 @@ var walletApi = null;
 		createMasternode:function(request){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
-			debugger;
+
 					var dbRequest = db.transaction("masternodes", "readwrite").objectStore("masternodes").add({
 						name: request.name,
 						output: request.output,
@@ -222,12 +220,10 @@ var walletApi = null;
 
 
 					getMasternodeRequest.onsuccess = (event) =>{
-						debugger;
 						masternodesStore.put(Object.assign({},event.target.result,request))
 					};
 
 					transaction.oncomplete = function(event) {
-						debugger;
 						resolve();
 					};
 					transaction.onerror = function(event) {
@@ -426,7 +422,7 @@ var walletApi = null;
 		encryptWallet:function(encryptFunc){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
-			debugger;
+
 					var transaction = db.transaction(["addresses","masternodes"], "readwrite");
 					var addressesStore = transaction.objectStore("addresses");
 					var masternodesStore = transaction.objectStore("masternodes");
@@ -478,7 +474,7 @@ var walletApi = null;
 		decryptWallet:function(decryptFunc){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
-			debugger;
+
 					var transaction = db.transaction(["addresses","masternodes"], "readwrite");
 					var addressesStore = transaction.objectStore("addresses");
 					var masternodesStore = transaction.objectStore("masternodes");

@@ -202,7 +202,7 @@ class MasternodeMenu extends React.Component {
       switchMap(() => DialogService.showConfirmation("Clear Private Key", "are you sure? this private key cannot be recovered")),
       filter(confirm => confirm == true)
     ).subscribe(() =>{
-      debugger;
+
       MyWalletServices.UpdateMyMasternode({output: this.props.output, privateKey: null, encryptedPrivateKey: null })
     });
   }

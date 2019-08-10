@@ -328,7 +328,7 @@ const setWalletPassword = (newPassword) =>{
 }
 
 const removeWalletPassword = (password) =>{
-debugger;
+
   return isWalletEncrypted.pipe(
     first(),
     switchMap(walletEncrypted => walletEncrypted == false ? throwError("Wallet password not set") : of(true)),
