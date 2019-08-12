@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import MyAddressList from './MyAddressList';
 import MyAddressesSend from './MyAddressesSend/MyAddressesSend';
 import MyAddressesGraph from './MyAddressesGraph';
+import MyWalletSettings from './MyWalletSettings';
 
 
 
@@ -46,6 +47,7 @@ class MyAddresses extends React.Component {
             <Tab label="Send" classes={{ label: 'details-tab' }} />
             <Tab label="Mining" classes={{ label: 'details-tab' }} />
             <Tab label="MN Payouts" classes={{ label: 'details-tab' }} />
+            <Tab label="My Wallet Settings" classes={{ label: 'details-tab' }} />
           </Tabs>
         </CardHeader>
         <CardBody>
@@ -53,6 +55,7 @@ class MyAddresses extends React.Component {
         {tab === 1 && <MyAddressesSend />}
         {tab === 2 && <MyAddressesGraph  payOutType="miner" />}
         {tab === 3 && <MyAddressesGraph  payOutType="masternode" />}
+        {tab === 4 && <MyWalletSettings />}
         </CardBody> 
       </Card>
 

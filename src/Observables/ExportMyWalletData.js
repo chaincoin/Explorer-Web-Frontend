@@ -1,12 +1,16 @@
 
 
-import { of, combineLatest } from 'rxjs';
+import { of, combineLatest, empty } from 'rxjs';
 import { first, switchMap, map } from 'rxjs/operators'
+
+
+import GetWalletPasswordObservable from './GetWalletPasswordObservable';
+
 
 import MyWalletServices from '../Services/MyWalletServices';
 import DialogService from '../Services/DialogService';
-import GetWalletPasswordObservable from './GetWalletPasswordObservable';
 
+import Utils from '../Services/Utils';
 
 export default MyWalletServices.isWalletEncrypted.pipe(
     first(),
@@ -17,5 +21,10 @@ export default MyWalletServices.isWalletEncrypted.pipe(
         )
     ),
     switchMap(() => MyWalletServices.myWalletExportData),
-    first()
-)
+    first(),
+    switchMap((config) =>{
+
+        Utils.stringToFileDownload("ChaincoinExplorer MyWallet.conf", JSON.stringify(config));
+        return empty();
+    })
+);

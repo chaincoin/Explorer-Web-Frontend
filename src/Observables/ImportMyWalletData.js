@@ -15,14 +15,14 @@ export default MyWalletServices.isWalletEncrypted.pipe(
         of(null):
         GetWalletPasswordObservable
     ),
-    switchMap(() => DialogService.showConfirmation("Import My Wallet Data","Are you sure? will overwrite any current configuration")),
+    switchMap(() => DialogService.showConfirmation("Import My Wallet Data","Are you sure? this will overwrite any current configuration")),
     switchMap(() => DialogService.showDialog(UploadFileDialog,{
         title: "Import My Wallet Data",
         message: "Select My Wallet Data export file",
         checkFileContent:(fileDataJson) =>{
             try{
                 var fileData = JSON.parse(fileDataJson);
-                return of(fileData.myAddresses != null && fileData.myMasternodes != null && fileData.inputLockStates);
+                return of(fileData.myAddresses != null && fileData.myMasternodes != null && fileData.inputLockStates != null);
             }
             catch(ex)
             {}
@@ -30,7 +30,5 @@ export default MyWalletServices.isWalletEncrypted.pipe(
         }
     })),
     first(),
-    switchMap((fileDataJson) =>{
-        
-    })
+    switchMap((fileDataJson) => MyWalletServices.importMyWalletData(JSON.parse(fileDataJson)))
 )

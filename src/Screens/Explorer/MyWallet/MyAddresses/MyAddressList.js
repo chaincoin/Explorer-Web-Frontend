@@ -23,12 +23,13 @@ import AddressMenu from '../../../../Components/AddressMenu'
 import CreateAddressDialog from '../../../../Components/Dialogs/CreateMyAddressDialog';
 import WatchAddressDialog from '../../../../Components/Dialogs/WatchAddressDialog'
 import ImportWifDialog from '../../../../Components/Dialogs/ImportWifDialog';
-
 import SetWalletPasswordDialog from '../../../../Components/Dialogs/SetWalletPasswordDialog';
+
 
 import BlockchainServices from '../../../../Services/BlockchainServices';
 import MyWalletServices from '../../../../Services/MyWalletServices';
 import DialogService from '../../../../Services/DialogService';
+
 
 import RemoveWalletPassword from '../../../../Observables/RemoveWalletPasswordObservable';
 import ExportMyWalletData from '../../../../Observables/ExportMyWalletData';
@@ -61,9 +62,7 @@ class MyAddresses extends React.Component {
     page: 0,
     rowsPerPage: 10,
     loading: true,
-    error: null,
-
-    walletEncrypted:false
+    error: null
   };
 
 
@@ -79,23 +78,6 @@ class MyAddresses extends React.Component {
     this.setState({ page: 0, rowsPerPage: parseInt(event.target.value) });
   };
 
-  handleExportMyWalletData = () =>{
-    ExportMyWalletData.subscribe(config => download("ChaincoinExplorer MyWallet.conf", JSON.stringify(config)));
-
-
-    function download(filename, text) {
-      var element = document.createElement('a');
-      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-      element.setAttribute('download', filename);
-
-      element.style.display = 'none';
-      document.body.appendChild(element);
-
-      element.click();
-
-      document.body.removeChild(element);
-    }
-  }
 
 
   
@@ -123,14 +105,13 @@ class MyAddresses extends React.Component {
       });
     });
 
-    this.isWalletEncryptedSubscription = MyWalletServices.isWalletEncrypted.subscribe((walletEncrypted) =>this.setState({walletEncrypted}))
+
   }
 
   componentWillUnmount() {
     this.myAddressesSubscription.unsubscribe();
     this.addressSubscriptions.forEach(v => v.unsubscribe());
 
-    this.isWalletEncryptedSubscription.unsubscribe();
 
   }
 
@@ -141,7 +122,7 @@ class MyAddresses extends React.Component {
  
   render() {
     const { classes } = this.props;
-    const { rowsPerPage, page, walletEncrypted } = this.state;
+    const { rowsPerPage, page } = this.state;
     var { rows } = this.state;
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
@@ -159,20 +140,6 @@ class MyAddresses extends React.Component {
         <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(ImportWifDialog).subscribe()}>
           Import WIF
         </Button>
-
-        {
-          walletEncrypted ? 
-          <Button variant="contained" color="primary" className={classes.button} onClick={() => RemoveWalletPassword.subscribe()}>
-            Remove Wallet Password
-          </Button> :
-          <Button variant="contained" color="primary" className={classes.button} onClick={() => DialogService.showDialog(SetWalletPasswordDialog).subscribe()}>
-            Set Wallet Password
-          </Button> 
-        }
-
-          <Button variant="contained" color="primary" className={classes.button} onClick={() => this.handleExportMyWalletData()}>
-            Export Wallet Data
-          </Button> 
         
         
           <Paper>

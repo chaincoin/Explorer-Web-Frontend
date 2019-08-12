@@ -329,7 +329,7 @@ var walletApi = null;
 				});
 			});
 		},
-		listInputLockStates: function(request){
+		listInputLockStates: function(request){ //TODO: the data return here should be a list, RXJS can be used to compute this to an object, data should be read as is
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
 					
@@ -524,7 +524,93 @@ var walletApi = null;
 					
 				});
 			});
+		},
+		importMyWalletdata: function(myWalletData){
+			return dbPromise.then(function(db){
+				return new Promise(function(resolve, reject) {
+
+					const transaction = db.transaction(["addresses","masternodes", "inputLockStates", "notifications"], "readwrite");
+					const addressesStore = transaction.objectStore("addresses");
+					const masternodesStore = transaction.objectStore("masternodes");
+					const inputLockStatesStore = transaction.objectStore("inputLockStates");
+					const notificationsStore = transaction.objectStore("notifications")
+
+
+					const clearAddressesRequest = addressesStore.clear();
+					const clearMasternodesRequest = masternodesStore.clear();
+					const clearInputLockStatesRequest = inputLockStatesStore.clear();
+					const clearNotificationsStoreRequest = notificationsStore.clear();
+
+					Promise.all([
+						IDBRequestToPromise(clearAddressesRequest),
+						IDBRequestToPromise(clearMasternodesRequest),
+						IDBRequestToPromise(clearInputLockStatesRequest),
+						IDBRequestToPromise(clearNotificationsStoreRequest)
+					]).then(function(){
+						myWalletData.myAddresses.forEach(function(myAddress){
+							addressesStore.add(myAddress)
+						});
+
+						myWalletData.myMasternodes.forEach(function(myMasternode){
+							masternodesStore.add(myMasternode)
+						});
+
+						/*myWalletData.inputLockStates.forEach(function(inputLockState){  //TODO; once the data is stored in export in array then uncomment this code
+							inputLockStatesStore.add(inputLockState)
+						});*/
+
+					}).catch(reject)
+					
+
+					transaction.oncomplete = function(event) {
+						resolve();
+					};
+					transaction.onerror = function(event) {
+						debugger;
+						reject();
+					};
+					
+				});
+			});
+		},
+		clearMyWalletdata: function(){
+			return dbPromise.then(function(db){
+				return new Promise(function(resolve, reject) {
+
+					const transaction = db.transaction(["addresses","masternodes", "inputLockStates", "notifications"], "readwrite");
+					const addressesStore = transaction.objectStore("addresses");
+					const masternodesStore = transaction.objectStore("masternodes");
+					const inputLockStatesStore = transaction.objectStore("inputLockStates");
+					const notificationsStore = transaction.objectStore("notifications")
+
+
+					const clearAddressesRequest = addressesStore.clear();
+					const clearMasternodesRequest = masternodesStore.clear();
+					const clearInputLockStatesRequest = inputLockStatesStore.clear();
+					const clearNotificationsStoreRequest = notificationsStore.clear();
+
+				
+
+					transaction.oncomplete = function(event) {
+						resolve();
+					};
+					transaction.onerror = function(event) {
+						debugger;
+						reject();
+					};
+					
+				});
+			});
 		}
 	}
 
+}
+
+
+const IDBRequestToPromise = function(dbRequest)
+{
+	return new Promise(function(resolve, reject){
+		dbRequest.onsuccess = resolve;
+		dbRequest.onerror = reject
+	});
 }

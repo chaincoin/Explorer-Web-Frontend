@@ -354,6 +354,65 @@ const changeWalletPassword = (oldPassword, newPassword) =>{
 }
 
 
+
+
+const myWalletData = combineLatest(myAddresses, myMasternodes, inputLockStates).pipe(
+  map(([myAddresses,myMasternodes,inputLockStates]) => ({
+    walletPasswordVerification: window.localStorage["walletPasswordVerification"], //TODO: shouldnt be accessing walletPasswordVerification data like this
+    myAddresses, myMasternodes, inputLockStates
+  }))
+);
+
+
+const importMyWalletData = (myWalletData) =>{
+
+  return from(window.walletApi.importMyWalletdata(myWalletData)).pipe(
+    switchMap(result =>{
+
+      window.localStorage["walletPasswordVerification"] = myWalletData.walletPasswordVerification;
+
+      myAddressDeleted.next(true);
+      myAddressAdded.next(true);
+      
+      myMasternodeDeleted.next(true);
+      myMasternodeAdded.next(true);
+
+      inputLockStateAdded.next(true);
+      inputLockStateDeleted.next(true);
+
+      return result;
+    })
+  );
+   
+}
+
+const clearMyWalletData = (password) =>{
+  return isWalletEncrypted.pipe(
+    first(),
+    switchMap(walletEncrypted => walletEncrypted == false ? of(true) : (checkWalletPassword(password) == false ? throwError("Wallet password incorrect") : of(true))),
+    switchMap(() => from(window.walletApi.clearMyWalletdata())),
+    switchMap(() =>{
+
+      //TODO: this doesnt trigger event on other tabs
+      window.localStorage["walletPasswordVerification"] = "";
+
+      myAddressDeleted.next(true);
+      myAddressAdded.next(true);
+      
+      myMasternodeDeleted.next(true);
+      myMasternodeAdded.next(true);
+
+      inputLockStateAdded.next(true);
+      inputLockStateDeleted.next(true);
+
+      isWalletEncrypted.next(false);
+      
+      return of(true);
+    })
+  );
+}
+
+
 const encrypt = (password, decrypted) =>{
   var cipher = crypto.createCipher(cryptoAlgorithm,password)
   var crypted = cipher.update(decrypted,'utf8','hex')
@@ -369,13 +428,6 @@ const decrypt = (password, encrypted) =>{
   return dec;
 }
 
-
-const myWalletExportData = combineLatest(myAddresses, myMasternodes, inputLockStates).pipe(
-  map(([myAddresses,myMasternodes,inputLockStates]) => ({
-    walletPasswordVerification: window.localStorage["walletPasswordVerification"], //TODO: shouldnt be accessing walletPasswordVerification data like this
-    myAddresses, myMasternodes, inputLockStates
-  }))
-);
 
 export default {
     myAddresses,
@@ -406,7 +458,9 @@ export default {
     removeWalletPassword,
     encrypt,
     decrypt,
-    myWalletExportData
+    myWalletData,
+    importMyWalletData,
+    clearMyWalletData
 
 }
 
