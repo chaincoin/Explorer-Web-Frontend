@@ -16,6 +16,14 @@ const stringToFileDownload = (filename, content) =>{
 }
 
 
+
+var timeToDate = (timestamp) =>{
+    var d = new Date(timestamp * 1000);
+    return d;
+}
+
+
 export default {
-    stringToFileDownload
+    stringToFileDownload,
+    timeToDate
 }

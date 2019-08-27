@@ -363,8 +363,21 @@ var getBlockHash = (blockId) =>{ //TODO: This is a memory leak
   var peerInfo = DataService.webSocket.pipe(
     switchMap(webSocket => webSocket ?
       DataService.subscription("PeerInfo"):
-      interval(30000).pipe(switchMap(blockCount => from(DataService.sendRequest({
+      interval(30000).pipe(switchMap(() => from(DataService.sendRequest({
         op: "getPeerInfo",
+      }))))
+    ),
+    shareReplay({
+      bufferSize: 1,
+      refCount: true
+    })
+  );
+
+  var bannedList = DataService.webSocket.pipe(
+    switchMap(webSocket => webSocket ?
+      DataService.subscription("BannedList"):
+      interval(30000).pipe(switchMap(() => from(DataService.sendRequest({
+        op: "getBannedList",
       }))))
     ),
     shareReplay({
@@ -503,6 +516,7 @@ var getBlockHash = (blockId) =>{ //TODO: This is a memory leak
 
     peerInfo,
     chainTips,
+    bannedList,
 
     memPoolInfo,
     rawMemPool,
