@@ -7,7 +7,7 @@ import Graph from '../../../../Components/PayOutGraph';
 import Paper from '@material-ui/core/Paper';
 
 import BlockchainServices from '../../../../Services/BlockchainServices';
-import MyWalletServices from '../../../../Services/MyWalletServices';
+import MyWalletServices from '../../../../Services/MyWalletServices/MyWalletServices';
 
 const styles = {
   root: {

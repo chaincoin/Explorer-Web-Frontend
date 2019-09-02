@@ -20,7 +20,7 @@ import TablePaginationActions from '../../Components/TablePaginationActions';
 import MasternodeMenu from '../../Components/MasternodeMenu'
 
 import BlockchainServices from '../../Services/BlockchainServices';
-import MyWalletServices from '../../Services/MyWalletServices';
+import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 
 
 

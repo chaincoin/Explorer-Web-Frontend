@@ -3,7 +3,7 @@ import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 
-import MyWalletServices from '../Services/MyWalletServices';
+import MyWalletServices from '../Services/MyWalletServices/MyWalletServices';
 
 function CoinControlMenu({input}) {
   const [anchorEl, setAnchorEl] = React.useState(null);

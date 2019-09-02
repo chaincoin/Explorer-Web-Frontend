@@ -13,7 +13,7 @@ import MyAddressDialog from './Dialogs/MyAddressDialog'
 
 
 import BlockchainServices from '../Services/BlockchainServices';
-import MyWalletServices from '../Services/MyWalletServices';
+import MyWalletServices from '../Services/MyWalletServices/MyWalletServices';
 import FirebaseServices from '../Services/FirebaseServices';
 import DialogService from '../Services/DialogService';
 

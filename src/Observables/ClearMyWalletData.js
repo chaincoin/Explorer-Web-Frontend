@@ -7,7 +7,7 @@ import { first, switchMap, map, delayWhen } from 'rxjs/operators'
 import GetWalletPasswordObservable from './GetWalletPasswordObservable';
 
 
-import MyWalletServices from '../Services/MyWalletServices';
+import MyWalletServices from '../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../Services/DialogService';
 
 import Utils from '../Services/Utils';

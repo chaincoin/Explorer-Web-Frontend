@@ -16,7 +16,7 @@ import TablePaginationActions from '../../Components/TablePaginationActions';
 
 
 import BlockchainServices from '../../Services/BlockchainServices';
-import MyWalletServices from '../../Services/MyWalletServices';
+import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 
 
 

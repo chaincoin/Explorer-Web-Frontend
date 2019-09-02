@@ -3,7 +3,7 @@
 var walletApi = null;
 
 {
-	var databaseVersion = 10;
+	var databaseVersion = 12;
 	var databaseName = "Wallet";
 		
 	var databaseOpenState = {
@@ -18,7 +18,7 @@ var walletApi = null;
 	var dbPromise = new Promise(function(resolve, reject){
 		
 		var _indexedDB = indexedDB || mozIndexedDB || webkitIndexedDB || msIndexedDB; // eslint-disable-line no-undef
-		var openRequest = _indexedDB.open(databaseName, 10);
+		var openRequest = _indexedDB.open(databaseName, 12);
 		databaseOpen = databaseOpenState.opening;
 
 		openRequest.onsuccess  = function(event) {
@@ -80,6 +80,13 @@ var walletApi = null;
 				db.createObjectStore("notifications", { keyPath: "id", unique: true });
 			}
 
+			if (event.oldVersion < 12)
+			{
+				debugger;
+				var configurationStore = db.createObjectStore("configuration", { keyPath: "id", unique: true });
+				configurationStore.put({id: "walletPasswordVerification", value:window.localStorage["walletPasswordVerification"]});
+			}
+
 		};
 		
 	});
@@ -88,12 +95,26 @@ var walletApi = null;
 
 
 	walletApi = {
+		getConfiguration:function(id){
+			return dbPromise.then(function(db){
+				return new Promise(function(resolve, reject) {
+					var dbRequest = db.transaction(["configuration"], "readonly").objectStore("configuration").get(id);
+					dbRequest.onsuccess = function(event) {
+						resolve(event.target.result != null ? event.target.result.value : null);
+					};
+					dbRequest.onerror = function(event) {
+						reject();
+					};
+				})
+			})
+		},
 		isWalletEncrypted: function(){
-			const walletPasswordVerification = window.localStorage["walletPasswordVerification"];
-			return walletPasswordVerification != null  && walletPasswordVerification != "";
+			return walletApi.getConfiguration("walletPasswordVerification").then(function(result){
+				return result != null && result != "";
+			});
 		},
 		getWalletPasswordVerification: function(){
-			return window.localStorage["walletPasswordVerification"];
+			return walletApi.getConfiguration("walletPasswordVerification");
 		},
 		createAddress:function(request){
 			return dbPromise.then(function(db){
@@ -422,54 +443,72 @@ var walletApi = null;
 				});
 			});
 		},
-		encryptWallet:function(encryptFunc){
+		encryptWallet:function(walletPasswordVerification, encryptFunc){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
+					debugger;
 
-					var transaction = db.transaction(["addresses","masternodes"], "readwrite");
+					var transaction = db.transaction(["addresses","masternodes", "configuration"], "readwrite");
+					var configurationStore = transaction.objectStore("configuration");
 					var addressesStore = transaction.objectStore("addresses");
 					var masternodesStore = transaction.objectStore("masternodes");
 
-					var getAllAddressesRequest = addressesStore.getAll();
 
-					getAllAddressesRequest.onsuccess = function(event){
-						event.target.result.forEach(address =>{
+					var getWalletPasswordVerification = configurationStore.get("walletPasswordVerification");
 
-							if (address.WIF != null)
-							{
-								var update = {
-									WIF:null,
-									encryptedWIF:encryptFunc(address.WIF)
-								};
-								addressesStore.put(Object.assign({}, address,update))
-							}
-							
-						})
 
-					};
+					getWalletPasswordVerification.onsuccess = function(event){
+						if (event.target.result != null && event.target.result.value != null && event.target.result.value != "") {
+							reject("Wallet already encrypted");
+							return;
+						}
 
-					var getAllMasternodesRequest = masternodesStore.getAll();
+						configurationStore.put({id:"walletPasswordVerification", value:walletPasswordVerification});
+						
 
-					getAllMasternodesRequest.onsuccess = function(event){
-						event.target.result.forEach(masternode =>{
+						var getAllAddressesRequest = addressesStore.getAll();
 
-							if (masternode.privateKey != null)
-							{
-								var update = {
-									privateKey: null,
-									encryptedPrivateKey:encryptFunc(masternode.privateKey)
-								};
-								masternodesStore.put(Object.assign({}, masternode,update))
-							}
-						})
-					};
+						getAllAddressesRequest.onsuccess = function(event){
+							event.target.result.forEach(address =>{
+	
+								if (address.WIF != null)
+								{
+									var update = {
+										WIF:null,
+										encryptedWIF:encryptFunc(address.WIF)
+									};
+									addressesStore.put(Object.assign({}, address,update))
+								}
+								
+							})
+	
+						};
+	
+						var getAllMasternodesRequest = masternodesStore.getAll();
+	
+						getAllMasternodesRequest.onsuccess = function(event){
+							event.target.result.forEach(masternode =>{
+	
+								if (masternode.privateKey != null)
+								{
+									var update = {
+										privateKey: null,
+										encryptedPrivateKey:encryptFunc(masternode.privateKey)
+									};
+									masternodesStore.put(Object.assign({}, masternode,update))
+								}
+							})
+						};
+	
+						transaction.oncomplete = function(event) {
+							resolve();
+						};
+						transaction.onerror = function(event) {
+							reject();
+						};
+					}
 
-					transaction.oncomplete = function(event) {
-						resolve();
-					};
-					transaction.onerror = function(event) {
-						reject();
-					};
+					
 					
 				});
 			});
@@ -478,41 +517,55 @@ var walletApi = null;
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
 
-					var transaction = db.transaction(["addresses","masternodes"], "readwrite");
+					var transaction = db.transaction(["addresses","masternodes", "configuration"], "readwrite");
+					var configurationStore = transaction.objectStore("configuration");
 					var addressesStore = transaction.objectStore("addresses");
 					var masternodesStore = transaction.objectStore("masternodes");
 
-					var getAllAddressesRequest = addressesStore.getAll();
-
-					getAllAddressesRequest.onsuccess = function(event){
-						event.target.result.forEach(address =>{
-							if (address.encryptedWIF != null)
-							{
-								var update = {
-									WIF:decryptFunc(address.encryptedWIF),
-									encryptedWIF:null
-								};
-								addressesStore.put(Object.assign({}, address,update))
-							}
-						})
-
-					};
+					var getWalletPasswordVerification = configurationStore.get("walletPasswordVerification");
 
 
-					var getAllMasternodesRequest = masternodesStore.getAll();
+					getWalletPasswordVerification.onsuccess = function(event){
+						if (event.target.result == null || event.target.result.value == null || event.target.result.value == "") {
+							reject("Wallet not encrypted");
+							return;
+						}
 
-					getAllMasternodesRequest.onsuccess = function(event){
-						event.target.result.forEach(masternode =>{
+						configurationStore.put({id:"walletPasswordVerification", value:null});
+						
 
-							if (masternode.encryptedPrivateKey != null)
-							{
-								var update = {
-									privateKey:decryptFunc(masternode.encryptedPrivateKey),
-									encryptedPrivateKey:null
-								};
-								masternodesStore.put(Object.assign({}, masternode,update))
-							}
-						})
+						var getAllAddressesRequest = addressesStore.getAll();
+
+						getAllAddressesRequest.onsuccess = function(event){
+							event.target.result.forEach(address =>{
+								if (address.encryptedWIF != null)
+								{
+									var update = {
+										WIF:decryptFunc(address.encryptedWIF),
+										encryptedWIF:null
+									};
+									addressesStore.put(Object.assign({}, address,update))
+								}
+							})
+
+						};
+
+
+						var getAllMasternodesRequest = masternodesStore.getAll();
+
+						getAllMasternodesRequest.onsuccess = function(event){
+							event.target.result.forEach(masternode =>{
+
+								if (masternode.encryptedPrivateKey != null)
+								{
+									var update = {
+										privateKey:decryptFunc(masternode.encryptedPrivateKey),
+										encryptedPrivateKey:null
+									};
+									masternodesStore.put(Object.assign({}, masternode,update))
+								}
+							})
+						};
 					};
 
 					transaction.oncomplete = function(event) {
@@ -529,24 +582,30 @@ var walletApi = null;
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
 
-					const transaction = db.transaction(["addresses","masternodes", "inputLockStates", "notifications"], "readwrite");
+					const transaction = db.transaction(["configuration", "addresses","masternodes", "inputLockStates", "notifications"], "readwrite");
+					const configurationStore = transaction.objectStore("configuration");
 					const addressesStore = transaction.objectStore("addresses");
 					const masternodesStore = transaction.objectStore("masternodes");
 					const inputLockStatesStore = transaction.objectStore("inputLockStates");
 					const notificationsStore = transaction.objectStore("notifications")
 
 
+					const clearConfigurationeRequest = configurationStore.clear();
 					const clearAddressesRequest = addressesStore.clear();
 					const clearMasternodesRequest = masternodesStore.clear();
 					const clearInputLockStatesRequest = inputLockStatesStore.clear();
 					const clearNotificationsStoreRequest = notificationsStore.clear();
 
 					Promise.all([
+						IDBRequestToPromise(clearConfigurationeRequest),
 						IDBRequestToPromise(clearAddressesRequest),
 						IDBRequestToPromise(clearMasternodesRequest),
 						IDBRequestToPromise(clearInputLockStatesRequest),
 						IDBRequestToPromise(clearNotificationsStoreRequest)
 					]).then(function(){
+
+
+						configurationStore.put({id:"walletPasswordVerification", value:myWalletData.walletPasswordVerification});
 						myWalletData.myAddresses.forEach(function(myAddress){
 							addressesStore.add(myAddress)
 						});
@@ -577,13 +636,14 @@ var walletApi = null;
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
 
-					const transaction = db.transaction(["addresses","masternodes", "inputLockStates", "notifications"], "readwrite");
+					const transaction = db.transaction(["configuration","addresses","masternodes", "inputLockStates", "notifications"], "readwrite");
+					const configurationStore = transaction.objectStore("configuration");
 					const addressesStore = transaction.objectStore("addresses");
 					const masternodesStore = transaction.objectStore("masternodes");
 					const inputLockStatesStore = transaction.objectStore("inputLockStates");
 					const notificationsStore = transaction.objectStore("notifications")
 
-
+					const clearConfigurationeRequest = configurationStore.clear();
 					const clearAddressesRequest = addressesStore.clear();
 					const clearMasternodesRequest = masternodesStore.clear();
 					const clearInputLockStatesRequest = inputLockStatesStore.clear();

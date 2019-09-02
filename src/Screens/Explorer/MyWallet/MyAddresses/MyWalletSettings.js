@@ -9,7 +9,8 @@ import ExportMyWalletData from '../../../../Observables/ExportMyWalletData';
 import ImportMyWalletData from '../../../../Observables/ImportMyWalletData';
 import ClearMyWalletData from '../../../../Observables/ClearMyWalletData';
 
-import MyWalletServices from '../../../../Services/MyWalletServices';
+import MyWalletServices from '../../../../Services/MyWalletServices/MyWalletServices';
+import DialogService from '../../../../Services/DialogService';
 
 
 
@@ -39,10 +40,26 @@ export default (props) =>{
                 <p>
 
                 </p>
-                <Button variant="contained" color="primary" disabled={isWalletEncrypted == true}  onClick={() => SetWalletPassword.subscribe()}>
+                <Button variant="contained" color="primary" disabled={isWalletEncrypted == true}  onClick={() => SetWalletPassword.subscribe(
+                    () =>{
+                        DialogService.showMessage("Success","Wallet Encrypted").subscribe();
+                    },
+                    (error) =>{
+                        debugger;
+                        DialogService.showMessage("Error",error).subscribe();
+                    })
+                }>
                     Set Wallet Password
                 </Button>
-                <Button variant="contained" color="primary" disabled={isWalletEncrypted == false} onClick={() => RemoveWalletPassword.subscribe()}>
+                <Button variant="contained" color="primary" disabled={isWalletEncrypted == false} onClick={() => RemoveWalletPassword.subscribe(
+                    () =>{
+                        DialogService.showMessage("Success","Wallet unencrypted").subscribe();
+                    },
+                    (error) =>{
+                        debugger;
+                        DialogService.showMessage("Error",error).subscribe();
+                    })
+                }>
                     Remove Wallet Password
                 </Button>
             </div>

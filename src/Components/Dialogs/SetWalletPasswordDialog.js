@@ -15,7 +15,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import { TextValidator, ValidatorForm} from 'react-material-ui-form-validator';
 import Checkbox from '@material-ui/core/Checkbox';
 
-import MyWalletServices from '../../Services/MyWalletServices';
+import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../../Services/DialogService';
 
 export default (props) => {

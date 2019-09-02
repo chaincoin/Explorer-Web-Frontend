@@ -9,7 +9,7 @@ import FormGroup from '@material-ui/core/FormGroup';
 
 import { TextValidator, ValidatorForm} from 'react-material-ui-form-validator';
 
-import MyWalletServices from '../../Services/MyWalletServices';
+import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../../Services/DialogService';
 
 export default (props) => {
@@ -33,8 +33,12 @@ export default (props) => {
     form.current.isFormValid(false).then(valid =>{
       if (valid == false) return;
 
-      if (MyWalletServices.checkWalletPassword(password))props.onClose(password);
-      else DialogService.showMessage("","Incorrect Password").subscribe();    
+      MyWalletServices.checkWalletPassword(password).then(result =>{
+        debugger;
+        if (result)props.onClose(password);
+        else DialogService.showMessage("","Incorrect Password").subscribe();    
+      });
+      
       
     });
 

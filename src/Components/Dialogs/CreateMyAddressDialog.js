@@ -10,7 +10,7 @@ import FormGroup from '@material-ui/core/FormGroup';
 import { TextValidator, SelectValidator, ValidatorForm} from 'react-material-ui-form-validator';
 import MenuItem from '@material-ui/core/MenuItem';
 
-import MyWalletServices from '../../Services/MyWalletServices';
+import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 import BlockchainServices from '../../Services/BlockchainServices';
 import DialogService from '../../Services/DialogService';
 import { switchMap } from 'rxjs/operators';

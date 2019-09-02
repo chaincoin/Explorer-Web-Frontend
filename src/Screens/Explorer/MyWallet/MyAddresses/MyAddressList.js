@@ -23,16 +23,13 @@ import AddressMenu from '../../../../Components/AddressMenu'
 import CreateAddressDialog from '../../../../Components/Dialogs/CreateMyAddressDialog';
 import WatchAddressDialog from '../../../../Components/Dialogs/WatchAddressDialog'
 import ImportWifDialog from '../../../../Components/Dialogs/ImportWifDialog';
-import SetWalletPasswordDialog from '../../../../Components/Dialogs/SetWalletPasswordDialog';
 
 
 import BlockchainServices from '../../../../Services/BlockchainServices';
-import MyWalletServices from '../../../../Services/MyWalletServices';
+import MyWalletServices from '../../../../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../../../../Services/DialogService';
 
 
-import RemoveWalletPassword from '../../../../Observables/RemoveWalletPasswordObservable';
-import ExportMyWalletData from '../../../../Observables/ExportMyWalletData';
 
 
 const styles = theme => ({

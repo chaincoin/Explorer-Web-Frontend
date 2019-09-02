@@ -17,7 +17,7 @@ import CloseIcon from '@material-ui/icons/Close';
 import { Link } from "react-router-dom";
 
 import BlockchainServices from '../../Services/BlockchainServices';
-import MyWalletServices from '../../Services/MyWalletServices';
+import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 
 const styles = theme => ({
   root: {

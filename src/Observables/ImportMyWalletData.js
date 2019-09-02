@@ -3,7 +3,7 @@
 import { of, combineLatest } from 'rxjs';
 import { first, switchMap, map } from 'rxjs/operators'
 
-import MyWalletServices from '../Services/MyWalletServices';
+import MyWalletServices from '../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../Services/DialogService';
 import GetWalletPasswordObservable from './GetWalletPasswordObservable';
 import UploadFileDialog from '../Components/Dialogs/UploadFileDialog';

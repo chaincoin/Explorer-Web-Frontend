@@ -12,7 +12,7 @@ import { TextValidator, ValidatorForm} from 'react-material-ui-form-validator';
 
 import GetAddressWif from '../../Observables/GetAddressWifObservable'
 
-import MyWalletServices from '../../Services/MyWalletServices';
+import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 import BlockchainServices from '../../Services/BlockchainServices';
 import DialogService from '../../Services/DialogService';
 

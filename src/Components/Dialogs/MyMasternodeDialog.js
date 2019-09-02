@@ -9,7 +9,7 @@ import FormGroup from '@material-ui/core/FormGroup';
 
 import { TextValidator, ValidatorForm} from 'react-material-ui-form-validator';
 
-import MyWalletServices from '../../Services/MyWalletServices';
+import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../../Services/DialogService';
 
 

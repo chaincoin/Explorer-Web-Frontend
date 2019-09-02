@@ -3,7 +3,7 @@
 import { of } from 'rxjs';
 import { map,  first, switchMap } from 'rxjs/operators'
 
-import MyWalletServices from '../Services/MyWalletServices';
+import MyWalletServices from '../Services/MyWalletServices/MyWalletServices';
 import GetWalletPassword from './GetWalletPasswordObservable';
 
 

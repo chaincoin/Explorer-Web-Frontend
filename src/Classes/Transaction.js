@@ -5,7 +5,7 @@ import bigDecimal from 'js-big-decimal';
 import { mergeMap, map, first, switchMap  } from 'rxjs/operators';
 
 import BlockchainServices from '../Services/BlockchainServices'
-import MyWalletServices from '../Services/MyWalletServices'
+import MyWalletServices from '../Services/MyWalletServices/MyWalletServices'
 
 import coinSelect from '../Scripts/coinselect/coinselect'; //https://github.com/bitcoinjs/coinselect
 import coinSelectUtils from '../Scripts/coinselect/utils'; //https://github.com/bitcoinjs/coinselect

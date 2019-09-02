@@ -23,7 +23,17 @@ var timeToDate = (timestamp) =>{
 }
 
 
+var broadcastEvent = (event) =>{
+
+    var version = window.localStorage.getItem(event);
+
+    if (version == null) window.localStorage.setItem(event,0);
+    else window.localStorage.setItem(event,version + 1);
+}
+
+
 export default {
     stringToFileDownload,
-    timeToDate
+    timeToDate,
+    broadcastEvent
 }

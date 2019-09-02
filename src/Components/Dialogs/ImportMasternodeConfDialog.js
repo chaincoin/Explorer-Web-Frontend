@@ -15,7 +15,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 
-import MyWalletServices from '../../Services/MyWalletServices';
+import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../../Services/DialogService';
 import { first, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
