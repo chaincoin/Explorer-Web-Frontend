@@ -82,7 +82,6 @@ var walletApi = null;
 
 			if (event.oldVersion < 12)
 			{
-				debugger;
 				var configurationStore = db.createObjectStore("configuration", { keyPath: "id", unique: true });
 				configurationStore.put({id: "walletPasswordVerification", value:window.localStorage["walletPasswordVerification"]});
 			}
@@ -446,7 +445,6 @@ var walletApi = null;
 		encryptWallet:function(walletPasswordVerification, encryptFunc){
 			return dbPromise.then(function(db){
 				return new Promise(function(resolve, reject) {
-					debugger;
 
 					var transaction = db.transaction(["addresses","masternodes", "configuration"], "readwrite");
 					var configurationStore = transaction.objectStore("configuration");
@@ -625,7 +623,6 @@ var walletApi = null;
 						resolve();
 					};
 					transaction.onerror = function(event) {
-						debugger;
 						reject();
 					};
 					
@@ -655,7 +652,6 @@ var walletApi = null;
 						resolve();
 					};
 					transaction.onerror = function(event) {
-						debugger;
 						reject();
 					};
 					

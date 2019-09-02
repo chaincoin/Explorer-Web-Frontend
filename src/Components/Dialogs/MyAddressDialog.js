@@ -43,7 +43,7 @@ export default (props) => {
     form.current.isFormValid(false).then(valid =>{
       if (valid == false) return;
 
-      MyWalletServices.updateMyAddress({name, address}) //TODO: partial update of address
+      MyWalletServices.updateMyAddress({name, address}) 
       .then(props.onClose)
       .catch(err => DialogService.showMessage("Failed", "Failed to update My Address").subscribe());
 

@@ -1,12 +1,12 @@
+import { of, from } from 'rxjs'
 
+import GetPassword from './GetPasswordObservable'
 
-import { filter } from 'rxjs/operators'
+import BlockchainServices from '../Services/BlockchainServices'
+import myWalletService from '../Services/MyWalletServices/MyWalletServices';
 
-import DialogService from '../Services/DialogService';
-import WalletPasswordDialog from '../Components/Dialogs/WalletPasswordDialog';
-
-export default DialogService.showDialog(WalletPasswordDialog).pipe(
-    filter(password => {
-        return password != null && password != ""
-    })
-)
+export default GetPassword({
+    title:"Wallet Password",
+    passwordLabel: "Password",
+    checkPassword: (password) =>from(myWalletService.checkWalletPassword(password))
+})

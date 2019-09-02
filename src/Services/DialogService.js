@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 import MessageDialog from '../Components/Dialogs/MessageDialog'
 import ConfirmationDialog from '../Components/Dialogs/ConfirmationDialog'
+import { debuggerStatement } from '@babel/types';
 
 const dialogsSubject = new BehaviorSubject([]);
 
@@ -67,7 +68,8 @@ const showConfirmation = (title, message) =>{
 
 
 const dialogComplete = (dialog, result) =>{
-    dialog.observer.next(result);
+    debugger;
+    if(result != null) dialog.observer.next(result);
     dialog.observer.complete(result);
     dialog.observer = null;
     removeDialog(dialog);

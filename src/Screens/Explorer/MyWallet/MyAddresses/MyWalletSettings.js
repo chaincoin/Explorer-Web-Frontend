@@ -47,6 +47,9 @@ export default (props) =>{
                     (error) =>{
                         debugger;
                         DialogService.showMessage("Error",error).subscribe();
+                    },
+                    () =>{
+                        DialogService.showMessage("Complete","Complete").subscribe();
                     })
                 }>
                     Set Wallet Password
@@ -58,6 +61,9 @@ export default (props) =>{
                     (error) =>{
                         debugger;
                         DialogService.showMessage("Error",error).subscribe();
+                    },
+                    () =>{
+                        DialogService.showMessage("Complete","Complete").subscribe();
                     })
                 }>
                     Remove Wallet Password

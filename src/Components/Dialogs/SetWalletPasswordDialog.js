@@ -57,7 +57,7 @@ export default (props) => {
   }
 
   return (
-    <Dialog open={true} onClose={props.onClose} aria-labelledby="form-dialog-title">
+    <Dialog open={true} onClose={e => props.onClose()} aria-labelledby="form-dialog-title">
       <DialogTitle id="form-dialog-title">Set Wallet Password</DialogTitle>
       <DialogContent>
 

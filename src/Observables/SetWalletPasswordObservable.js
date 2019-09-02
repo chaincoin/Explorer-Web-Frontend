@@ -1,22 +1,17 @@
 
 
-import { throwError } from 'rxjs';
 import { filter, switchMap, first } from 'rxjs/operators'
 
 import DialogService from '../Services/DialogService';
 import SetWalletPasswordDialog from '../Components/Dialogs/SetWalletPasswordDialog';
-import MyWalletService from '../Services/MyWalletServices/MyWalletServices'
+import isWalletEncryptedObservable from './IsWalletEncryptedObservable';
+import { throwError, of } from 'rxjs';
 
 
-export default MyWalletService.isWalletEncrypted.pipe(
-    switchMap(isWalletEncrypted => isWalletEncrypted ?
-        throwError("Wallet is ready encrypted"):
-        DialogService.showDialog(SetWalletPasswordDialog).pipe(
-            filter(password => {
-                return password != null && password != ""
-            })
-        ),
+export default isWalletEncryptedObservable.pipe(
+    switchMap(isWalletEncrypted => isWalletEncrypted == true ?
+        throwError("wallet is encrypted"):
+        of(null)
     ),
-    first()
+    switchMap(() => DialogService.showDialog(SetWalletPasswordDialog))
 )
-
