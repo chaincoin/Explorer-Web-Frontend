@@ -10,7 +10,6 @@ export default (address) => GetPassword({
     title:"Set WIF",
     passwordLabel: "WIF",
     checkPassword: (wif) =>{
-
         try{
             var keyPair = window.bitcoin.ECPair.fromWIF(wif, BlockchainServices.Chaincoin); 
             var p2wpkhAddress = window.bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin }).address; // eslint-disable-line no-undef

@@ -22,7 +22,7 @@ const showDialog = (Component,args) =>{
             observer: observer
         }
 
-        dialogsSubject.next(dialogsSubject._value.concat([dialog]));
+        setTimeout(() => dialogsSubject.next(dialogsSubject._value.concat([dialog])));
 
         return () =>{
             removeDialog(dialog)
@@ -41,7 +41,7 @@ const showMessage = (title, message) =>{
             observer: observer
         }
 
-        dialogsSubject.next(dialogsSubject._value.concat([dialog]));
+        setTimeout(() => dialogsSubject.next(dialogsSubject._value.concat([dialog])));
 
         return () =>{
             removeDialog(dialog)
@@ -58,7 +58,7 @@ const showConfirmation = (title, message) =>{
             observer: observer
         }
 
-        dialogsSubject.next(dialogsSubject._value.concat([dialog]));
+        setTimeout(() => dialogsSubject.next(dialogsSubject._value.concat([dialog])));
 
         return () =>{
             removeDialog(dialog)

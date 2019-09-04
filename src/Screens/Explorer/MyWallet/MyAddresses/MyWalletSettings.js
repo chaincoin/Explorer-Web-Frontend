@@ -56,7 +56,6 @@ export default (props) =>{
                         if (result == true) DialogService.showMessage("Success","Wallet unencrypted").subscribe();
                     },
                     (error) =>{
-                        debugger;
                         DialogService.showMessage("Error",error).subscribe();
                     })
                 }>
@@ -100,7 +99,6 @@ export default (props) =>{
                         if (result == true) DialogService.showMessage("Success","Wallet data cleared").subscribe();
                     },
                     (error) =>{
-                        debugger;
                         DialogService.showMessage("Error",error).subscribe();
                     })}>
                     Clear My Wallet Data

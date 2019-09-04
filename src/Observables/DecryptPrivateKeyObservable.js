@@ -5,15 +5,18 @@ import { map,  first, switchMap } from 'rxjs/operators'
 
 import MyWalletServices from '../Services/MyWalletServices/MyWalletServices';
 import GetWalletPassword from './GetWalletPasswordObservable';
+import IsWalletEncrypted from './IsWalletEncryptedObservable';
 
 
 export default (encryptedPrivateKey) =>{
 
-  return MyWalletServices.isWalletEncrypted.pipe(
-    first(),
+  return IsWalletEncrypted.pipe( 
     switchMap(walletEncrypted => walletEncrypted ?
       GetWalletPassword.pipe(
-        map(password => MyWalletServices.decrypt(password, encryptedPrivateKey))
+        map(password => password == null ?
+          null :
+          MyWalletServices.decrypt(password, encryptedPrivateKey)
+        )
       ):      
       of(null)
     )
