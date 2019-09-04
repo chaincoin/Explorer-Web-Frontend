@@ -47,10 +47,7 @@ export default (props) => {
         return;
       }
 
-      MyWalletServices.setWalletPassword(password).subscribe(props.onClose);
-
-      //,(err) => DialogService.showMessage(err)
-      
+      props.onClose(password)
       
     });
 

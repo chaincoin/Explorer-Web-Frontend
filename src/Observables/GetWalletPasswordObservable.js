@@ -2,7 +2,6 @@ import { of, from } from 'rxjs'
 
 import GetPassword from './GetPasswordObservable'
 
-import BlockchainServices from '../Services/BlockchainServices'
 import myWalletService from '../Services/MyWalletServices/MyWalletServices';
 
 export default GetPassword({

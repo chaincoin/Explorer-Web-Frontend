@@ -41,29 +41,23 @@ export default (props) =>{
 
                 </p>
                 <Button variant="contained" color="primary" disabled={isWalletEncrypted == true}  onClick={() => SetWalletPassword.subscribe(
-                    () =>{
-                        DialogService.showMessage("Success","Wallet Encrypted").subscribe();
+                    (result) =>{
+                        if (result == true) DialogService.showMessage("Success","Wallet Encrypted").subscribe();
                     },
                     (error) =>{
                         debugger;
                         DialogService.showMessage("Error",error).subscribe();
-                    },
-                    () =>{
-                        DialogService.showMessage("Complete","Complete").subscribe();
                     })
                 }>
                     Set Wallet Password
                 </Button>
                 <Button variant="contained" color="primary" disabled={isWalletEncrypted == false} onClick={() => RemoveWalletPassword.subscribe(
-                    () =>{
-                        DialogService.showMessage("Success","Wallet unencrypted").subscribe();
+                    (result) =>{
+                        if (result == true) DialogService.showMessage("Success","Wallet unencrypted").subscribe();
                     },
                     (error) =>{
                         debugger;
                         DialogService.showMessage("Error",error).subscribe();
-                    },
-                    () =>{
-                        DialogService.showMessage("Complete","Complete").subscribe();
                     })
                 }>
                     Remove Wallet Password
@@ -101,7 +95,14 @@ export default (props) =>{
                 <p>
 
                 </p>
-                <Button variant="contained" color="primary"  onClick={() => ClearMyWalletData.subscribe()}>
+                <Button variant="contained" color="primary"  onClick={() => ClearMyWalletData.subscribe(
+                    (result) =>{
+                        if (result == true) DialogService.showMessage("Success","Wallet data cleared").subscribe();
+                    },
+                    (error) =>{
+                        debugger;
+                        DialogService.showMessage("Error",error).subscribe();
+                    })}>
                     Clear My Wallet Data
                 </Button>
             </div>

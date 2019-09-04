@@ -68,8 +68,7 @@ const showConfirmation = (title, message) =>{
 
 
 const dialogComplete = (dialog, result) =>{
-    debugger;
-    if(result != null) dialog.observer.next(result);
+    dialog.observer.next(result);
     dialog.observer.complete(result);
     dialog.observer = null;
     removeDialog(dialog);

@@ -15,7 +15,7 @@ export default (myWalletService) =>{
         };
     
         var inputLockStateAddedSubscription = myWalletService.inputLockStateAdded.subscribe(listInputLockStates);
-        var inputLockStateUpdatedSubscription = myWalletService.nputLockStateUpdated.subscribe(listInputLockStates);
+        var inputLockStateUpdatedSubscription = myWalletService.inputLockStateUpdated.subscribe(listInputLockStates);
         var inputLockStateDeletedSubscription = myWalletService.inputLockStateDeleted.subscribe(listInputLockStates);
     
         var intervalId = setInterval(listInputLockStates, 30000);

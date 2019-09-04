@@ -53,7 +53,7 @@ class ChaincoinExplorerHeader extends React.Component {
         </Grid>
 
         <Grid item xs={12} sm={12} lg={4}>
-          <img className={classes.mainLogo} src={getLogo()} />
+        
         </Grid>
 
         <Grid item xs={12} sm={6} lg={2}>

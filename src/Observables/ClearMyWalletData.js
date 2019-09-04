@@ -4,20 +4,35 @@ import { of, combineLatest, empty } from 'rxjs';
 import { first, switchMap, map, delayWhen } from 'rxjs/operators'
 
 
-import GetWalletPasswordObservable from './GetWalletPasswordObservable';
+import GetWalletPassword from './GetWalletPasswordObservable';
 
 
 import MyWalletServices from '../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../Services/DialogService';
 
-import Utils from '../Services/Utils';
+import IsWalletEncrypted from './IsWalletEncryptedObservable';
 
-export default MyWalletServices.isWalletEncrypted.pipe(
-    first(),
-    switchMap(walletEncrypted => walletEncrypted == false ?
-        of(null):
-        GetWalletPasswordObservable
+
+
+var clearData = (walletPassword) => DialogService.showConfirmation("Remove Wallet Password", "Are you sure? your private keys will be store in plain text putting your Chaincoins at risk")
+.pipe(
+    switchMap(confirm => confirm != true ?
+        of(false):
+        MyWalletServices.clearMyWalletData(walletPassword)
+    )
+)
+
+export default IsWalletEncrypted.pipe(
+    switchMap(isWalletEncrypted => isWalletEncrypted == false ?
+        clearData(null):
+        GetWalletPassword.pipe(
+            switchMap(walletPassword => walletPassword == null ?
+                of(false) :
+                clearData(walletPassword)
+            )
+        )
     ),
-    delayWhen(() => DialogService.showConfirmation("Clear My Wallet Data","Are you sure? this data cannot be recovered, please be careful!!!")),
-    switchMap((walletPassword) => MyWalletServices.clearMyWalletData(walletPassword))
-);
+    first()
+  )
+  
+    

@@ -5,24 +5,31 @@ import { first, switchMap, map } from 'rxjs/operators'
 
 
 import GetWalletPasswordObservable from './GetWalletPasswordObservable';
-
+import IsWalletEncrypted from './IsWalletEncryptedObservable';
 
 import MyWalletServices from '../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../Services/DialogService';
 
 import Utils from '../Services/Utils';
 
-export default MyWalletServices.isWalletEncrypted.pipe(
+export default IsWalletEncrypted.pipe(
     switchMap(walletEncrypted => walletEncrypted == false ?
         DialogService.showConfirmation("Export My Wallet Data","Are you sure? this export contains unencrypted private keys, please be careful"):
         GetWalletPasswordObservable.pipe(
-            switchMap(() => DialogService.showConfirmation("Export My Wallet Data","Are you sure?"))
+            switchMap((walletPassword) => walletPassword == null ?
+                of(null) :
+                DialogService.showConfirmation("Export My Wallet Data","Are you sure?")
+            )
         )
     ),
-    switchMap(() => MyWalletServices.myWalletExportData),
+    switchMap((confirm) => confirm != true ? 
+        of(null) :
+        MyWalletServices.myWalletData
+    ),
     switchMap((config) =>{
-
-        Utils.stringToFileDownload("ChaincoinExplorer MyWallet.conf", JSON.stringify(config));
-        return empty();
-    })
+        debugger;
+        if (config != null) Utils.stringToFileDownload("ChaincoinExplorer MyWallet.conf", JSON.stringify(config));
+        return of(config != null);
+    }),
+    first()
 );

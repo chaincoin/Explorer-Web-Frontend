@@ -205,10 +205,9 @@ myWalletService.changeWalletPassword = (oldPassword, newPassword) =>{
 
 
 
-myWalletService.myWalletData = combineLatest(myAddresses, myMasternodes, inputLockStates).pipe(
-  map(([myAddresses,myMasternodes,inputLockStates]) => ({
-    walletPasswordVerification: window.localStorage["walletPasswordVerification"], //TODO: shouldnt be accessing walletPasswordVerification data like this
-    myAddresses, myMasternodes, inputLockStates
+myWalletService.myWalletData = combineLatest(from(window.walletApi.getWalletPasswordVerification()), myWalletService.myAddresses, myWalletService.myMasternodes, myWalletService.inputLockStates).pipe(
+  map(([walletPasswordVerification, myAddresses,myMasternodes,inputLockStates]) => ({
+    walletPasswordVerification, myAddresses, myMasternodes, inputLockStates
   }))
 );
 
@@ -218,20 +217,23 @@ myWalletService.importMyWalletData = (myWalletData) =>{
   return from(window.walletApi.importMyWalletdata(myWalletData)).pipe(
     switchMap(result =>{
 
-      myWalletService.myAddressDeleted.next(true);
+      setTimeout(() =>{
+        myWalletService.myAddressDeleted.next(true);
 
-      myWalletService.myAddressDeleted.next(true);
-      myWalletService.myAddressAdded.next(true);
-      
-      myWalletService.myMasternodeDeleted.next(true);
-      myWalletService.myMasternodeAdded.next(true);
+        myWalletService.myAddressDeleted.next(true);
+        myWalletService.myAddressAdded.next(true);
+        
+        myWalletService.myMasternodeDeleted.next(true);
+        myWalletService.myMasternodeAdded.next(true);
 
-      myWalletService.inputLockStateAdded.next(true);
-      myWalletService.inputLockStateDeleted.next(true);
+        myWalletService.inputLockStateAdded.next(true);
+        myWalletService.inputLockStateDeleted.next(true);
 
-      myWalletService.isWalletEncrypted.next(myWalletData.walletPasswordVerification != null && myWalletData.walletPasswordVerification != "");
+        myWalletService.isWalletEncrypted.next(myWalletData.walletPasswordVerification != null && myWalletData.walletPasswordVerification != "");
 
-      return result;
+      });
+
+      return of(true);
     })
   );
    
@@ -244,17 +246,19 @@ myWalletService.clearMyWalletData = (password) =>{
     switchMap(() => from(window.walletApi.clearMyWalletdata())),
     switchMap(() =>{
 
+      setTimeout(() =>{
+        myWalletService.myAddressDeleted.next(true);
+        myWalletService.myAddressAdded.next(true);
+        
+        myWalletService.myMasternodeDeleted.next(true);
+        myWalletService.myMasternodeAdded.next(true);
 
-      myWalletService.myAddressDeleted.next(true);
-      myWalletService.myAddressAdded.next(true);
-      
-      myWalletService.myMasternodeDeleted.next(true);
-      myWalletService.myMasternodeAdded.next(true);
+        myWalletService.inputLockStateAdded.next(true);
+        myWalletService.inputLockStateDeleted.next(true);
 
-      myWalletService.inputLockStateAdded.next(true);
-      myWalletService.inputLockStateDeleted.next(true);
+        myWalletService.isWalletEncrypted.next(false);
 
-      myWalletService.isWalletEncrypted.next(false);
+      });
       
       return of(true);
     })
