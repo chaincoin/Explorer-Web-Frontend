@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 
 import BlockchainServices from '../../Services/BlockchainServices';
 import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
+import { switchMap, map } from 'rxjs/operators';
 
 const styles = {
   root: {
@@ -57,26 +58,20 @@ class MyAddresses extends React.Component {
     this.setState({windowWidth: window.innerWidth});
 
 
-    this.myAddressesSubscription = MyWalletServices.myAddresses.subscribe(myAddresses =>{ //TODO: this could be done better
-      
-        myAddresses = myAddresses.map(myAddress => Object.assign({},myAddress));
-        this.addressSubscriptions.forEach(v => v.unsubscribe());
-
-        this.setState({
-          myAddresses: myAddresses
-        }, () =>{
-
-          this.addressSubscriptions = myAddresses.map((address, index) => {
-            return BlockchainServices.getAddress(address.address).subscribe(address =>{
-              this.setState({
-                myAddresses: update(this.state.myAddresses, {[index]: {data: {$set: address}}})
-              })
-  
-            });
-          });
-
-        });
-      });
+    this.myAddressesSubscription = MyWalletServices.myAddresses.pipe(
+      switchMap(myAddresses => combineLatest(
+          myAddresses.map(myAddress => BlockchainServices.getAddress(myAddress.address).pipe(
+            map(address => Object.assign({},myAddress, {data: address}))
+          ))
+        )
+      )
+    ).subscribe((myAddresses =>{
+      this.setState({
+        myAddresses: myAddresses
+      })
+    }))
+    
+    
   }
 
   componentWillUnmount() {
