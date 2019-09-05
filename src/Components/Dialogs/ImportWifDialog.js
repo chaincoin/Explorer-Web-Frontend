@@ -1,5 +1,5 @@
-import { of, from, combineLatest } from 'rxjs';
-import { first, switchMap } from 'rxjs/operators';
+import { of, from, combineLatest, throwError } from 'rxjs';
+import { first, switchMap, catchError, map } from 'rxjs/operators';
 
 import React from 'react';
 import Button from '@material-ui/core/Button';
@@ -20,6 +20,7 @@ import BlockchainServices from '../../Services/BlockchainServices';
 import DialogService from '../../Services/DialogService';
 
 import GetWalletPasswordObservable from '../../Observables/GetWalletPasswordObservable';
+import isWalletEncryptedObservable from '../../Observables/IsWalletEncryptedObservable';
 
 
 export default (props) => {
@@ -57,27 +58,31 @@ export default (props) => {
       var addType = [p2wpkh,p2pkh,p2sh].filter(type => type).length > 1;
 
      
-      MyWalletServices.isWalletEncrypted.pipe(
-        first(),
+      isWalletEncryptedObservable.pipe(
         switchMap(walletEncrypted => walletEncrypted == false ? 
           combineLatest(
             p2wpkh ? MyWalletServices.addMyAddress(addType ? name + "-P2WPKH" : name,p2wpkhAddress, wif): of(true),
             p2pkh ? MyWalletServices.addMyAddress(addType ? name + "-P2PKH" : name,p2pkhAddress, wif): of(true),
             p2sh ? MyWalletServices.addMyAddress(addType ? name + "-P2SH" : name,p2shAddress, wif): of(true),
-          ):
+          ).pipe(map(r => true),catchError(err => throwError("Import of one or more of the addresses has failed"))) :
           GetWalletPasswordObservable.pipe(
-            first(),
-            switchMap(() => combineLatest(
-              p2wpkh ? from(MyWalletServices.addMyAddress(addType ? name + "-P2WPKH" : name,p2wpkhAddress, null, MyWalletServices.encrypt())): of(true),
-              p2pkh ? from(MyWalletServices.addMyAddress(addType ? name + "-P2PKH" : name,p2pkhAddress, null, MyWalletServices.encrypt())): of(true),
-              p2sh ? from(MyWalletServices.addMyAddress(addType ? name + "-P2SH" : name,p2shAddress, null, MyWalletServices.encrypt())): of(true),
-            ))
+            switchMap((walletPassword) => walletPassword == null?
+              of(false) :
+              combineLatest(
+                p2wpkh ? from(MyWalletServices.addMyAddress(addType ? name + "-P2WPKH" : name,p2wpkhAddress, null, MyWalletServices.encrypt(walletPassword,wif))): of(true),
+                p2pkh ? from(MyWalletServices.addMyAddress(addType ? name + "-P2PKH" : name,p2pkhAddress, null, MyWalletServices.encrypt(walletPassword,wif))): of(true),
+                p2sh ? from(MyWalletServices.addMyAddress(addType ? name + "-P2SH" : name,p2shAddress, null, MyWalletServices.encrypt(walletPassword,wif))): of(true),
+              ).pipe(map(r => true),catchError(err => throwError("Import of one or more of the addresses has failed")))
+            )
           )
-        )
+        ),
+        first()
       ).subscribe(
-        props.onClose,
-        err =>{ //TODO: this needs improving, better error message
-          DialogService.showMessage("Failed","Import of one or more of the addresses has failed").subscribe();
+        (result) =>{
+          if (result == true) props.onClose();
+        },
+        err =>{ 
+          DialogService.showMessage("Error",err).subscribe();
         }
       );      
     })

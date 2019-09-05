@@ -1,5 +1,5 @@
-import { from, of } from 'rxjs';
-import { first, switchMap } from 'rxjs/operators';
+import { from, of, throwError } from 'rxjs';
+import { first, switchMap, catchError, map } from 'rxjs/operators';
 
 import React from 'react';
 import Button from '@material-ui/core/Button';
@@ -17,6 +17,7 @@ import { TextValidator, ValidatorForm} from 'react-material-ui-form-validator';
 import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../../Services/DialogService';
 import GetWalletPasswordObservable from '../../Observables/GetWalletPasswordObservable';
+import IsWalletEncryptedObservable from '../../Observables/IsWalletEncryptedObservable';
 
 
 
@@ -32,17 +33,22 @@ export default (props) => {
     form.current.isFormValid(false).then(valid =>{
       if (valid == false) return;
       
-      MyWalletServices.isWalletEncrypted.pipe(
-        first(),
+      IsWalletEncryptedObservable.pipe(
         switchMap(walletEncrypted => walletEncrypted == false ? 
-          of(null):
+          of(""):
           GetWalletPasswordObservable
         ),
-        switchMap(() => from(MyWalletServices.addMyAddress(name,address)))
+        switchMap((walletPassword) => walletPassword == null ?
+          of(false) :
+          from(MyWalletServices.addMyAddress(name,address)).pipe(map(() => true),catchError(err => throwError("Failed to watch address")))
+        ),
+        first()
       ).subscribe(
-        props.onClose,
+        (result) =>{
+          if (result == true) props.onClose();
+        },
         err =>{ //TODO: this needs improving, better error message
-          DialogService.showMessage("Failed", "Failed to watch address").subscribe()
+          DialogService.showMessage("Error", err).subscribe()
         }
       );      
 

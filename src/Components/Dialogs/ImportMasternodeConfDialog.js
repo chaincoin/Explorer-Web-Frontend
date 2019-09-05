@@ -20,6 +20,7 @@ import DialogService from '../../Services/DialogService';
 import { first, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import GetWalletPasswordObservable from '../../Observables/GetWalletPasswordObservable';
+import IsWalletEncryptedObservable from '../../Observables/IsWalletEncryptedObservable';
 
 export default  (props) => {
   const [file, setFile] = React.useState(null);
@@ -41,10 +42,11 @@ export default  (props) => {
       
       var lines = e.target.result.split('\n');
 
-      MyWalletServices.isWalletEncrypted.pipe(
-        first(),
-        switchMap(walletEncrypted => walletEncrypted == false ? of(null) : GetWalletPasswordObservable)
+      IsWalletEncryptedObservable.pipe(
+        switchMap(walletEncrypted => walletEncrypted == false ? of("") : GetWalletPasswordObservable),
+        first()
       ).subscribe(walletPassword => {
+        if (walletPassword == null) return;
         var promises = lines.map((line,index) => {
 
           if (line.startsWith("#")) return Promise.resolve({
@@ -63,7 +65,7 @@ export default  (props) => {
           var name = lineParts[0];
           var privateKey = lineParts[2];
           var output = lineParts[3] + "-" + lineParts[4];
-          return new Promise((resolve) => MyWalletServices.addMyMasternode(name, output, walletPassword == null ? privateKey : null,  walletPassword == null ? null : MyWalletServices.encrypt(walletPassword, privateKey))
+          return new Promise((resolve) => MyWalletServices.addMyMasternode(name, output, walletPassword == "" ? privateKey : null,  walletPassword == "" ? null : MyWalletServices.encrypt(walletPassword, privateKey))
             .then(() => resolve({
               line: index + 1,
               result: true,
@@ -77,6 +79,9 @@ export default  (props) => {
         });
   
         Promise.all(promises).then(results => setImportResults(results));
+      },
+      (error) =>{
+        DialogService.showMessage("Error",error).subscribe();
       })
 
       
