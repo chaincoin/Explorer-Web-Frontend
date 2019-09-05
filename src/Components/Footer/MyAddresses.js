@@ -11,6 +11,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 
 import { Link } from "react-router-dom";
 
+import ObservableText from "../ObservableText";
+
 
 import BlockchainServices from '../../Services/BlockchainServices';
 import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
@@ -33,12 +35,21 @@ class MyAddresses extends React.Component {
       anchorEl: null,
 
 
-      myAddresses: null,
-      mnProblem: false
+      myAddresses: null
     };
 
     this.myAddressesSubscription = null;
-    this.addressSubscriptions = [];
+
+    this.totalBalance = MyWalletServices.myAddresses.pipe(
+      switchMap(myAddresses => combineLatest(myAddresses.map(myAddress => myAddress.balance))),
+      map(addressBalances =>{
+          var totalBalance = 0;
+          addressBalances.forEach(balance => totalBalance = totalBalance + balance); //TODO: use BigDecimal library 
+
+          return Math.round(totalBalance) + " chc";
+      })
+    );
+
   }
 
 
@@ -54,23 +65,13 @@ class MyAddresses extends React.Component {
 
 
   componentDidMount() {
+    
 
-    this.setState({windowWidth: window.innerWidth});
-
-
-    this.myAddressesSubscription = MyWalletServices.myAddresses.pipe(
-      switchMap(myAddresses => combineLatest(
-          myAddresses.map(myAddress => BlockchainServices.getAddress(myAddress.address).pipe(
-            map(address => Object.assign({},myAddress, {data: address}))
-          ))
-        )
-      )
-    ).subscribe((myAddresses =>{
+    this.myAddressesSubscription = MyWalletServices.myAddresses.subscribe((myAddresses =>{
       this.setState({
         myAddresses: myAddresses
-      })
+      });
     }))
-    
     
   }
 
@@ -86,26 +87,10 @@ class MyAddresses extends React.Component {
     const { classes } = this.props;
     const { myAddresses,  anchorEl } = this.state;
 
-    var totalBalance = null; //TODO: use BigDecimal library 
-
-    if (myAddresses != null)
-    {
-      var balances = myAddresses.map(myAddress => myAddress.data == null ? null : myAddress.data.balance);
-      if (balances.indexOf(null) == -1){
-        totalBalance = 0;
-        balances.forEach(balance => totalBalance = totalBalance + balance);
-      }
-    }
-    
-
     return (
     <div className={classes.root}>
       <Button className={classes.button} variant="contained" color="primary" aria-owns={anchorEl ? 'simple-menu' : undefined} aria-haspopup="true" onClick={this.handleClick}>
-        {
-          totalBalance == null ? 
-          "Loading ":
-          Math.round(totalBalance) + " chc"
-        }
+        <ObservableText value={this.totalBalance} loadingText="Loading" />
       </Button>
 
       <Menu id="simple-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={this.handleClose}>
@@ -121,7 +106,8 @@ class MyAddresses extends React.Component {
             (
               <Link to={"/Explorer/Address/" + myAddress.address}>
                 <MenuItem onClick={this.handleClose}>
-                  {myAddress.name}: {myAddress.data == null ? "loading" : Math.round(myAddress.data.balance) + " chc"}
+                  {myAddress.name}: <ObservableText value={myAddress.balance.pipe(map(balance => Math.round(balance) + " chc"))} loadingText="Loading" />
+              
                 </MenuItem>
               </Link>
             )

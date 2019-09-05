@@ -1,50 +1,14 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
+import { map } from 'rxjs/operators';
 
+import React from 'react';
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
+import ObservableText from "../ObservableText";
+
 import BlockchainServices from '../../Services/BlockchainServices';
 
-const styles = {
-  root: {
-    
-  }
-};
 
-class Network extends React.Component {
-  constructor(props) {
-    super(props);
-
-  
-    this.networkHashpsSubscription = null;
-
-    this.state = {
-      networkHashps: null
-    };
-
-  }
-
-  componentDidMount() {
-
-    this.networkHashpsSubscription = BlockchainServices.networkHashps.subscribe((networkHashps) =>{
-      this.setState({
-        networkHashps: networkHashps
-      });
-
-    });
- 
-  }
-
-  componentWillUnmount() {
-    this.networkHashpsSubscription.unsubscribe();
-  }
-
-
-
-  render(){
-    const { classes } = this.props;
-    const {networkHashps} = this.state;
-    return (
+export default () =>{
+  return (
     <div>
       <Card>
         <CardHeader>
@@ -52,27 +16,14 @@ class Network extends React.Component {
         </CardHeader>
         <CardBody>
           <CardText>
-          {
-            networkHashps == null?
-            "Loading" :
-            hashpsToString(networkHashps)
-          }
+            <ObservableText value={BlockchainServices.networkHashps.pipe(map(networkHashps => hashpsToString(networkHashps)))} loadingText="Loading" />
           </CardText>
         </CardBody>
       </Card>
     </div>
       
-    );
-  }
-
-  
+  );
 }
-
-Network.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
-
-export default withStyles(styles)(Network);
 
 
 

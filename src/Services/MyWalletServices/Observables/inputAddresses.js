@@ -1,6 +1,6 @@
 
-import { Observable, zip } from 'rxjs';
-import { shareReplay, combineLatest, switchMap, map } from 'rxjs/operators';
+import { Observable, zip, combineLatest } from 'rxjs';
+import { shareReplay, switchMap, map } from 'rxjs/operators';
 import BlockchainServices from '../../BlockchainServices';
 import bigDecimal from 'js-big-decimal';
 

@@ -1,75 +1,26 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
+import { map } from 'rxjs/operators';
 
+import React from 'react';
 import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
+import ObservableText from "../ObservableText";
+
 import BlockchainServices from '../../Services/BlockchainServices';
 
-const styles = {
-  root: {
-    
-  }
-};
 
-class CoinSupply extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.txOutSetInfoSubscription = null;
-
-    this.state = {
-      txOutSetInfo: null
-    };
-
-  }
-
-  componentDidMount() {
-
-    this.txOutSetInfoSubscription = BlockchainServices.txOutSetInfo.subscribe((txOutSetInfo) =>{
-      this.setState({
-        txOutSetInfo: txOutSetInfo
-      });
-
-    });
- 
-  }
-
-  componentWillUnmount() {
-    this.txOutSetInfoSubscription.unsubscribe();
-  }
-
-
-
-
-  render(){
-    const { classes } = this.props;
-    const {txOutSetInfo} = this.state;
-    return (
+export default () =>{
+  return (
     <div>
       <Card>
         <CardHeader>
-        Coin Supply (CHC)
+          Coin Supply (CHC)
         </CardHeader>
         <CardBody>
           <CardText>
-          {
-            txOutSetInfo == null?
-            "Loading" :
-            txOutSetInfo.total_amount
-          }
+            <ObservableText value={BlockchainServices.txOutSetInfo.pipe(map(txOutSetInfo => txOutSetInfo.total_amount))} loadingText="Loading" />
           </CardText>
         </CardBody>
       </Card>
     </div>
       
-    );
-  }
-
-  
+  );
 }
-
-CoinSupply.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
-
-export default withStyles(styles)(CoinSupply);
