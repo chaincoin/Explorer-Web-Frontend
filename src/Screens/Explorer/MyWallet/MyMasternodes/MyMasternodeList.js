@@ -1,36 +1,19 @@
 import React from 'react';
-import { combineLatest, of } from 'rxjs';
+import { of } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
-import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-import Table from '@material-ui/core/Table';
-import TableHead from '@material-ui/core/TableHead';
-import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
-import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
-
-import { Link } from "react-router-dom";
 
 import AddMyMasternodeDialog from '../../../../Components/Dialogs/MyMasternodeDialog';
 import ImportMasternodeConfDialog from '../../../../Components/Dialogs/ImportMasternodeConfDialog';
 
-
-import TablePaginationActions from '../../../../Components/TablePaginationActions';
-import MasternodeMenu from '../../../../Components/MasternodeMenu';
-
-
-import BlockchainServices from '../../../../Services/BlockchainServices';
 import MyWalletServices from '../../../../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../../../../Services/DialogService';
 import ObservableLink from '../../../../Components/ObservableLink';
 import ObservableText from '../../../../Components/ObservableText';
 import ObservableTableList from '../../../../Components/ObservableTableList';
-
-
-
 
 
 
@@ -48,7 +31,7 @@ const styles = theme => ({
 });
 
 
-const MyAddresses = (props) =>{
+const MyMasternodes = (props) =>{
 
   const headers = (
     <React.Fragment>
@@ -115,11 +98,11 @@ const rowComponent = (props) =>{
           map(data => TimeToString(data.lastpaidtime)))} />
       </TableCell>
       <TableCell>
-        
+
       </TableCell>
     </TableRow>
   )
 }
 
-export default withStyles(styles)(MyAddresses);
+export default withStyles(styles)(MyMasternodes);
 

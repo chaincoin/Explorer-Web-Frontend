@@ -54,8 +54,6 @@ const MyAddresses = (props) =>{
         Create Address
       </Button>
 
-
-      
       <Button variant="contained" color="primary" className={props.classes.button} onClick={() => DialogService.showDialog(WatchAddressDialog).subscribe()}>
         Watch Address
       </Button>
