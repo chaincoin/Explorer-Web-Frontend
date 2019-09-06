@@ -5,75 +5,35 @@ import Header from './BlockDetailsHeader';
 import Transactions from './BlockDetailsTransactions';
 
 import BlockchainServices from '../../../Services/BlockchainServices';
+import { ReplaySubject } from 'rxjs';
+import { switchMap, distinctUntilChanged } from 'rxjs/operators';
 
 
-const styles = {
-  root: {
-    
-  }
-};
-
-class BlockDetails extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-        block: null,
-        error: null
-    };
-  
-    this.getBlockSubscription = null;
-  }
 
 
-  blockSubscribe(){
-    const { blockId } = this.props.match.params
+const BlockDetails = (props) =>{
 
-    if (this.getBlockSubscription != null) this.getBlockSubscription.unsubscribe();
+  const blockId = new ReplaySubject();
+  const block = blockId.pipe(
+    distinctUntilChanged((prev, curr) => prev == curr),
+    switchMap(blockId => BlockchainServices.getBlock(blockId))
+  )
 
-    this.getBlockSubscription = BlockchainServices.getBlock(blockId).subscribe((block) =>{
-      this.setState({
-        block: block
-      });
-    });
-  }
+   
 
-  componentDidMount() {
-    this.blockSubscribe();
-  }
+  React.useEffect(() => {
+    blockId.next(props.match.params.blockId);
+  }, [props.match.params.blockId]); //TODO: should this be using prop change detection
 
-  componentWillUnmount() {
-    this.getBlockSubscription.unsubscribe();
-  }
-
-
-  componentDidUpdate(prevProps) {
-    if (this.props.match.params.blockId  != prevProps.match.params.blockId) this.blockSubscribe();
-  }
-
-
-  render(){
-    const { classes } = this.props;
-    const { block } = this.state;
-
-    if (block == null)
-    {
-      return null;
-    }
-    return (
+  return (
     <div>
       <Header block={block}/>
       <Transactions block={block}/>
     </div>
-      
-    );
-  }
-
-  
+  )
 }
 
-BlockDetails.propTypes = {
-  classes: PropTypes.object.isRequired
-};
 
-export default withStyles(styles)(BlockDetails);
+
+
+export default BlockDetails;

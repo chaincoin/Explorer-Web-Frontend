@@ -16,7 +16,7 @@ export default (props) =>{
         return () =>{
           subscription.unsubscribe();
         }
-      }, []); //TODO: should this be using prop change detection
+    }, []); //TODO: should this be using prop change detection
 
 
     return <React.Fragment>

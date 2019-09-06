@@ -52,7 +52,7 @@ const MyMasternodes = (props) =>{
         var enabled = 0;
         myMnStatuses.forEach(status => {
           if (status == "ENABLED") enabled++;
-        }); //TODO: use BigDecimal library 
+        });
 
         return enabled;
     })
