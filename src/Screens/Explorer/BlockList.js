@@ -26,6 +26,7 @@ import { BehaviorSubject, combineLatest } from 'rxjs';
 import ObservableTable from '../../Components/ObservableTable';
 import ObservableBoolean from '../../Components/ObservableBoolean';
 import ObservableText from '../../Components/ObservableText';
+import ObservableLink from '../../Components/ObservableLink';
 
 
 
@@ -76,16 +77,26 @@ var rowComponent = (props) =>{
       <ObservableBoolean value={props.value.pipe(map(tx => tx != null))} >
         <TableRow>
           <TableCell component="th" scope="row">
-            <ObservableText value={props.value.pipe(map(block => {
-              if (block == null) return "";
-              return block.height;
-              }))} />
+            <ObservableLink value={props.value.pipe(map(block => {
+                    if (block == null) return "";
+                    return "/Explorer/Block/" + block.hash;
+                  }))}>
+              <ObservableText value={props.value.pipe(map(block => {
+                if (block == null) return "";
+                return block.height;
+                }))} />
+            </ObservableLink>
           </TableCell>
           <TableCell>
-            <ObservableText value={props.value.pipe(map(block => {
-                if (block == null) return "";
-                return block.hash;
-              }))} />
+            <ObservableLink value={props.value.pipe(map(block => {
+                  if (block == null) return "";
+                  return "/Explorer/Block/" + block.hash;
+                }))}>
+              <ObservableText value={props.value.pipe(map(block => {
+                  if (block == null) return "";
+                  return block.hash;
+                }))} />
+            </ObservableLink>
           </TableCell>
           <TableCell>
             <ObservableText value={props.value.pipe(map(block => {

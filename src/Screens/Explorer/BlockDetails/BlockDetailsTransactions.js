@@ -17,6 +17,7 @@ import ObservableText from '../../../Components/ObservableText';
 import { map, distinctUntilChanged } from 'rxjs/operators';
 import ObservableBoolean from '../../../Components/ObservableBoolean';
 import ObservableTableList from '../../../Components/ObservableTableList';
+import ObservableLink from '../../../Components/ObservableLink';
 
 
 
@@ -59,10 +60,15 @@ var row = (props) =>{
       <ObservableBoolean value={props.value.pipe(map(tx => tx != null))} >
         <TableRow>
           <TableCell>
-            <ObservableText value={props.value.pipe(map(tx => {
-              if (tx == null) return "";
-              return tx.txid == null ? tx : tx.txid
-            }))} />
+            <ObservableLink value={props.value.pipe(map(tx => {
+                      if (tx == null) return "";
+                      return "/Explorer/Transaction/" + tx.txid;
+                    }))}>
+              <ObservableText value={props.value.pipe(map(tx => {
+                if (tx == null) return "";
+                return tx.txid == null ? tx : tx.txid
+              }))} />
+            </ObservableLink>
           </TableCell>
           <TableCell>
             <ObservableText value={props.value.pipe(map(tx => {
