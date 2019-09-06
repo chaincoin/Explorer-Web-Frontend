@@ -3,14 +3,14 @@ import { distinctUntilChanged } from 'rxjs/operators';
 
 export default (props) =>{
 
-    var [text, setText] = React.useState(null);
+    var [boolean, setBoolean] = React.useState(null);
 
 
     React.useEffect(() => {
         const subscription = props.value.pipe(
             distinctUntilChanged((prev, curr) => prev == curr)
-        ).subscribe((text) =>{
-            setText(text);
+        ).subscribe((boolean) =>{
+            setBoolean(boolean);
         });
         
         return () =>{
@@ -21,9 +21,9 @@ export default (props) =>{
 
     return <React.Fragment>
         {
-            text == null ?
-            (props.loadingText ||"") : 
-            text
+            boolean == true ?
+            props.children :
+            null
         }
     </React.Fragment>
 }

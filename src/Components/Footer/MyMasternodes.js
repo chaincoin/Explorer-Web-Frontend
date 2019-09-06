@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
 import { combineLatest, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, first } from 'rxjs/operators';
 
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
@@ -14,10 +14,13 @@ import ListItemText from '@material-ui/core/ListItemText';
 import CheckIcon from '@material-ui/icons/Check';
 import CloseIcon from '@material-ui/icons/Close';
 
-import { Link } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 
 import BlockchainServices from '../../Services/BlockchainServices';
 import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
+import ObservableText from '../ObservableText';
+import ObservableList from '../ObservableList';
+import ObservableBoolean from '../ObservableBoolean';
 
 const styles = theme => ({
   root: {
@@ -35,115 +38,57 @@ const styles = theme => ({
   closeIcon: {color:"red"}
 });
 
-class MyMasternodes extends React.Component {
-  constructor(props) {
-    super(props);
+const MyMasternodes = (props) =>{
 
-    this.state = {
-      anchorEl: null,
-
-      myMasternodes: null,
-      mnProblems: 0
-    };
-
-    this.subscription = null;
-  }
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const close = () => setAnchorEl(null);
 
 
-  handleClick = event => {
-    this.setState({ anchorEl: event.currentTarget });
-  };
+  const mnCount = MyWalletServices.myMasternodes.pipe(
+    map(myMns => myMns.length)
+  );
 
+  const enabledMnCount = MyWalletServices.myMasternodes.pipe(
+    switchMap(myMns => combineLatest(myMns.map(myMn => myMn.status))),
+    map(myMnStatuses =>{
+        var enabled = 0;
+        myMnStatuses.forEach(status => {
+          if (status == "ENABLED") enabled++;
+        }); //TODO: use BigDecimal library 
 
+        return enabled;
+    })
+  );
 
-  handleClose = () => {
-    this.setState({ anchorEl: null });
-  };
-
-  componentDidMount() {
-
-
-    this.subscription = MyWalletServices.myMasternodes.pipe(
-      switchMap(myMasternodes =>{
-        if (myMasternodes.length == 0) return of([]);
-        return combineLatest(myMasternodes.map(myMn => BlockchainServices.masternode(myMn.output).pipe(map(mn =>({myMn, mn})))))
-      })
-    ).subscribe(
-      (rows) =>{
-        var mnProblems = false;
-
-        rows.forEach(row =>{
-          if (row.mn == null || row.mn.status != "ENABLED") mnProblems = mnProblems + 1;
-        });
-
-        this.setState({
-          rows: rows,
-          mnProblems: mnProblems
-        });
-      });
-  }
-
-  componentWillUnmount = () => {
-    this.subscription.unsubscribe();
-  }
-
-
-
-  render(){
-    const { classes } = this.props;
-    const { rows, mnProblems,  anchorEl } = this.state;
-
-    return (
-    <div className={classes.root}>
-      <Button className={classes.button} variant="contained" color="primary" aria-owns={anchorEl ? 'simple-menu' : undefined} aria-haspopup="true" onClick={this.handleClick}>
-        {
-          mnProblems == false ? 
-          (<CheckIcon className={classes.checkIcon}/>):
-          (<CloseIcon className={classes.closeIcon}/>)
-        }
+  return (
+    <div className={props.classes.root}>
+      <Button className={props.classes.button} variant="contained" color="primary" aria-owns={anchorEl ? 'simple-menu' : undefined} aria-haspopup="true" onClick={e => setAnchorEl(e.currentTarget)}>
         
-        {
-          rows == null ? 
-          "loading" :
-          rows.length - mnProblems + "/" + rows.length
-        }
+        <ObservableBoolean value={combineLatest(enabledMnCount, mnCount).pipe(map(([enabledMnCount,mnCount]) => enabledMnCount == mnCount))}>
+          <CheckIcon className={props.classes.checkIcon}/>
+        </ObservableBoolean>
+
+        <ObservableBoolean value={combineLatest(enabledMnCount, mnCount).pipe(map(([enabledMnCount,mnCount]) => enabledMnCount != mnCount))}>
+          <CloseIcon className={props.classes.closeIcon}/>
+        </ObservableBoolean>
+
+
+        <ObservableText value={combineLatest(enabledMnCount, mnCount).pipe(map(([enabledMnCount,mnCount]) => `${enabledMnCount}/${mnCount}`))} loadingText="Loading" />
+
       </Button>
 
-      <Menu id="simple-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={this.handleClose}>
+      <Menu id="simple-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={close}>
         <Link to={"/Explorer/MyWallet/MyMasternodes"}>
-          <MenuItem onClick={this.handleClose}>
+          <MenuItem onClick={close}>
             My Masternodes
           </MenuItem>
         </Link>
-        {
-          rows == null ?
-          "" :
-          rows.map(row =>
-            (
-              <Link to={"/Explorer/MasternodeList/" + row.myMn.output}>
-                <MenuItem className={classes.menuItem} onClick={this.handleClose}>
-                  <ListItemIcon className={classes.icon}>
-                    {
-                      row.mn != null && row.mn.status == "ENABLED" ? 
-                      (<CheckIcon className={classes.checkIcon}/>):
-                      (<CloseIcon className={classes.closeIcon}/>)
-                    }
-                  </ListItemIcon>
-                  <ListItemText classes={{ primary: classes.primary }} inset primary={row.myMn.name} />
-                </MenuItem>
-              </Link>
-            )
-          )
-        }
+        <ObservableList value={MyWalletServices.myMasternodes} rowComponent={rowComponent} options={({classes: props.classes, handleClose: close})}/>
         
       </Menu>
     </div>
-      
-    );
-  }
-
- 
-  
+    
+  )
 }
 
 MyMasternodes.propTypes = {
@@ -153,3 +98,35 @@ MyMasternodes.propTypes = {
 export default withStyles(styles)(MyMasternodes);
 
 
+var rowComponent = withRouter(props =>{
+
+  const onClick = () =>{
+    props.value.pipe(map(mn => mn.output), first()).subscribe(output =>{
+      props.handleClose();
+      props.history.push("/Explorer/MasternodeList/" + output);
+    })
+  }
+
+  return (
+    <MenuItem onClick={onClick}>
+      <ListItemIcon className={props.classes.icon}>
+        <ObservableBoolean value={props.value.pipe(
+          switchMap(myMn => myMn.status),
+          map(status=> status == "ENABLED")
+        )}>
+          <CheckIcon className={props.classes.checkIcon}/>
+        </ObservableBoolean>
+
+        <ObservableBoolean value={props.value.pipe(
+          switchMap(myMn => myMn.status),
+          map(status=> status != "ENABLED")
+        )}>
+          <CloseIcon className={props.classes.closeIcon}/>
+        </ObservableBoolean>
+      </ListItemIcon>
+      <ObservableText value={props.value.pipe(map(mn => mn.name))} loadingText="Loading" />
+    </MenuItem>
+
+    
+  )
+});

@@ -12,7 +12,7 @@ export default (props) =>{
         distinctUntilChanged((prev, curr) => prev == curr)
       ).subscribe((size) =>setSize(size));
       return () =>subscription.unsubscribe();
-    }, []);
+    }, []); //TODO: should this be using prop change detection
   
   
     var components = [];
@@ -20,7 +20,7 @@ export default (props) =>{
     for(let i = 0; i < size; i++)
     {
       components.push((
-        <props.rowComponent value={props.value.pipe(map(list => list[i]))}/>
+        <props.rowComponent value={props.value.pipe(map(list => list[i]))} {...props.options} />
       ))
     }
   

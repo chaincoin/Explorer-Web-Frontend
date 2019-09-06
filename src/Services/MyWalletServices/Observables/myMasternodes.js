@@ -1,6 +1,7 @@
 
 import { Observable } from 'rxjs';
-import { shareReplay } from 'rxjs/operators';
+import { shareReplay, map } from 'rxjs/operators';
+import BlockchainServices from '../../BlockchainServices';
 
 export default (myWalletService) =>{
 
@@ -15,7 +16,13 @@ export default (myWalletService) =>{
                 if (_data == null || JSON.stringify(_data) != JSON.stringify(data)) 
                 {
                     _data = data;
-                    observer.next(data)
+                    observer.next(data.map(row => Object.assign({},row,{
+                        data: BlockchainServices.masternode(row.output),
+                        status: BlockchainServices.masternode(row.output).pipe(map(masternode => masternode == null?
+                            null :
+                            masternode.status
+                        ))
+                    })))
                 }
             })
             .catch(err => observer.error(err));

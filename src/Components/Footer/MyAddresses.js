@@ -9,14 +9,14 @@ import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 
-import { Link } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 
 import ObservableText from "../ObservableText";
 import ObservableList from "../ObservableList";
 
 import BlockchainServices from '../../Services/BlockchainServices';
 import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
-import { switchMap, map } from 'rxjs/operators';
+import { switchMap, map, first } from 'rxjs/operators';
 
 const styles = {
   root: {
@@ -27,75 +27,43 @@ const styles = {
   }
 };
 
-class MyAddresses extends React.Component {
-  constructor(props) {
-    super(props);
+const MyAddresses = (props) =>{
 
-    this.state = {
-      anchorEl: null,
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const close = () => setAnchorEl(null);
 
+  
+  const totalBalance = MyWalletServices.myAddresses.pipe(
+    switchMap(myAddresses => combineLatest(myAddresses.map(myAddress => myAddress.balance))),
+    map(addressBalances =>{
+        var totalBalance = 0;
+        addressBalances.forEach(balance => totalBalance = totalBalance + balance); //TODO: use BigDecimal library 
 
-      myAddresses: null
-    };
+        return Math.round(totalBalance) + " chc";
+    })
+  );
 
-    this.totalBalance = MyWalletServices.myAddresses.pipe(
-      switchMap(myAddresses => combineLatest(myAddresses.map(myAddress => myAddress.balance))),
-      map(addressBalances =>{
-          var totalBalance = 0;
-          addressBalances.forEach(balance => totalBalance = totalBalance + balance); //TODO: use BigDecimal library 
+  
 
-          return Math.round(totalBalance) + " chc";
-      })
-    );
-
-  }
-
-
-  handleClick = event => {
-    this.setState({ anchorEl: event.currentTarget });
-  };
-
-
-
-  handleClose = () => {
-    this.setState({ anchorEl: null });
-  };
-
-
-  componentDidMount() {
-  }
-
-  componentWillUnmount() {
-  }
-
- 
-
-  render(){
-    const { classes } = this.props;
-    const { myAddresses,  anchorEl } = this.state;
-
-   
-
-    return (
-    <div className={classes.root}>
-      <Button className={classes.button} variant="contained" color="primary" aria-owns={anchorEl ? 'simple-menu' : undefined} aria-haspopup="true" onClick={this.handleClick}>
-        <ObservableText value={this.totalBalance} loadingText="Loading" />
+  return (
+    <div className={props.classes.root}>
+      <Button className={props.classes.button} variant="contained" color="primary" aria-owns={anchorEl ? 'simple-menu' : undefined} aria-haspopup="true" onClick={e => setAnchorEl(e.currentTarget)}>
+        <ObservableText value={totalBalance} loadingText="Loading" />
       </Button>
 
-      <Menu id="simple-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={this.handleClose}>
+      <Menu id="simple-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={close}>
         <Link to={"/Explorer/MyWallet/MyAddresses"}>
-          <MenuItem onClick={this.handleClose}>
+          <MenuItem onClick={close}>
             My Addresses
           </MenuItem>
         </Link>
-        <ObservableList value={MyWalletServices.myAddresses} rowComponent={rowComponent} options={({handleClose:this.handleClose})}/>
+        <ObservableList value={MyWalletServices.myAddresses} rowComponent={rowComponent} options={({handleClose: close})}/>
         
         
       </Menu>
     </div>
       
-    );
-  }
+  );
 }
 
 MyAddresses.propTypes = {
@@ -106,15 +74,22 @@ export default withStyles(styles)(MyAddresses);
 
 
 
-var rowComponent = props =>{
+var rowComponent = withRouter(props =>{
+
+  const onClick = () =>{
+    props.value.pipe(map(address => address.address), first()).subscribe(address =>{
+      props.handleClose();
+      props.history.push("/Explorer/Address/" + address);
+    })
+  }
 
   return (
-    <Link to={"/Explorer/Address/" + props.value.address}>
-      <MenuItem onClick={props.handleClose}>
-        <ObservableText value={props.value.pipe(map(address => address.name))} loadingText="Loading" />
-        : 
-        <ObservableText value={props.value.pipe(switchMap(address => address.balance),map(balance => Math.round(balance) + " chc"))} loadingText="Loading" />
-      </MenuItem>
-    </Link>
+    <MenuItem onClick={onClick}>
+      <ObservableText value={props.value.pipe(map(address => address.name))} loadingText="Loading" />
+      : 
+      <ObservableText value={props.value.pipe(switchMap(address => address.balance),map(balance => Math.round(balance) + " chc"))} loadingText="Loading" />
+    </MenuItem>
+
+    
   )
-}
+});
