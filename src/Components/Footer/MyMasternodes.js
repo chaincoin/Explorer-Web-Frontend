@@ -9,14 +9,12 @@ import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
 
 import CheckIcon from '@material-ui/icons/Check';
 import CloseIcon from '@material-ui/icons/Close';
 
 import { Link, withRouter } from "react-router-dom";
 
-import BlockchainServices from '../../Services/BlockchainServices';
 import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 import ObservableText from '../ObservableText';
 import ObservableList from '../ObservableList';
@@ -63,7 +61,6 @@ const MyMasternodes = (props) =>{
   return (
     <div className={props.classes.root}>
       <Button className={props.classes.button} variant="contained" color="primary" aria-owns={anchorEl ? 'simple-menu' : undefined} aria-haspopup="true" onClick={e => setAnchorEl(e.currentTarget)}>
-        
         <ObservableBoolean value={combineLatest(enabledMnCount, mnCount).pipe(map(([enabledMnCount,mnCount]) => enabledMnCount == mnCount))}>
           <CheckIcon className={props.classes.checkIcon}/>
         </ObservableBoolean>
@@ -71,10 +68,7 @@ const MyMasternodes = (props) =>{
         <ObservableBoolean value={combineLatest(enabledMnCount, mnCount).pipe(map(([enabledMnCount,mnCount]) => enabledMnCount != mnCount))}>
           <CloseIcon className={props.classes.closeIcon}/>
         </ObservableBoolean>
-
-
         <ObservableText value={combineLatest(enabledMnCount, mnCount).pipe(map(([enabledMnCount,mnCount]) => `${enabledMnCount}/${mnCount}`))} loadingText="Loading" />
-
       </Button>
 
       <Menu id="simple-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={close}>
@@ -126,7 +120,5 @@ var rowComponent = withRouter(props =>{
       </ListItemIcon>
       <ObservableText value={props.value.pipe(map(mn => mn.name))} loadingText="Loading" />
     </MenuItem>
-
-    
   )
 });
