@@ -35,6 +35,7 @@ const ObservableTable = withStyles(styles)((props) =>{
     var rowsPerPage = (props.rowsPerPage || new BehaviorSubject(10));
   
     var emptyRows = combineLatest(props.list,rowsPerPage).pipe(map(([list,rowsPerPage]) =>{
+      if (rowsPerPage == 0) return 0;
       return rowsPerPage - list.length;
     }))
   
@@ -110,6 +111,7 @@ const ObservableTable = withStyles(styles)((props) =>{
       return () =>subscription.unsubscribe();
     }, []); 
   
+    if (rowsPerPage == 0) return (<React.Fragment/> );
   
     return(
       <TablePagination

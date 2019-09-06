@@ -12,6 +12,7 @@ const ObservableTableList = (props) =>{
   
     const pageData = combineLatest(props.list, page, rowsPerPage)
     .pipe(map(([list, page, rowsPerPage]) =>{
+        if (rowsPerPage == 0) return list;
         const subList = list.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
         return subList;
     }),
