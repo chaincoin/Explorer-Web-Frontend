@@ -13,102 +13,76 @@ import { Link } from "react-router-dom";
 
 import TablePaginationActions from '../../../Components/TablePaginationActions';
 
+import ObservableText from '../../../Components/ObservableText';
+import { map, distinctUntilChanged } from 'rxjs/operators';
+import ObservableBoolean from '../../../Components/ObservableBoolean';
+import ObservableTableList from '../../../Components/ObservableTableList';
 
-const styles = theme => ({
-  root: {
-    width: '100%',
-    marginTop: theme.spacing.unit * 3,
-  },
-  table: {
-  },
-  tableWrapper: {
-    overflowX: 'scroll',
-    "-webkit-overflow-scrolling": "touch"
-  },
-});
 
-class BlockDetailsTransactions extends React.Component {
-  state = {
-    page: 0,
-    rowsPerPage: 5,
-  };
 
-  handleChangePage = (event, page) => {
-    this.setState({ page });
-  };
 
-  handleChangeRowsPerPage = event => {
-    this.setState({ page: 0, rowsPerPage: event.target.value });
-  };
+const BlockDetailsTransactions = (props) =>{
 
-  labelDisplayedRows(){
-    return "";
-  }
 
-  render() {
-    const { classes } = this.props;
-    const { rowsPerPage, page } = this.state;
-    const { block } = this.props; 
-    const emptyRows = rowsPerPage - Math.min(rowsPerPage, block.tx.length - page * rowsPerPage);
+  var headers = (
+    <React.Fragment>
+      <TableCell>Hash</TableCell>
+      <TableCell>Recipients</TableCell>
+      <TableCell>Amount (CHC)</TableCell>
+    </React.Fragment>
+  )
 
-    return (
-      <Card>
-        <CardHeader>
-          Transactions
-        </CardHeader>
-        <CardBody>
-          <Paper className={classes.root}>
-            <div className={classes.tableWrapper}>
-              <Table className={classes.table}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Hash</TableCell>
-                    <TableCell>Recipients</TableCell>
-                    <TableCell>Amount (CHC)</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {block.tx.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(tx => (
-                    <TableRow key={tx.id}>
-                      <TableCell><Link to={"/Explorer/Transaction/" + (block.extended == true ? tx.txid : tx)}>{(block.extended == true ? tx.txid : tx)}</Link></TableCell>
-                      <TableCell>{tx.recipients}</TableCell>
-                      <TableCell>{tx.value}</TableCell>
-                    </TableRow>
-                  ))}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 48 * emptyRows }}>
-                      <TableCell colSpan={3} />
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            <TablePagination
-              labelRowsPerPage=""
-              rowsPerPageOptions={[]}
-              labelDisplayedRows={this.labelDisplayedRows}
-              colSpan={3}
-              count={block.tx.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              SelectProps={{
-                native: true,
-              }}
-              onChangePage={this.handleChangePage}
-              onChangeRowsPerPage={this.handleChangeRowsPerPage}
-              ActionsComponent={TablePaginationActions}
-            />
-          </Paper>
-        </CardBody>
-      </Card>
-      
-    );
-  }
+
+  return (
+    <Card>
+      <CardHeader>
+        Transactions
+      </CardHeader>
+      <CardBody>
+        <ObservableTableList headers={headers} rowComponent={row} list={props.block.pipe(map(block => block.tx))}  />
+      </CardBody>
+    </Card>
+    
+  );
 }
 
-BlockDetailsTransactions.propTypes = {
-  classes: PropTypes.object.isRequired,
-  block: PropTypes.object.isRequired,
-};
+export default BlockDetailsTransactions;
 
-export default withStyles(styles)(BlockDetailsTransactions);
+
+
+
+
+var row = (props) =>{
+
+  return(
+    <React.Fragment>
+      <ObservableBoolean value={props.value.pipe(map(tx => tx != null))} >
+        <TableRow>
+          <TableCell>
+            <ObservableText value={props.value.pipe(map(tx => {
+              if (tx == null) return "";
+              return tx.txid == null ? tx : tx.txid
+            }))} />
+          </TableCell>
+          <TableCell>
+            <ObservableText value={props.value.pipe(map(tx => {
+              if (tx == null) return "";
+              return tx.recipients;
+            }))} />
+          </TableCell>
+          <TableCell>
+            <ObservableText value={props.value.pipe(map(tx => {
+              if (tx == null) return "";
+              return tx.value;
+            }))} />
+          </TableCell>
+        </TableRow>
+      </ObservableBoolean>
+
+
+    </React.Fragment>
+    
+  )
+}
+
+

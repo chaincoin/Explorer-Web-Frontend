@@ -21,247 +21,98 @@ import TablePaginationActions from '../../Components/TablePaginationActions';
 import BlockDetailsTransactions from './BlockDetails/BlockDetailsTransactions';
 
 import BlockchainServices from '../../Services/BlockchainServices';
+import { switchMap, map, shareReplay } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest } from 'rxjs';
+import ObservableTable from '../../Components/ObservableTable';
+import ObservableBoolean from '../../Components/ObservableBoolean';
+import ObservableText from '../../Components/ObservableText';
 
 
-let counter = 0;
-function createData(name, calories, fat) {
-  counter += 1;
-  return { id: counter, name, calories, fat };
+
+
+const BlockList = (props) =>{
+
+  var page = new BehaviorSubject(0);
+  var rowsPerPage = new BehaviorSubject(10);
+
+  var pageData = combineLatest(BlockchainServices.blockCount, page, rowsPerPage).pipe(switchMap(([blockCount, page, rowsPerPage]) =>{
+    var blockPos = blockCount - (page * rowsPerPage);
+    return BlockchainServices.getBlocks(blockPos,blockPos < rowsPerPage ? blockPos : rowsPerPage);
+  }),
+  shareReplay({
+      bufferSize: 1,
+      refCount: true
+  }))
+
+
+  const headers = (
+    <React.Fragment>
+      <TableCell>Block</TableCell>
+      <TableCell>Hash</TableCell>
+      <TableCell>Recipients</TableCell>
+      <TableCell>Amount (CHC)</TableCell>
+      <TableCell>Timestamp</TableCell>
+    </React.Fragment>
+  );
+
+  return (
+    <Card>
+      <CardHeader>
+        Blocks
+      </CardHeader>
+      <CardBody>
+        <ObservableTable headers={headers} rowComponent={rowComponent} list={pageData} page={page} count={BlockchainServices.blockCount} rowsPerPage={rowsPerPage}/>
+      </CardBody>
+    </Card>
+  )
 }
 
-const styles = theme => ({
-  root: {
-    width: '100%',
-    marginTop: theme.spacing.unit * 3,
-  },
-  table: {
-
-  },
-  tableWrapper: {
-    overflowX: 'scroll',
-    "-webkit-overflow-scrolling": "touch"
-  },
-});
-
-class BlockList extends React.Component {
-  state = {
-    rows: [],
-    rowsExpanded:[],
-    page: 0,
-    rowsPerPage: 10,
-    loading: true,
-
-    blockCount: null
-  };
-
-  blockCountSubscription = null;
-  blocksSubscription = null;
-
-  handleChangePage = (event, page) => {
-    this.setState({ 
-      page,
-      rowsExpanded:[]
-    }, 
-    this.getBlocks);
-    
-  };
-
-  handleChangeRowsPerPage = event => {
-    this.setState({ 
-      page: 0, 
-      rowsPerPage: parseInt(event.target.value),
-    }, 
-      this.getBlocks
-    );
-  };
-
-  componentDidMount() {
 
 
-    this.blockCountSubscription = BlockchainServices.blockCount.subscribe((blockCount) =>{
-      //TODO: this works to make the Pagination controls correct but its not great and the Displayed Item numbers is wrong 
-      var page = this.state.page;
-      if (this.state.rows[0] != null && this.state.blockCount != blockCount)
-      {
-        var height = this.state.rows[0].height;
-        page = Math.ceil((blockCount - height) / this.state.rowsPerPage);
-      }
+var rowComponent = (props) =>{
 
-      this.setState({
-        blockCount,
-        page
-      }, this.state.blockCount == null ? this.getBlocks : null);
-    });
-
-  }
-
-  componentWillUnmount() {
-    this.blockCountSubscription.unsubscribe();
-    if (this.blocksSubscription != null) this.blocksSubscription.unsubscribe();
-  }
-
-
-
-
-
-  getBlocks(){
-    if (this.blocksSubscription != null) this.blocksSubscription.unsubscribe();
-
-    var blockPos = this.state.blockCount - (this.state.page * this.state.rowsPerPage);
-    var rowsPerPage = blockPos < this.state.rowsPerPage ? blockPos : this.state.rowsPerPage;
-
-    this.blocksSubscription = BlockchainServices.getBlocks(blockPos,rowsPerPage).subscribe(blocks =>{
-      this.setState({
-        loading: false,
-        rows: blocks
-      });
-    },(error) => {
-      this.setState({
-        loading: false,
-        error
-      });
-    })
-
-  }
-
-  labelDisplayedRows(){
-    return "";
-  }
-
-
-  rowToHtml = (row, i) =>
-  {
-    const expanded = this.state.rowsExpanded[i] == true;
-    const elements = [];
-
-
-    const handleExpandMore = () =>{
-      var rowsExpanded = this.state.rowsExpanded.splice();
-      rowsExpanded[i] = true;
-
-      this.setState({
-        rowsExpanded
-      });
-    }
-
-    const handleExpandLess = () =>{
-      var rowsExpanded = this.state.rowsExpanded.splice();
-      rowsExpanded[i] = false;
-
-      this.setState({
-        rowsExpanded
-      });
-    }
-
-    elements.push((
-      <TableRow key={row.id}>
-        <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.hash}>{row.height}</Link></TableCell>
-        <TableCell><Link to={"/Explorer/Block/" + row.hash}>{row.hash}</Link></TableCell>
-        <TableCell>{row.tx.map(tx => tx.recipients).reduce(add)}</TableCell>
-        <TableCell>{row.value}</TableCell>
-        <TableCell>{TimeToString(row.time)}</TableCell>
-        <TableCell>
-        {
-          expanded == false ? 
-          <ExpandMore onClick={handleExpandMore}/>:
-          <ExpandLess onClick={handleExpandLess}/>
-        }
-        </TableCell>
-      </TableRow>
-    ));
-
-    if (expanded){
-      elements.push((
+  return(
+    <React.Fragment>
+      <ObservableBoolean value={props.value.pipe(map(tx => tx != null))} >
         <TableRow>
-          <TableCell colSpan={6}>
-
-            <BlockDetailsTransactions block={row} />
-
+          <TableCell component="th" scope="row">
+            <ObservableText value={props.value.pipe(map(block => {
+              if (block == null) return "";
+              return block.height;
+              }))} />
+          </TableCell>
+          <TableCell>
+            <ObservableText value={props.value.pipe(map(block => {
+                if (block == null) return "";
+                return block.hash;
+              }))} />
+          </TableCell>
+          <TableCell>
+            <ObservableText value={props.value.pipe(map(block => {
+                  if (block == null) return "";
+                  return block.tx.map(tx => tx.recipients).reduce(add);
+                }))} />
+          </TableCell>
+          <TableCell>
+            <ObservableText value={props.value.pipe(map(block => {
+                if (block == null) return "";
+                return block.value;
+              }))} />
+          </TableCell>
+          <TableCell>
+            <ObservableText value={props.value.pipe(map(block => {
+                if (block == null) return "";
+                return TimeToString(block.time);
+              }))} />
           </TableCell>
         </TableRow>
-      ));
-    }
+      </ObservableBoolean>
+    </React.Fragment>
     
-
-    return elements;
-  }
- 
-  render() {
-    const { classes } = this.props;
-    const { rows, rowsPerPage, page, blockCount } = this.state;
-    const emptyRows = rowsPerPage - rows.length;
-
-    return (
-      <Card className={classes.root}>
-        <CardHeader>
-          Blocks
-        </CardHeader>
-        <CardBody>
-          <Paper>
-            <div className={classes.tableWrapper}>
-              <Table className={classes.table}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Block</TableCell>
-                    <TableCell>Hash</TableCell>
-                    <TableCell>Recipients</TableCell>
-                    <TableCell>Amount (CHC)</TableCell>
-                    <TableCell>Timestamp</TableCell>
-
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map(row =>(
-                    <TableRow key={row.id}>
-                    <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.hash}>{row.height}</Link></TableCell>
-                    <TableCell><Link to={"/Explorer/Block/" + row.hash}>{row.hash}</Link></TableCell>
-                    <TableCell>{row.tx.map(tx => tx.recipients).reduce(add)}</TableCell>
-                    <TableCell>{row.value}</TableCell>
-                    <TableCell>{TimeToString(row.time)}</TableCell>
-                  </TableRow>
-                  ))}
-
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 48 * emptyRows }}>
-                      <TableCell colSpan={5} />
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            <TablePagination
-              labelRowsPerPage=""
-              rowsPerPageOptions={[]}
-              labelDisplayedRows={this.labelDisplayedRows}
-              colSpan={5}
-              count={blockCount}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              SelectProps={{
-                native: true,
-              }}
-              onChangePage={this.handleChangePage}
-              onChangeRowsPerPage={this.handleChangeRowsPerPage}
-              ActionsComponent={TablePaginationActions}
-            />
-          </Paper>
-        </CardBody>
-      </Card>
-      
-    );
-  }
+  )
 }
 
-
-
-
-
-
-
-BlockList.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
-export default withStyles(styles)(BlockList);
+export default BlockList;
 
 
 
