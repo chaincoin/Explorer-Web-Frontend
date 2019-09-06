@@ -1,4 +1,5 @@
 import React from 'react';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 export default (props) =>{
 
@@ -7,9 +8,10 @@ export default (props) =>{
 
     React.useEffect(() => {
 
-        const subscription = props.value.subscribe((text) =>{
+        const subscription = props.value.pipe(
+            distinctUntilChanged((prev, curr) => prev == curr)
+        ).subscribe((text) =>{
             setText(text);
-
         });
         
         return () =>{

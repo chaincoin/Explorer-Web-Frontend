@@ -12,7 +12,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { Link } from "react-router-dom";
 
 import ObservableText from "../ObservableText";
-
+import ObservableList from "../ObservableList";
 
 import BlockchainServices from '../../Services/BlockchainServices';
 import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
@@ -37,8 +37,6 @@ class MyAddresses extends React.Component {
 
       myAddresses: null
     };
-
-    this.myAddressesSubscription = null;
 
     this.totalBalance = MyWalletServices.myAddresses.pipe(
       switchMap(myAddresses => combineLatest(myAddresses.map(myAddress => myAddress.balance))),
@@ -65,27 +63,18 @@ class MyAddresses extends React.Component {
 
 
   componentDidMount() {
-    
-
-    this.myAddressesSubscription = MyWalletServices.myAddresses.subscribe((myAddresses =>{
-      this.setState({
-        myAddresses: myAddresses
-      });
-    }))
-    
   }
 
   componentWillUnmount() {
-    this.myAddressesSubscription.unsubscribe();
-    this.addressSubscriptions.forEach(v => v.unsubscribe());
-
   }
 
-
+ 
 
   render(){
     const { classes } = this.props;
     const { myAddresses,  anchorEl } = this.state;
+
+   
 
     return (
     <div className={classes.root}>
@@ -99,29 +88,14 @@ class MyAddresses extends React.Component {
             My Addresses
           </MenuItem>
         </Link>
-        {
-          myAddresses == null ? 
-          "" :
-          myAddresses.map(myAddress =>
-            (
-              <Link to={"/Explorer/Address/" + myAddress.address}>
-                <MenuItem onClick={this.handleClose}>
-                  {myAddress.name}: <ObservableText value={myAddress.balance.pipe(map(balance => Math.round(balance) + " chc"))} loadingText="Loading" />
-              
-                </MenuItem>
-              </Link>
-            )
-          )
-        }
+        <ObservableList value={MyWalletServices.myAddresses} rowComponent={rowComponent} options={({handleClose:this.handleClose})}/>
+        
         
       </Menu>
     </div>
       
     );
   }
-
- 
-  
 }
 
 MyAddresses.propTypes = {
@@ -131,3 +105,16 @@ MyAddresses.propTypes = {
 export default withStyles(styles)(MyAddresses);
 
 
+
+var rowComponent = props =>{
+
+  return (
+    <Link to={"/Explorer/Address/" + props.value.address}>
+      <MenuItem onClick={props.handleClose}>
+        <ObservableText value={props.value.pipe(map(address => address.name))} loadingText="Loading" />
+        : 
+        <ObservableText value={props.value.pipe(switchMap(address => address.balance),map(balance => Math.round(balance) + " chc"))} loadingText="Loading" />
+      </MenuItem>
+    </Link>
+  )
+}
