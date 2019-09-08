@@ -1,5 +1,5 @@
 import React from 'react';
-import { map, distinctUntilChanged } from 'rxjs/operators';
+import { map, distinctUntilChanged, shareReplay } from 'rxjs/operators';
 
 export default (props) =>{
 
@@ -20,7 +20,13 @@ export default (props) =>{
     for(let i = 0; i < size; i++)
     {
       components.push((
-        <props.rowComponent value={props.value.pipe(map(list => list[i]))} {...props.options} />
+        <props.rowComponent value={props.value.pipe(
+          map(list => list[i]),
+          shareReplay({
+            bufferSize: 1,
+            refCount: true
+          })
+        )} {...props.options} />
       ))
     }
   
