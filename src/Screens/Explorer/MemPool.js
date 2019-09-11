@@ -17,161 +17,44 @@ import { Link } from "react-router-dom";
 import TablePaginationActions from '../../Components/TablePaginationActions';
 
 import BlockchainServices from '../../Services/BlockchainServices';
+import ObservableTableList from '../../Components/ObservableTableList';
 
 
+const MemPoolList = (props) =>{
 
-const styles = theme => ({
-  root: {
-    width: '100%',
-    marginTop: theme.spacing.unit * 3,
-  },
-  table: {
-    minWidth: 500,
-  },
-  tableWrapper: {
-    overflowX: 'scroll',
-    "-webkit-overflow-scrolling": "touch"
-  },
-});
+  const headers = React.useMemo(() =>(
+    <React.Fragment>
+      <TableCell>Hash</TableCell>
+      <TableCell>Recipients</TableCell>
+    </React.Fragment>
+  ));
 
-class MemPoolList extends React.Component {
-  state = {
-    rows: [
-     
-    ],
-    page: 0,
-    rowsPerPage: 10,
-    loading: true,
-    windowWidth: 0,
-    error: null,
-
-    searchInput:""
-  };
-
-  memPoolSubscription = null;
-
-  handleChangePage = (event, page) => {
-    this.setState({ page });
-    
-  };
-
-  handleChangeRowsPerPage = event => {
-    this.setState({ page: 0, rowsPerPage: parseInt(event.target.value) });
-  };
-
-  componentDidMount() {
-    this.memPoolSubscription = BlockchainServices.memPool.subscribe((memPool) =>{
-      this.setState({
-        rows: memPool
-      });
-    });
-  }
-
-  componentWillUnmount() {
-    this.memPoolSubscription.unsubscribe();
-  }
-
-  handleSearch = (event) => {
-    this.setState({ searchInput: event.target.value });
-  }
-  
-  labelDisplayedRows(){
-    return "";
-  }
- 
-  render() {
-    const { classes } = this.props;
-    const { rowsPerPage, page } = this.state;
-    var { rows, searchInput } = this.state;
-    const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
-
-    if (searchInput != "")
-    {
-      searchInput = searchInput.toLowerCase();
-      rows = rows.slice(0).filter(row => {
-        return row.txid.indexOf(searchInput) > -1
-      });
-    }
-
-    return (
-      <Card>
-        <CardHeader>
-          Mem Pool
-        </CardHeader>
-        <CardBody>
-          <TextField
-            id="standard-name"
-            label="Search"
-            className={classes.textField}
-            value={this.state.searchInput}
-            onChange={this.handleSearch}
-            margin="normal"
-            fullWidth
-          />
-          <Paper>
-            <div className={classes.tableWrapper}>
-              <Table className={classes.table}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Hash</TableCell>
-                    <TableCell>Recipients</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => (
-                    <TableRow >
-                      <TableCell><Link to={"/Explorer/Transaction/" + row.txid}>{row.txid}</Link></TableCell>
-                      <TableCell>{row.vout.length}</TableCell>
-                    </TableRow>
-                  ))}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 48 * emptyRows }}>
-                      <TableCell colSpan={2} />
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            <TablePagination
-              labelRowsPerPage=""
-              rowsPerPageOptions={[]}
-              labelDisplayedRows={this.labelDisplayedRows}
-              colSpan={2}
-              count={rows.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              SelectProps={{
-                native: true,
-              }}
-              onChangePage={this.handleChangePage}
-              onChangeRowsPerPage={this.handleChangeRowsPerPage}
-              ActionsComponent={TablePaginationActions}
-            />
-          </Paper>
-        </CardBody>
-      </Card>
-      
-    );
-  }
-}
-
-
-MemPoolList.propTypes = {
-  classes: PropTypes.object.isRequired,
+  return (
+    <Card>
+      <CardHeader>
+        Mem Pool
+      </CardHeader>
+      <CardBody>
+        <ObservableTableList headers={headers} rowComponent={rowComponent} list={BlockchainServices.memPool}  />
+      </CardBody>
+    </Card>
+  );
 };
-export default withStyles(styles)(MemPoolList);
 
 
 
+const rowComponent = (props) =>{
 
+  const row = props.value;
 
-var TimeToString = (timestamp) =>{
-  var d = new Date(timestamp * 1000);
-  return d.toLocaleTimeString() + " " + d.toLocaleDateString();
+  return(
+    <TableRow >
+      <TableCell><Link to={"/Explorer/Transaction/" + row.txid}>{row.txid}</Link></TableCell>
+      <TableCell>{row.vout.length}</TableCell>
+    </TableRow>
+  )
 }
 
 
+export default MemPoolList
 
-function add(accumulator, a) {
-  return accumulator + a;
-}

@@ -10,9 +10,10 @@ import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Button from '@material-ui/core/Button';
 
+import { Link } from "react-router-dom";
 
 
-
+import AddressMenu from '../../../../Components/AddressMenu';
 
 import CreateAddressDialog from '../../../../Components/Dialogs/CreateMyAddressDialog';
 import WatchAddressDialog from '../../../../Components/Dialogs/WatchAddressDialog'
@@ -74,30 +75,17 @@ const rowComponent = (props) =>{
   return(
     <TableRow >
       <TableCell>
-        <ObservableText value={props.value.pipe(map(myAddress => {
-              if (myAddress == null) return "";
-              return myAddress.name
-            }))} />
+        {props.value.name}
       </TableCell>
-      <TableCell component="th" scope="row">
-        <ObservableLink value={props.value.pipe(map(myAddress => {
-                if (myAddress == null) return "";
-                return "/Explorer/Address/" + myAddress.address;
-              }))}>
-          <ObservableText value={props.value.pipe(map(myAddress => {
-                if (myAddress == null) return "";
-                return myAddress.address
-              }))} />
-        </ObservableLink>
-      </TableCell>
+      <TableCell component="th" scope="row"><Link to={"/Explorer/Address/" + props.value.address}>{props.value.address}</Link></TableCell>
       <TableCell>
-      <ObservableText value={props.value.pipe(switchMap(myAddress => {
-              if (myAddress == null) return of("0");
-              return myAddress.balance;
+        <ObservableText value={props.value.balance.pipe(map(balance => {
+              if (balance == null) return "0";
+              return balance;
           }))} />
       </TableCell>
       <TableCell>
-        
+        <AddressMenu address={props.value.address} />
       </TableCell>
     </TableRow>
   )

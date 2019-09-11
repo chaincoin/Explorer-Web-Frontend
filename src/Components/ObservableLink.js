@@ -1,35 +1,36 @@
 import React from 'react';
-import { distinctUntilChanged } from 'rxjs/operators';
+import { distinctUntilChanged, first } from 'rxjs/operators';
 
 import { withRouter } from "react-router-dom";
 
-export default withRouter((props) =>{
+export default withRouter(props =>{
 
     var anchor = null;
-    var link = null;
+
+    const setAnchor = React.useMemo(() =>(element) => anchor = element);
+
+
+
+    const onClick = React.useMemo(() =>(e) =>{
+        e.preventDefault();
+        props.value.pipe(first()).subscribe(props.history.push);
+    });
+
 
     React.useEffect(() => {
         const subscription = props.value.pipe(
             distinctUntilChanged((prev, curr) => prev == curr)
-        ).subscribe((newLink) =>{
-            link = newLink;
-            if (anchor != null) anchor.href = link;
+        ).subscribe((link) =>{
+            anchor.href = link;
         });
         
         return () =>{
           subscription.unsubscribe();
         }
-    }, [props.value]); //TODO: should this be using prop change detection
-
-
-    const onClick = (e) =>{
-        e.preventDefault();
-        props.history.push(link);
-    }
-
+    }, [props.value]); 
 
     return <React.Fragment>
-        <a ref={elem => anchor = elem }  onClick={onClick}>
+        <a ref={setAnchor}  onClick={onClick}>
             {props.children}
         </a>
     </React.Fragment>

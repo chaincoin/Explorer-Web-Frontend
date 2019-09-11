@@ -1,41 +1,37 @@
 import React from 'react';
 import { map, distinctUntilChanged, shareReplay } from 'rxjs/operators';
 
-export default (props) =>{
+export default React.memo((props) =>{
 
-    var [size, setSize] = React.useState(null);
+    var [list, setList] = React.useState(null);
   
   
     React.useEffect(() => {
       const subscription = props.value.pipe(
-        map(list => list.length),
         distinctUntilChanged((prev, curr) => prev == curr)
-      ).subscribe((size) =>setSize(size));
+      ).subscribe(setList);
       return () =>subscription.unsubscribe();
-    }, []); //TODO: should this be using prop change detection
+    }, [props.value]); 
   
   
     var components = [];
-  
-    for(let i = 0; i < size; i++)
+    if (list != null)
     {
-      components.push((
-        <props.rowComponent value={props.value.pipe(
-          map(list => list[i]),
-          shareReplay({
-            bufferSize: 1,
-            refCount: true
-          })
-        )} {...props.options} />
-      ))
+      for(let i = 0; i < list.length; i++)
+      {
+        components.push((
+          <props.rowComponent value={list[i]} {...props.options} />
+        ))
+      }
     }
+    
   
     return(
       <React.Fragment>
         {components}
       </React.Fragment>
     )
-  }
+  });
   
   
   

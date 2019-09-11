@@ -33,20 +33,20 @@ import ObservableLink from '../../Components/ObservableLink';
 
 const BlockList = (props) =>{
 
-  var page = new BehaviorSubject(0);
-  var rowsPerPage = new BehaviorSubject(10);
+  var page = React.useMemo(() => new BehaviorSubject(0));
+  var rowsPerPage =  React.useMemo(() => new BehaviorSubject(10));
 
-  var pageData = combineLatest(BlockchainServices.blockCount, page, rowsPerPage).pipe(switchMap(([blockCount, page, rowsPerPage]) =>{
+  var pageData =  React.useMemo(() =>combineLatest(BlockchainServices.blockCount, page, rowsPerPage).pipe(switchMap(([blockCount, page, rowsPerPage]) =>{
     var blockPos = blockCount - (page * rowsPerPage);
     return BlockchainServices.getBlocks(blockPos,blockPos < rowsPerPage ? blockPos : rowsPerPage);
   }),
   shareReplay({
       bufferSize: 1,
       refCount: true
-  }))
+  })))
 
 
-  const headers = (
+  const headers =  React.useMemo(() =>(
     <React.Fragment>
       <TableCell>Block</TableCell>
       <TableCell>Hash</TableCell>
@@ -54,7 +54,7 @@ const BlockList = (props) =>{
       <TableCell>Amount (CHC)</TableCell>
       <TableCell>Timestamp</TableCell>
     </React.Fragment>
-  );
+  ));
 
   return (
     <Card>
@@ -71,53 +71,17 @@ const BlockList = (props) =>{
 
 
 var rowComponent = (props) =>{
+  const row = props.value;
 
   return(
     <React.Fragment>
-      <ObservableBoolean value={props.value.pipe(map(tx => tx != null))} >
-        <TableRow>
-          <TableCell component="th" scope="row">
-            <ObservableLink value={props.value.pipe(map(block => {
-                    if (block == null) return "";
-                    return "/Explorer/Block/" + block.hash;
-                  }))}>
-              <ObservableText value={props.value.pipe(map(block => {
-                if (block == null) return "";
-                return block.height;
-                }))} />
-            </ObservableLink>
-          </TableCell>
-          <TableCell>
-            <ObservableLink value={props.value.pipe(map(block => {
-                  if (block == null) return "";
-                  return "/Explorer/Block/" + block.hash;
-                }))}>
-              <ObservableText value={props.value.pipe(map(block => {
-                  if (block == null) return "";
-                  return block.hash;
-                }))} />
-            </ObservableLink>
-          </TableCell>
-          <TableCell>
-            <ObservableText value={props.value.pipe(map(block => {
-                  if (block == null) return "";
-                  return block.tx.map(tx => tx.recipients).reduce(add);
-                }))} />
-          </TableCell>
-          <TableCell>
-            <ObservableText value={props.value.pipe(map(block => {
-                if (block == null) return "";
-                return block.value;
-              }))} />
-          </TableCell>
-          <TableCell>
-            <ObservableText value={props.value.pipe(map(block => {
-                if (block == null) return "";
-                return TimeToString(block.time);
-              }))} />
-          </TableCell>
-        </TableRow>
-      </ObservableBoolean>
+      <TableRow>
+        <TableCell component="th" scope="row"><Link to={"/Explorer/Block/" + row.hash}>{row.height}</Link></TableCell>
+        <TableCell><Link to={"/Explorer/Block/" + row.hash}>{row.hash}</Link></TableCell>
+        <TableCell>{row.tx.map(tx => tx.recipients).reduce(add)}</TableCell>
+        <TableCell>{row.value}</TableCell>
+        <TableCell>{TimeToString(row.time)}</TableCell>
+      </TableRow>
     </React.Fragment>
     
   )

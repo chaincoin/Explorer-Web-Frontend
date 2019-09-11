@@ -24,8 +24,9 @@ import ObservableLink from '../../../Components/ObservableLink';
 
 const BlockDetailsTransactions = (props) =>{
 
+  const list = React.useMemo(()=> props.block.pipe(map(block => block.tx),[props.block]));
 
-  var headers = (
+  const headers = (
     <React.Fragment>
       <TableCell>Hash</TableCell>
       <TableCell>Recipients</TableCell>
@@ -40,7 +41,7 @@ const BlockDetailsTransactions = (props) =>{
         Transactions
       </CardHeader>
       <CardBody>
-        <ObservableTableList headers={headers} rowComponent={row} list={props.block.pipe(map(block => block.tx))}  />
+        <ObservableTableList headers={headers} rowComponent={row} list={list}  />
       </CardBody>
     </Card>
     
@@ -57,35 +58,11 @@ var row = (props) =>{
 
   return(
     <React.Fragment>
-      <ObservableBoolean value={props.value.pipe(map(tx => tx != null))} >
-        <TableRow>
-          <TableCell>
-            <ObservableLink value={props.value.pipe(map(tx => {
-                      if (tx == null) return "";
-                      return "/Explorer/Transaction/" + tx.txid;
-                    }))}>
-              <ObservableText value={props.value.pipe(map(tx => {
-                if (tx == null) return "";
-                return tx.txid == null ? tx : tx.txid
-              }))} />
-            </ObservableLink>
-          </TableCell>
-          <TableCell>
-            <ObservableText value={props.value.pipe(map(tx => {
-              if (tx == null) return "";
-              return tx.recipients;
-            }))} />
-          </TableCell>
-          <TableCell>
-            <ObservableText value={props.value.pipe(map(tx => {
-              if (tx == null) return "";
-              return tx.value;
-            }))} />
-          </TableCell>
-        </TableRow>
-      </ObservableBoolean>
-
-
+      <TableRow key={props.value.id}>
+        <TableCell><Link to={"/Explorer/Transaction/" + (props.value.txid != null ? props.value.txid : props.value)}>{(props.value.txid != null ? props.value.txid : props.value)}</Link></TableCell>
+        <TableCell>{props.value.recipients}</TableCell>
+        <TableCell>{props.value.value}</TableCell>
+      </TableRow>
     </React.Fragment>
     
   )

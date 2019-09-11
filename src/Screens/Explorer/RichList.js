@@ -16,163 +16,68 @@ import { Link } from "react-router-dom";
 import AddressMenu from '../../Components/AddressMenu';
 
 import TablePaginationActions from '../../Components/TablePaginationActions';
-
+import { shareReplay, switchMap } from 'rxjs/operators';
+import { combineLatest, BehaviorSubject } from 'rxjs';
 import BlockchainServices from '../../Services/BlockchainServices';
+import ObservableTable from '../../Components/ObservableTable';
 
 
-let counter = 0;
-function createData(name, calories, fat) {
-  counter += 1;
-  return { id: counter, name, calories, fat };
-}
-
-const styles = theme => ({
-  root: {
-    width: '100%',
-    marginTop: theme.spacing.unit * 3,
-  },
-  table: {
-    minWidth: 500,
-  },
-  tableWrapper: {
-    overflowX: 'scroll',
-    "-webkit-overflow-scrolling": "touch"
-  },
-});
-
-class RichList extends React.Component {
-  state = {
-    rows: [
-     
-    ],
-    page: 0,
-    rowsPerPage: 10,
-    loading: true,
-    error: null,
-    richListCount: null
-  };
-
-  richListCountSubscription = null;
-
-  handleChangePage = (event, page) => {
-    this.setState({ page }, this.getRichList);
-    
-  };
-
-  handleChangeRowsPerPage = event => {
-    this.setState({ page: 0, rowsPerPage: parseInt(event.target.value) }, this.getRichList);
-  };
-
-  componentDidMount() {
-    this.richListCountSubscription = BlockchainServices.richListCount.subscribe((richListCount) =>{
-
-      this.setState({
-        richListCount: richListCount
-      }, this.state.richListCount == null ? this.getRichList : null);
-    });
-  }
-
-  componentWillUnmount() {
-    this.richListCountSubscription.unsubscribe();
-  }
 
 
-  getRichList(){
-    var pos = this.state.page * this.state.rowsPerPage;
-    var rowsPerPage = this.state.rowsPerPage;
 
-    BlockchainServices.getRichList(pos, rowsPerPage)
-      .then(
-        (results) => {
-          this.setState({
-            loading: false,
-            rows: results
-          });
-        },
-        // Note: it's important to handle errors here
-        // instead of a catch() block so that we don't swallow
-        // exceptions from actual bugs in components.
-        (error) => {
-          this.setState({
-            loading: false,
-            error
-          });
-        }
-      )
-  }
+const RichList = (props) =>{
 
-  labelDisplayedRows(){
-    return "";
-  }
+  var page = React.useMemo(() => new BehaviorSubject(0));
+  var rowsPerPage =  React.useMemo(() => new BehaviorSubject(10));
 
-  render() {
-    const { classes } = this.props;
-    const { rows, rowsPerPage, page, richListCount } = this.state;
-    const emptyRows = rowsPerPage - rows.length;
+  var pageData =  React.useMemo(() =>combineLatest(BlockchainServices.richListCount, page, rowsPerPage).pipe(switchMap(([richListCount, page, rowsPerPage]) =>{
+    var pos = page * rowsPerPage;
+    return BlockchainServices.getRichList(pos, rowsPerPage);
+  }),
+  shareReplay({
+      bufferSize: 1,
+      refCount: true
+  })))
 
-    return (
-      <Card>
-        <CardHeader>
-          Rich List
-        </CardHeader>
-        <CardBody>
-          <Paper>
-            <div className={classes.tableWrapper}>
-              <Table className={classes.table}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Address</TableCell>
-                    <TableCell>Last Activity</TableCell>
-                    <TableCell>Balance (CHC)</TableCell>
-                    <TableCell></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map(row => (
-                    <TableRow key={row.id}>
-                      <TableCell component="th" scope="row"><Link to={"/Explorer/Address/" + row.address}>{row.label == null ? row.address : row.label + " " +  row.address}</Link></TableCell>
-                      <TableCell>{TimeToString(row.lastActivity)}</TableCell>
-                      <TableCell>{row.balance}</TableCell>
-                      <TableCell><AddressMenu address={row.address} /></TableCell>
-                    </TableRow>
-                  ))}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 48 * emptyRows }}>
-                      <TableCell colSpan={4} />
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            <TablePagination
-              labelRowsPerPage=""
-              rowsPerPageOptions={[]}
-              labelDisplayedRows={this.labelDisplayedRows}
-              colSpan={4}
-              count={richListCount}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              SelectProps={{
-                native: true,
-              }}
-              onChangePage={this.handleChangePage}
-              onChangeRowsPerPage={this.handleChangeRowsPerPage}
-              ActionsComponent={TablePaginationActions}
-            />
-          </Paper>
-        </CardBody>
-      </Card>
-      
-    );
-  }
+
+  const headers =  React.useMemo(() =>(
+    <React.Fragment>
+      <TableCell>Address</TableCell>
+      <TableCell>Last Activity</TableCell>
+      <TableCell>Balance (CHC)</TableCell>
+      <TableCell></TableCell>
+    </React.Fragment>
+  ));
+
+  return (
+    <Card>
+      <CardHeader>
+        Rich List
+      </CardHeader>
+      <CardBody>
+        <ObservableTable headers={headers} rowComponent={rowComponent} list={pageData} page={page} count={BlockchainServices.richListCount} rowsPerPage={rowsPerPage}/>
+      </CardBody>
+    </Card>
+  )
 }
 
 
-RichList.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
-export default withStyles(styles)(RichList);
+var rowComponent = (props) =>{
+  const row = props.value;
 
+  return(
+    <TableRow key={row.id}>
+      <TableCell component="th" scope="row"><Link to={"/Explorer/Address/" + row.address}>{row.label == null ? row.address : row.label + " " +  row.address}</Link></TableCell>
+      <TableCell>{TimeToString(row.lastActivity)}</TableCell>
+      <TableCell>{row.balance}</TableCell>
+      <TableCell><AddressMenu address={row.address} /></TableCell>
+    </TableRow>
+  )
+}
+
+
+
+export default RichList;
 
 
 var TimeToString = (timestamp) =>{

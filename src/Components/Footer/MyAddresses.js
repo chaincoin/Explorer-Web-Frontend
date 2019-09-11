@@ -16,7 +16,8 @@ import ObservableList from "../ObservableList";
 
 import BlockchainServices from '../../Services/BlockchainServices';
 import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
-import { switchMap, map, first } from 'rxjs/operators';
+import { switchMap, map, first, startWith } from 'rxjs/operators';
+import { ListItemIcon } from '@material-ui/core';
 
 const styles = {
   root: {
@@ -32,8 +33,9 @@ const MyAddresses = (props) =>{
   const [anchorEl, setAnchorEl] = React.useState(null);
   const close = () => setAnchorEl(null);
 
-  
-  const totalBalance = MyWalletServices.myAddresses.pipe(
+
+
+  const totalBalance = React.useMemo(()=> MyWalletServices.myAddresses.pipe(
     switchMap(myAddresses => combineLatest(myAddresses.map(myAddress => myAddress.balance))),
     map(addressBalances =>{
         var totalBalance = 0;
@@ -41,9 +43,20 @@ const MyAddresses = (props) =>{
 
         return Math.round(totalBalance) + " chc";
     })
-  );
-
+  ), []);
   
+
+  const list =  React.useMemo(()=> MyWalletServices.myAddresses.pipe(
+    switchMap(myAddresses => combineLatest(myAddresses.map(myAddress => myAddress.data.pipe(
+      startWith(null),
+      map(address => ({
+        myAddress:myAddress,
+        address: address
+      }))
+    ))))
+  ));
+  
+
 
   return (
     <div className={props.classes.root}>
@@ -57,7 +70,7 @@ const MyAddresses = (props) =>{
             My Addresses
           </MenuItem>
         </Link>
-        <ObservableList value={MyWalletServices.myAddresses} rowComponent={rowComponent} options={({handleClose: close})}/>
+        <ObservableList value={list} rowComponent={rowComponent} options={({handleClose: close})}/>
         
         
       </Menu>
@@ -76,20 +89,21 @@ export default withStyles(styles)(MyAddresses);
 
 var rowComponent = withRouter(props =>{
 
+  const { myAddress, address } = props.value;
   const onClick = () =>{
-    props.value.pipe(map(address => address.address), first()).subscribe(address =>{
-      props.handleClose();
-      props.history.push("/Explorer/Address/" + address);
-    })
+    props.handleClose();
+    props.history.push("/Explorer/Address/" + myAddress.address);
   }
 
   return (
     <MenuItem onClick={onClick}>
-      <ObservableText value={props.value.pipe(map(address => address.name))} loadingText="Loading" />
+      {myAddress.name}
       : 
-      <ObservableText value={props.value.pipe(switchMap(address => address.balance),map(balance => Math.round(balance) + " chc"))} loadingText="Loading" />
+      {
+        address == null ?
+        "Loading" :
+        address.balance
+      }
     </MenuItem>
-
-    
   )
 });

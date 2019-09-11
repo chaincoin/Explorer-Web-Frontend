@@ -6,6 +6,7 @@ import TableRow from '@material-ui/core/TableRow';
 
 import { Card, CardBody, CardHeader } from 'reactstrap';
 
+import { Link } from "react-router-dom";
 
 import BlockchainServices from '../../Services/BlockchainServices';
 import ObservableText from '../../Components/ObservableText';
@@ -20,14 +21,14 @@ import ObservableLink from '../../Components/ObservableLink';
 
 const ChainTips = (props) =>{
 
-  const headers = (
+  const headers = React.useMemo(() =>(
     <React.Fragment>
       <TableCell>Block</TableCell>
       <TableCell>Hash</TableCell>
       <TableCell>Branch Length</TableCell>
       <TableCell>Status</TableCell>
     </React.Fragment>
-  )
+  ));
 
   return (
     <Card>
@@ -45,43 +46,25 @@ const ChainTips = (props) =>{
 
 const rowComponent = (props) =>{
 
+  const row = props.value;
 
   return(
     <TableRow >
       <TableCell component="th" scope="row">
-        <ObservableLink value={props.value.pipe(map(row => {
-            if (row == null) return "";
-            return "/Explorer/Block/" + row.hash;
-          }))} >
-          <ObservableText value={props.value.pipe(map(row => {
-              if (row == null) return "";
-              return row.height;
-            }))} />
-        </ObservableLink>
-       
+        <Link to={"/Explorer/Block/" + row.hash}>
+          { row.height }
+        </Link>
       </TableCell>
       <TableCell>
-        <ObservableLink value={props.value.pipe(map(row => {
-            if (row == null) return "";
-            return "/Explorer/Block/" + row.hash;
-          }))} >
-          <ObservableText value={props.value.pipe(map(row => {
-              if (row == null) return "";
-              return row.hash;
-            }))} />
-        </ObservableLink>
+        <Link to={"/Explorer/Block/" + row.hash}>
+          { row.hash }
+        </Link>
       </TableCell>
       <TableCell>
-        <ObservableText value={props.value.pipe(map(row => {
-            if (row == null) return "";
-            return row.branchlen
-          }))} />
+        { row.branchlen }
       </TableCell>
       <TableCell>
-        <ObservableText value={props.value.pipe(map(row => {
-            if (row == null) return "";
-            return row.status
-          }))} />
+        { row.status }
       </TableCell>
     </TableRow>
   )

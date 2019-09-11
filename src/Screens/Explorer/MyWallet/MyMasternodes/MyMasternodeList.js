@@ -1,10 +1,14 @@
 import React from 'react';
-import { of } from 'rxjs';
-import { switchMap, map } from 'rxjs/operators';
+import { of, combineLatest } from 'rxjs';
+import { switchMap, map, startWith } from 'rxjs/operators';
 import { withStyles } from '@material-ui/core/styles';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import Button from '@material-ui/core/Button';
+
+import { Link } from "react-router-dom";
+
+import MasternodeMenu from '../../../../Components/MasternodeMenu';
 
 import AddMyMasternodeDialog from '../../../../Components/Dialogs/MyMasternodeDialog';
 import ImportMasternodeConfDialog from '../../../../Components/Dialogs/ImportMasternodeConfDialog';
@@ -14,6 +18,7 @@ import DialogService from '../../../../Services/DialogService';
 import ObservableLink from '../../../../Components/ObservableLink';
 import ObservableText from '../../../../Components/ObservableText';
 import ObservableTableList from '../../../../Components/ObservableTableList';
+import BlockchainServices from '../../../../Services/BlockchainServices';
 
 
 
@@ -31,7 +36,14 @@ const styles = theme => ({
 });
 
 
-const MyMasternodes = (props) =>{
+const MyMasternodes = withStyles(styles)(props =>{
+
+  const list = React.useMemo(() => combineLatest(MyWalletServices.myMasternodes, BlockchainServices.masternodeList).pipe(
+    map(([myMasternodes, masternodeList])=> myMasternodes.map(myMn => ({
+      myMn:myMn,
+      mn: masternodeList == null ? null : masternodeList[myMn.output]
+    })))
+  ));
 
   const headers = (
     <React.Fragment>
@@ -54,55 +66,47 @@ const MyMasternodes = (props) =>{
       </Button>
       
       
-      <ObservableTableList headers={headers} rowComponent={rowComponent} list={MyWalletServices.myMasternodes}  />
+      <ObservableTableList headers={headers} rowComponent={rowComponent} list={list}  />
     </div>
   );
-};
+});
 
 
-const rowComponent = (props) =>{
+const rowComponent = props =>{
 
+  const {myMn, mn} = props.value;
+  
 
   return(
     <TableRow >
+      <TableCell component="th" scope="row"><Link to={"/Explorer/MasternodeList/" + myMn.output}>{myMn.name}</Link></TableCell>
       <TableCell>
-        <ObservableLink value={props.value.pipe(map(myMn => {
-                if (myMn == null) return "";
-                return "/Explorer/MasternodeList/" + myMn.output;
-              }))}>
-          <ObservableText value={props.value.pipe(map(myMn => {
-                if (myMn == null) return "";
-                return myMn.name
-              }))} />
-        </ObservableLink>
+        {
+          mn != null ? 
+          mn.status :
+          "Not Found"
+        }
       </TableCell>
       <TableCell>
-      <ObservableText value={props.value.pipe(switchMap(myMn => {
-              if (myMn == null) return of("Missing");
-              return myMn.status;
-          }))} />
+        {
+          mn != null ? 
+          TimeToString(mn.lastseen) :
+          "Not Found"
+        }
       </TableCell>
       <TableCell>
-        <ObservableText value={props.value.pipe(switchMap(myMn => {
-                if (myMn == null) return of("");
-                return myMn.data;
-            }),
-            map(data => TimeToString(data.lastseen)))} />
-      </TableCell>
-      
-      <TableCell>
-        <ObservableText value={props.value.pipe(switchMap(myMn => {
-              if (myMn == null) return of("");
-              return myMn.data;
-          }),
-          map(data => TimeToString(data.lastpaidtime)))} />
+        {
+          mn != null ? 
+          TimeToString(mn.lastpaidtime) :
+          "Not Found"
+        }
       </TableCell>
       <TableCell>
-
+        <MasternodeMenu output={myMn.output} payee={mn != null ? mn.payee : null} />
       </TableCell>
     </TableRow>
   )
 }
 
-export default withStyles(styles)(MyMasternodes);
+export default MyMasternodes;
 

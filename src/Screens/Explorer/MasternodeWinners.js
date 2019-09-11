@@ -38,25 +38,25 @@ const MasternodeWinners = (props) =>{
 
 const rowComponent = (props) =>{
 
-  const headers = (
+  const subHeaders = React.useMemo(() =>( // eslint-disable-line
     <React.Fragment>
       <TableCell width="390">MN</TableCell>
       <TableCell>Votes</TableCell>
       <TableCell>Status</TableCell>
     </React.Fragment>
-  )
+  ));
+
+  const subList = React.useMemo(() => new BehaviorSubject(props.value[1].split(",")),[props.value]); // eslint-disable-line
+
+  const rowsPerPage = React.useMemo(() => new BehaviorSubject(0)); // eslint-disable-line
 
   return(
     <TableRow >
       <TableCell component="th" scope="row">
-        <ObservableText value={props.value.pipe(map(row => {
-              if (row == null) return "";
-              return row[0];
-            }))} />
-       
+       {props.value[0]}
       </TableCell>
       <TableCell>
-        <ObservableTableList headers={headers} rowComponent={subRowComponent} list={props.value.pipe(map(row => row[1].split(",")))} rowsPerPage={new BehaviorSubject(0)} />
+        <ObservableTableList headers={subHeaders} rowComponent={subRowComponent} list={subList} rowsPerPage={rowsPerPage} />
       </TableCell>
     </TableRow>
   )
@@ -67,61 +67,26 @@ const rowComponent = (props) =>{
 
 const subRowComponent = (props) =>{
 
-  const headers = (
-    <React.Fragment>
-      <TableCell width="390">MN</TableCell>
-      <TableCell>Votes</TableCell>
-      <TableCell>Status</TableCell>
-    </React.Fragment>
-  )
+ 
+  if (props.value == "Unknown") return (
+    <TableRow >
+      <TableCell width="390">{props.value}</TableCell>
+      <TableCell></TableCell>
+      <TableCell></TableCell>
+    </TableRow>
+  );
 
-  return(
-    <React.Fragment>
-      <ObservableBoolean value={props.value.pipe(map(row => {
-                  if (row == null) return false;
-                  return row == "Unknown";
-                }))}>
-        <TableRow >
-          <TableCell width="390">
-            <ObservableText value={props.value.pipe(map(row => {
-                    if (row == null) return "";
-                    return row;
-                  }))} />
-          </TableCell>
-          <TableCell></TableCell>
-          <TableCell></TableCell>
-        </TableRow>
-      </ObservableBoolean>
-
-      <ObservableBoolean value={props.value.pipe(map(row => {
-                  if (row == null) return false;
-                  return row != "Unknown";
-                }))}>
-        <TableRow >
-          <TableCell width="390">
-            <ObservableText value={props.value.pipe(map(row => {
-                    if (row == null) return "";
-                    return row.split(":")[0];
-                  }))} />
-          </TableCell>
-          <TableCell>
-            <ObservableText value={props.value.pipe(map(row => {
-                    if (row == null) return "";
-                    return row.split(":")[1];
-                  }))} />
-          </TableCell>
-          <TableCell>
-            <ObservableText value={props.value.pipe(map(row => {
-                    if (row == null) return "";
-                    var votes = parseInt(row.split(":")[1]);
-                    return votes >= 6 ? "Enforced": (6 - votes) + " votes to enforce";
-                  }))} />
-          </TableCell>
-        </TableRow>
-      </ObservableBoolean>
-    </React.Fragment>
-    
-  )
+  var split = props.value.split(":");
+  var votes = parseInt(split[1]);
+  return (
+    <TableRow >
+      <TableCell width="390">
+        {split[0]}
+      </TableCell>
+      <TableCell>{votes}</TableCell>
+      <TableCell>{ votes >= 6 ? "Enforced": (6 - votes) + " votes to enforce"}</TableCell>
+    </TableRow>
+  );
 }
 
 export default MasternodeWinners

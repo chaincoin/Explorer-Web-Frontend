@@ -13,17 +13,18 @@ import { switchMap, distinctUntilChanged } from 'rxjs/operators';
 
 const BlockDetails = (props) =>{
 
-  const blockId = new ReplaySubject();
-  const block = blockId.pipe(
+  const blockId = React.useMemo(() => new ReplaySubject());
+
+  const block = React.useMemo(() => blockId.pipe(
     distinctUntilChanged((prev, curr) => prev == curr),
     switchMap(blockId => BlockchainServices.getBlock(blockId))
-  )
+  ));
 
    
 
   React.useEffect(() => {
     blockId.next(props.match.params.blockId);
-  }, [props.match.params.blockId]); //TODO: should this be using prop change detection
+  }, [props.match.params.blockId]); 
 
   return (
     <div>

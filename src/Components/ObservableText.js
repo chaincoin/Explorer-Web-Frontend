@@ -1,9 +1,10 @@
 import React from 'react';
 import { distinctUntilChanged } from 'rxjs/operators';
 
-export default (props) =>{
+export default React.memo(props =>{
     var span = null;
 
+    const setSpan = React.useMemo(() =>(element) => span = element);
 
     React.useEffect(() => {
         const subscription = props.value.pipe(
@@ -15,13 +16,13 @@ export default (props) =>{
         return () =>{
           subscription.unsubscribe();
         }
-      }, [props.value]); //TODO: should this be using prop change detection
+      }, [props.value]);
 
 
     return (
         <React.Fragment>
-            <span ref={elem => span = elem }>{props.loadingText ||""}</span>
+            <span ref={setSpan}>{props.loadingText ||null}</span>
         </React.Fragment>
     )
-}
+})
 

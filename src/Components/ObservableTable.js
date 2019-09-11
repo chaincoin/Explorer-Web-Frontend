@@ -29,15 +29,15 @@ const styles = theme => ({
     },
   });
 
-const ObservableTable = withStyles(styles)((props) =>{ 
+const ObservableTable = withStyles(styles)(props =>{ 
 
     var page = (props.page || new BehaviorSubject(0));
     var rowsPerPage = (props.rowsPerPage || new BehaviorSubject(10));
   
-    var emptyRows = combineLatest(props.list,rowsPerPage).pipe(map(([list,rowsPerPage]) =>{
+    var emptyRows = React.useMemo(() =>combineLatest(props.list,rowsPerPage).pipe(map(([list,rowsPerPage]) =>{
       if (rowsPerPage == 0) return 0;
       return rowsPerPage - list.length;
-    }))
+    })),[props.list, rowsPerPage]);
   
     return (
       <Paper className={props.classes.root}>
@@ -60,10 +60,11 @@ const ObservableTable = withStyles(styles)((props) =>{
   })
   
   
-  const ObservableTableEmptyRows = (props) =>{
+  const ObservableTableEmptyRows = props =>{
     const [emptyRows, setEmptyRows] = React.useState(0);
     const [colSpan, setColSpan] = React.useState(3);
     
+    var style = React.useMemo(() =>({ height: 48 * emptyRows}),[emptyRows]);
     
   
     React.useEffect(() => {
@@ -74,14 +75,15 @@ const ObservableTable = withStyles(styles)((props) =>{
       return () =>subscription.unsubscribe();
     }, []); 
   
+    if (emptyRows == 0) return <React.Fragment />
     return(
-        <TableRow style={{ height: 48 * emptyRows }}>
+        <TableRow style={style}>
           <TableCell colSpan={colSpan} />
         </TableRow>
     )
   }
   
-  const ObservablePagination = (props) =>{
+  const ObservablePagination = React.memo(props =>{
   
     const [count, setCount] = React.useState(0);
     const [page, setPage] = React.useState(0);
@@ -129,7 +131,7 @@ const ObservableTable = withStyles(styles)((props) =>{
           ActionsComponent={TablePaginationActions}
         />
     )
-  }
+  })
   
   
 

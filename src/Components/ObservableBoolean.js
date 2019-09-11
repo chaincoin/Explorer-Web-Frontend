@@ -1,7 +1,7 @@
 import React from 'react';
 import { distinctUntilChanged } from 'rxjs/operators';
 
-export default (props) =>{
+export default props =>{
 
     var [boolean, setBoolean] = React.useState(null);
 
@@ -16,7 +16,7 @@ export default (props) =>{
         return () =>{
           subscription.unsubscribe();
         }
-    }, []); //TODO: should this be using prop change detection
+    }, [props.value]); 
 
 
     return <React.Fragment>
