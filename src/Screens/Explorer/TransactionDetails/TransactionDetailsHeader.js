@@ -1,10 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-
-import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
 import Grid from '@material-ui/core/Grid';
+import InfoIcon from '@material-ui/icons/Info';
+
+import { Card, CardBody, CardHeader } from 'reactstrap';
+
 import { Link } from "react-router-dom";
+
+import Environment from '../../../Services/Environment';
 
 const styles = {
   root: {
@@ -31,6 +35,10 @@ class BlockDetailsHeader extends React.Component {
       <Card>
         <CardHeader>
         CHC Transaction: {transaction.txid}
+        <a href={Environment.blockchainApiUrl + "/Transaction?txid=" + transaction.txid} >
+          <InfoIcon style={{float:"right"}}/>
+        </a>
+
         </CardHeader>
         <CardBody>
           <Grid container spacing={24}>

@@ -12,6 +12,7 @@ import MyAddressList from './MyAddressList';
 import MyMasternodeList from './MyMasternodeList';
 import MyAddressesSend from './MyAddressesSend/MyAddressesSend';
 import MyAddressesGraph from './MyAddressesGraph';
+import MyMasternodesGraph from './MyMasternodesGraph';
 import MyWalletSettings from './MyWalletSettings';
 
 
@@ -27,9 +28,6 @@ const styles = theme => ({
 class MyAddresses extends React.Component {
   
 
-  state = {
-    tab: 0
-  };
 
 
   handleTabChange = (event, url) => {
@@ -38,14 +36,13 @@ class MyAddresses extends React.Component {
   };
  
   render() {
-    const { tab } = this.state;
     const { classes } = this.props;
 
     return (
 
       <Card>
         <CardHeader className={classes.tabHeader}>
-          <Tabs value={tab} onChange={this.handleTabChange} variant="scrollable" scrollButtons="auto">
+          <Tabs value={window.location.pathname} onChange={this.handleTabChange} variant="scrollable" scrollButtons="auto">
             <Tab label="My Addresses" classes={{ label: 'details-tab' }} value="/Explorer/MyWallet/MyAddresses" />
             <Tab label="My Masternodes" classes={{ label: 'details-tab' }} value="/Explorer/MyWallet/MyMasternodes" />
             <Tab label="Send" classes={{ label: 'details-tab' }} value="/Explorer/MyWallet/Send" />
@@ -60,10 +57,10 @@ class MyAddresses extends React.Component {
         <Route exact path="/Explorer/MyWallet/MyAddresses" component={MyAddressList} />
         <Route exact path="/Explorer/MyWallet/MyMasternodes" component={MyMasternodeList} />
 
-        <Route exact path="/Explorer/MyWallet/MyAddressesSend" component={MyAddressesSend} />
+        <Route exact path="/Explorer/MyWallet/Send" component={MyAddressesSend} />
 
-        <Route exact path="/Explorer/MyWallet/MiningRewards" component={minerRewardsComponent} />
-        <Route exact path="/Explorer/MyWallet/MasternodeRewards" component={mnRewardsComponent} />
+        <Route exact path="/Explorer/MyWallet/MiningRewards" component={MyAddressesGraph} />
+        <Route exact path="/Explorer/MyWallet/MasternodeRewards" component={MyMasternodesGraph} />
         
         <Route exact path="/Explorer/MyWallet/MyWalletSettings" component={MyWalletSettings} />
 
@@ -76,8 +73,6 @@ class MyAddresses extends React.Component {
 }
 
 
-const minerRewardsComponent = () => (<MyAddressesGraph  payOutType="miner" />)
-const mnRewardsComponent = () => (<MyAddressesGraph  payOutType="masternode" />)
 
 MyAddresses.propTypes = {
   classes: PropTypes.object.isRequired,

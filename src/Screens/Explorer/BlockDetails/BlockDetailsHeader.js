@@ -1,11 +1,15 @@
 import React from 'react';
 
-import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
+import { Card, CardBody, CardHeader } from 'reactstrap';
 import Grid from '@material-ui/core/Grid';
+import InfoIcon from '@material-ui/icons/Info';
+
+import { map, first } from 'rxjs/operators';
+
 import ObservableText from '../../../Components/ObservableText';
-import { map } from 'rxjs/operators';
 
-
+import Environment from '../../../Services/Environment';
+import ObservableLink from '../../../Components/ObservableLink';
 
 const BlockDetailsHeader = (props) =>{
   
@@ -13,6 +17,12 @@ const BlockDetailsHeader = (props) =>{
     <Card>
       <CardHeader>
         CHC Block: <ObservableText value={props.block.pipe(map(block => block.hash))} />
+
+        <ObservableLink value={props.block.pipe(map(block => Environment.blockchainApiUrl + "/Block?hash=" + block.hash))} >
+          <InfoIcon style={{float:"right"}}/>
+        </ObservableLink>
+
+        
       </CardHeader>
       <CardBody>
         <Grid container spacing={24}>

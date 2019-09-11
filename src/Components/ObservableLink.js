@@ -13,7 +13,11 @@ export default withRouter(props =>{
 
     const onClick = React.useMemo(() =>(e) =>{
         e.preventDefault();
-        props.value.pipe(first()).subscribe(props.history.push);
+        props.value.pipe(first()).subscribe((url) =>{
+            if (url.startsWith("http://") || url.startsWith("https://")) window.location.href = url;
+            else props.history.push(url)
+            
+        });
     });
 
 
