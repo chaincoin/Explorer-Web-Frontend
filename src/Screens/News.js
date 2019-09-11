@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
 
-import { Card, CardText, CardBody, CardHeader } from 'reactstrap';
+import { Card, CardBody, CardHeader } from 'reactstrap';
 
 
 
@@ -58,8 +58,6 @@ class News extends React.Component {
           body:"Chaincoin Explorer has successfully mined many blocks on SerfNet - <a href=\"http://test.chaincoinexplorer.co.uk/?#Explorer/Address/tchc1qq03kpt3xpw0vdg6n03g3xurd776g98aclljeph\" target=\"_blank\">tchc1qq03kpt3xpw0vdg6n03g3xurd776g98aclljeph</a>"
       }
     ],
-    page: 0,
-    rowsPerPage: 10,
     loading: true, 
     error: null,
 
@@ -90,9 +88,7 @@ class News extends React.Component {
 
  
   render() {
-    const { classes } = this.props;
-    const { rows, rowsPerPage, page } = this.state;
-    const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+    const { rows } = this.state;
 
 
 

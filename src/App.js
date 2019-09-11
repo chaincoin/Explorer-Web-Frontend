@@ -30,9 +30,6 @@ import PeerList from './Screens/Explorer/PeerList'
 import ChainTips from './Screens/Explorer/ChainTips'
 import BannedList from './Screens/Explorer/BannedList'
 
-import MyAddresses from './Screens/Explorer/MyWallet/MyAddresses/MyAddresses'
-import MyMasternodes from './Screens/Explorer/MyWallet/MyMasternodes/MyMasternodes'
-
 
 import BountyList from './Screens/BountyList'
 
@@ -77,6 +74,7 @@ import testAppleTouchIcon114  from './images/icons/apple-icon-114x114-Test.png';
 import liveAppleTouchIcon120  from './images/icons/apple-icon-120x120-Live.png';
 import stagingAppleTouchIcon120 from './images/icons/apple-icon-120x120-Staging.png';
 import testAppleTouchIcon120 from './images/icons/apple-icon-120x120-Test.png';
+import MyWallet from "./Screens/Explorer/MyWallet/MyWallet";
 
 
 
@@ -202,9 +200,8 @@ const styles = theme => ({
           <Route exact path="/Explorer/ChainTips" component={ChainTips} />
           <Route exact path="/Explorer/BannedList" component={BannedList} />
           
-          
-          <Route exact path="/Explorer/MyWallet/MyAddresses" component={MyAddresses} />
-          <Route exact path="/Explorer/MyWallet/MyMasternodes" component={MyMasternodes} />
+          <Route exact path="/Explorer/MyWallet" component={MyWallet} />
+          <Route exact path="/Explorer/MyWallet/*" component={MyWallet} />
           
           
           <Route exact path="/Miner" component={Miner} />

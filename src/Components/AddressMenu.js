@@ -287,12 +287,16 @@ class AddressMenu extends React.Component {
           }
 
           {
-            myAddress != null && (myAddress.WIF != null || myAddress.encryptedWIF != null) ?
-            [
-              <MenuItem onClick={this.handleMenuExportWif}>Export WIF</MenuItem>,
-              <MenuItem onClick={this.handleMenuClearWif}>Clear WIF</MenuItem>  
-            ]:
-            <MenuItem onClick={this.handleMenuSetWif}>Set WIF</MenuItem>
+            myAddress == null ? 
+            null :
+            (
+              myAddress.WIF != null || myAddress.encryptedWIF != null ?
+              [
+                <MenuItem onClick={this.handleMenuExportWif}>Export WIF</MenuItem>,
+                <MenuItem onClick={this.handleMenuClearWif}>Clear WIF</MenuItem>  
+              ]:
+              <MenuItem onClick={this.handleMenuSetWif}>Set WIF</MenuItem>
+            )
           }
           
           <MenuItem onClick={this.handleExportTransactions}>Export Transactions</MenuItem>

@@ -1,9 +1,7 @@
 import React from 'react';
-import update from 'react-addons-update'; // ES6
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
-import { combineLatest } from 'rxjs';
 
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';

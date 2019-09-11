@@ -8,18 +8,8 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
 
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
-
-import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../../Services/DialogService';
-import { first, switchMap } from 'rxjs/operators';
-import { of } from 'rxjs';
-import GetWalletPasswordObservable from '../../Observables/GetWalletPasswordObservable';
+
 
 export default  (props) => {
   const [file, setFile] = React.useState(null);

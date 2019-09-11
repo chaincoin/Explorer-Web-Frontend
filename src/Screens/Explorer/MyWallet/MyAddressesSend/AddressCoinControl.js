@@ -24,8 +24,8 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Checkbox from '@material-ui/core/Checkbox';
 
 
-import TablePaginationActions from '../../../../../Components/TablePaginationActions';
-import CoinControlMenu from '../../../../../Components/CoinControlMenu';
+import TablePaginationActions from '../../../../Components/TablePaginationActions';
+import CoinControlMenu from '../../../../Components/CoinControlMenu';
 
 
 

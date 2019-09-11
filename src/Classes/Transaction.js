@@ -1,15 +1,13 @@
 
-import { BehaviorSubject, combineLatest, of } from 'rxjs';
+import { BehaviorSubject, combineLatest } from 'rxjs';
 import bigDecimal from 'js-big-decimal';
 
-import { mergeMap, map, first, switchMap  } from 'rxjs/operators';
+import { map, first, switchMap  } from 'rxjs/operators';
 
 import BlockchainServices from '../Services/BlockchainServices'
 import MyWalletServices from '../Services/MyWalletServices/MyWalletServices'
 
 import coinSelect from '../Scripts/coinselect/coinselect'; //https://github.com/bitcoinjs/coinselect
-import coinSelectUtils from '../Scripts/coinselect/utils'; //https://github.com/bitcoinjs/coinselect
-import { Input } from '@material-ui/core';
 
 class Transaction { //TODO: think this could be better but will do for now
     constructor() {

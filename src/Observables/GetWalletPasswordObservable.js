@@ -1,4 +1,4 @@
-import { of, from } from 'rxjs'
+import { from } from 'rxjs'
 
 import GetPassword from './GetPasswordObservable'
 

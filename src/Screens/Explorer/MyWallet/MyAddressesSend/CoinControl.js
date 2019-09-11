@@ -10,7 +10,7 @@ import Switch from '@material-ui/core/Switch';
 
 import AddressCoinControl from './AddressCoinControl';
 
-import MyWalletServices from '../../../../../Services/MyWalletServices/MyWalletServices';
+import MyWalletServices from '../../../../Services/MyWalletServices/MyWalletServices';
 
 const styles = {
   

@@ -1,5 +1,5 @@
 import React from 'react';
-import { map, distinctUntilChanged, shareReplay } from 'rxjs/operators';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 export default React.memo((props) =>{
 

@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
-import { combineLatest, of } from 'rxjs';
-import { map, switchMap, first, distinctUntilChanged, startWith } from 'rxjs/operators';
+import { combineLatest } from 'rxjs';
+import { map, switchMap, startWith } from 'rxjs/operators';
 
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
@@ -13,7 +13,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import CheckIcon from '@material-ui/icons/Check';
 import CloseIcon from '@material-ui/icons/Close';
 
-import { Link, withRouter } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 import ObservableText from '../ObservableText';

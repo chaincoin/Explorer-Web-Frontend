@@ -1,4 +1,4 @@
-import { Observable, Subject, from, interval } from 'rxjs';
+import { from, interval } from 'rxjs';
 import { shareReplay, switchMap } from 'rxjs/operators';
 
 import DataService from './DataService'

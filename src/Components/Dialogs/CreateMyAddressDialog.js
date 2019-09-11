@@ -14,7 +14,7 @@ import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 import BlockchainServices from '../../Services/BlockchainServices';
 import DialogService from '../../Services/DialogService';
 import { switchMap } from 'rxjs/operators';
-import { of, from } from 'rxjs';
+import { from, of } from 'rxjs';
 
 import EncryptPrivateKey from '../../Observables/EncryptPrivateKeyObservable';
 
@@ -31,10 +31,10 @@ export default  (props) => {
 
 
   
-  const handleAddressTypeChange = (e) =>{ 
+  const handleAddressTypeChange = React.useMemo(() =>e =>{ 
     setAddressType(e.target.value);
-  }
-  const handleCreate = () =>{ 
+  })
+  const handleCreate = React.useMemo(() =>() =>{ 
 
     form.current.isFormValid(false).then(valid =>{
       if (valid == false) return;
@@ -52,13 +52,14 @@ export default  (props) => {
 
 
       EncryptPrivateKey(WIF).pipe(
-        switchMap(encryptedWIF => {
-          return from(MyWalletServices.addMyAddress(name, address, encryptedWIF == null ? WIF : null, encryptedWIF))
-        })
+        switchMap(encryptedWIF => encryptedWIF == null ?
+          of(null) :
+          from(MyWalletServices.addMyAddress(name, address, encryptedWIF == null ? WIF : null, encryptedWIF))
+        )
       ).subscribe(() => props.onClose(), err => DialogService.showMessage("Failed", "Failed to create address").subscribe());
     });
     
-  }
+  });
 
 
   

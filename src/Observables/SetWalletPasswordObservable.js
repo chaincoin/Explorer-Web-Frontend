@@ -1,6 +1,6 @@
 
 
-import { filter, switchMap, first } from 'rxjs/operators'
+import { switchMap, first } from 'rxjs/operators'
 
 import MyWalletServices from '../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../Services/DialogService';

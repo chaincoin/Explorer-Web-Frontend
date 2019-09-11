@@ -13,21 +13,21 @@ import Button from '@material-ui/core/Button';
 import { Link } from "react-router-dom";
 
 
-import AddressMenu from '../../../../Components/AddressMenu';
+import AddressMenu from '../../../Components/AddressMenu';
 
-import CreateAddressDialog from '../../../../Components/Dialogs/CreateMyAddressDialog';
-import WatchAddressDialog from '../../../../Components/Dialogs/WatchAddressDialog'
-import ImportWifDialog from '../../../../Components/Dialogs/ImportWifDialog';
+import CreateAddressDialog from '../../../Components/Dialogs/CreateMyAddressDialog';
+import WatchAddressDialog from '../../../Components/Dialogs/WatchAddressDialog'
+import ImportWifDialog from '../../../Components/Dialogs/ImportWifDialog';
 
 
-import BlockchainServices from '../../../../Services/BlockchainServices';
-import MyWalletServices from '../../../../Services/MyWalletServices/MyWalletServices';
-import DialogService from '../../../../Services/DialogService';
+import BlockchainServices from '../../../Services/BlockchainServices';
+import MyWalletServices from '../../../Services/MyWalletServices/MyWalletServices';
+import DialogService from '../../../Services/DialogService';
 import { switchMap, map } from 'rxjs/operators';
 import { of } from 'rxjs';
-import ObservableText from '../../../../Components/ObservableText';
-import ObservableTableList from '../../../../Components/ObservableTableList';
-import ObservableLink from '../../../../Components/ObservableLink';
+import ObservableText from '../../../Components/ObservableText';
+import ObservableTableList from '../../../Components/ObservableTableList';
+import ObservableLink from '../../../Components/ObservableLink';
 
 
 

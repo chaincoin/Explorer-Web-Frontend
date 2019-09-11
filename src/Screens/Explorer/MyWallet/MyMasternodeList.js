@@ -1,6 +1,6 @@
 import React from 'react';
-import { of, combineLatest } from 'rxjs';
-import { switchMap, map, startWith } from 'rxjs/operators';
+import { combineLatest } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { withStyles } from '@material-ui/core/styles';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
@@ -8,17 +8,15 @@ import Button from '@material-ui/core/Button';
 
 import { Link } from "react-router-dom";
 
-import MasternodeMenu from '../../../../Components/MasternodeMenu';
+import MasternodeMenu from '../../../Components/MasternodeMenu';
 
-import AddMyMasternodeDialog from '../../../../Components/Dialogs/MyMasternodeDialog';
-import ImportMasternodeConfDialog from '../../../../Components/Dialogs/ImportMasternodeConfDialog';
+import AddMyMasternodeDialog from '../../../Components/Dialogs/MyMasternodeDialog';
+import ImportMasternodeConfDialog from '../../../Components/Dialogs/ImportMasternodeConfDialog';
 
-import MyWalletServices from '../../../../Services/MyWalletServices/MyWalletServices';
-import DialogService from '../../../../Services/DialogService';
-import ObservableLink from '../../../../Components/ObservableLink';
-import ObservableText from '../../../../Components/ObservableText';
-import ObservableTableList from '../../../../Components/ObservableTableList';
-import BlockchainServices from '../../../../Services/BlockchainServices';
+import MyWalletServices from '../../../Services/MyWalletServices/MyWalletServices';
+import DialogService from '../../../Services/DialogService';
+import ObservableTableList from '../../../Components/ObservableTableList';
+import BlockchainServices from '../../../Services/BlockchainServices';
 
 
 

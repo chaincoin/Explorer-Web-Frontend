@@ -3,14 +3,14 @@ import React from 'react';
 import Button from '@material-ui/core/Button';
 
 
-import SetWalletPassword from '../../../../Observables/SetWalletPasswordObservable';
-import RemoveWalletPassword from '../../../../Observables/RemoveWalletPasswordObservable';
-import ExportMyWalletData from '../../../../Observables/ExportMyWalletData';
-import ImportMyWalletData from '../../../../Observables/ImportMyWalletData';
-import ClearMyWalletData from '../../../../Observables/ClearMyWalletData';
+import SetWalletPassword from '../../../Observables/SetWalletPasswordObservable';
+import RemoveWalletPassword from '../../../Observables/RemoveWalletPasswordObservable';
+import ExportMyWalletData from '../../../Observables/ExportMyWalletData';
+import ImportMyWalletData from '../../../Observables/ImportMyWalletData';
+import ClearMyWalletData from '../../../Observables/ClearMyWalletData';
 
-import MyWalletServices from '../../../../Services/MyWalletServices/MyWalletServices';
-import DialogService from '../../../../Services/DialogService';
+import MyWalletServices from '../../../Services/MyWalletServices/MyWalletServices';
+import DialogService from '../../../Services/DialogService';
 
 
 

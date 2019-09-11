@@ -1,5 +1,4 @@
 
-import { Observable} from 'rxjs';
 import { map } from 'rxjs/operators';
 
 export default (myWalletService) =>{

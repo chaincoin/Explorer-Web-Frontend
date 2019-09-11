@@ -379,12 +379,16 @@ class MasternodeMenu extends React.Component {
           }
 
           {
-            myMn != null && (myMn.privateKey != null || myMn.encryptedPrivateKey != null) ?
-            [
-              <MenuItem onClick={this.handleExportPrivateKey}>Export Private Key</MenuItem>,
-              <MenuItem onClick={this.handleClearPrivateKey}>Clear Private Key</MenuItem>  
-            ]:
-            <MenuItem onClick={this.handleSetPrivateKey}>Set Private Key</MenuItem>
+            myMn == null ?
+            null :
+            (
+              myMn.privateKey != null || myMn.encryptedPrivateKey != null ?
+              [
+                <MenuItem onClick={this.handleExportPrivateKey}>Export Private Key</MenuItem>,
+                <MenuItem onClick={this.handleClearPrivateKey}>Clear Private Key</MenuItem>  
+              ]:
+              <MenuItem onClick={this.handleSetPrivateKey}>Set Private Key</MenuItem>
+            )
           }
           
         </Menu>

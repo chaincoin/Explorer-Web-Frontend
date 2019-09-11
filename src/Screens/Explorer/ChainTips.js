@@ -9,10 +9,8 @@ import { Card, CardBody, CardHeader } from 'reactstrap';
 import { Link } from "react-router-dom";
 
 import BlockchainServices from '../../Services/BlockchainServices';
-import ObservableText from '../../Components/ObservableText';
-import { map } from 'rxjs/operators';
 import ObservableTableList from '../../Components/ObservableTableList';
-import ObservableLink from '../../Components/ObservableLink';
+
 
 
 

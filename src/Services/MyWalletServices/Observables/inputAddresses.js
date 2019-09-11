@@ -1,5 +1,4 @@
-
-import { Observable, zip, combineLatest } from 'rxjs';
+import { zip, combineLatest } from 'rxjs';
 import { shareReplay, switchMap, map } from 'rxjs/operators';
 import BlockchainServices from '../../BlockchainServices';
 import bigDecimal from 'js-big-decimal';
@@ -8,7 +7,7 @@ export default (myWalletService) =>{
 
     return myWalletService.myAddresses
     .pipe(
-    switchMap(myAddresses => zip(...
+    switchMap(myAddresses => zip(... 
       myAddresses.filter(myAddress => myAddress.WIF != null || myAddress.encryptedWIF != null).map(myAddress => 
         combineLatest(
           BlockchainServices.getAddress(myAddress.address),

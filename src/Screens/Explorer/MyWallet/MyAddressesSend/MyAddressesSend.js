@@ -1,7 +1,6 @@
 import React from 'react';
-import { BehaviorSubject, from } from 'rxjs';
+import { from } from 'rxjs';
 
-import bigDecimal from 'js-big-decimal';
 
 import { combineLatest, of } from 'rxjs';
 import { first, switchMap  } from 'rxjs/operators';
@@ -21,13 +20,13 @@ import Recipients from './Recipients';
 import CoinControl from './CoinControl';
 
 
-import Transaction from '../../../../../Classes/Transaction';
+import Transaction from '../../../../Classes/Transaction';
 
-import GetWalletPassword from '../../../../../Observables/GetWalletPasswordObservable';
+import GetWalletPassword from '../../../../Observables/GetWalletPasswordObservable';
 
-import BlockchainServices from '../../../../../Services/BlockchainServices';
-import MyWalletServices from '../../../../../Services/MyWalletServices/MyWalletServices';
-import DialogService from '../../../../../Services/DialogService';
+import BlockchainServices from '../../../../Services/BlockchainServices';
+import MyWalletServices from '../../../../Services/MyWalletServices/MyWalletServices';
+import DialogService from '../../../../Services/DialogService';
 
 
 
