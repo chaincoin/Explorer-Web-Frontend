@@ -35,7 +35,7 @@ class BlockDetailsHeader extends React.Component {
       <Card>
         <CardHeader>
         CHC Transaction: {transaction.txid}
-        <a href={Environment.blockchainApiUrl + "/Transaction?txid=" + transaction.txid} >
+        <a href={Environment.blockchainApiUrl + "/getTransaction?transactionId=" + transaction.txid} >
           <InfoIcon style={{float:"right"}}/>
         </a>
 

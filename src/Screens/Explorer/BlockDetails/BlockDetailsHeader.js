@@ -4,7 +4,7 @@ import { Card, CardBody, CardHeader } from 'reactstrap';
 import Grid from '@material-ui/core/Grid';
 import InfoIcon from '@material-ui/icons/Info';
 
-import { map, first } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 import ObservableText from '../../../Components/ObservableText';
 
@@ -18,7 +18,7 @@ const BlockDetailsHeader = (props) =>{
       <CardHeader>
         CHC Block: <ObservableText value={props.block.pipe(map(block => block.hash))} />
 
-        <ObservableLink value={props.block.pipe(map(block => Environment.blockchainApiUrl + "/Block?hash=" + block.hash))} >
+        <ObservableLink value={props.block.pipe(map(block => Environment.blockchainApiUrl + "/getBlock?hash=" + block.hash))} >
           <InfoIcon style={{float:"right"}}/>
         </ObservableLink>
 
