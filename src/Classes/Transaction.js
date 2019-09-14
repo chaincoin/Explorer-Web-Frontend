@@ -1,6 +1,7 @@
 
 import { BehaviorSubject, combineLatest } from 'rxjs';
 import bigDecimal from 'js-big-decimal';
+import bs58 from 'bs58';
 
 import { map, first, switchMap  } from 'rxjs/operators';
 
@@ -246,7 +247,6 @@ class Transaction { //TODO: think this could be better but will do for now
                 inputs.forEach(input => {
                     if (input.myAddress.address.startsWith(BlockchainServices.Chaincoin.bech32))
                     {
-
                         var keyPair = window.bitcoin.ECPair.fromWIF(walletPassword == null ? input.myAddress.WIF : MyWalletServices.decrypt(walletPassword,input.myAddress.encryptedWIF), BlockchainServices.Chaincoin);
                         const p2wpkh = window.bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin })
                         txb.addInput(input.unspent.txid, input.unspent.vout, null, p2wpkh.output); 
@@ -269,9 +269,16 @@ class Transaction { //TODO: think this could be better but will do for now
 
                     var keyPair = window.bitcoin.ECPair.fromWIF(walletPassword == null ? input.myAddress.WIF : MyWalletServices.decrypt(walletPassword,input.myAddress.encryptedWIF), BlockchainServices.Chaincoin);
                 
+                    debugger;
                     if (input.myAddress.address.startsWith(BlockchainServices.Chaincoin.bech32))
                     {
                         txb.sign(i, keyPair,null, null,input.satoshi);
+                    }
+                    else if (bs58.decode(input.myAddress.address)[0] == BlockchainServices.Chaincoin.scriptHash)
+                    {
+                        var p2sh = window.bitcoin.payments.p2sh({redeem: window.bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: BlockchainServices.Chaincoin }), network: BlockchainServices.Chaincoin});
+
+                        txb.sign(i, keyPair,p2sh.redeem.output,null,input.satoshi);
                     }
                     else
                     {

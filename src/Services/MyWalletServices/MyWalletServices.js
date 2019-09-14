@@ -63,6 +63,7 @@ myWalletService.addMyAddress = (name, address, WIF, encryptedWIF) =>{
   }
 
   myWalletService.updateMyAddress = (address) =>{ 
+    debugger;
     return window.walletApi.updateAddress(address).then(() => {
         myWalletService.myAddressUpdated.next();
     });
@@ -92,6 +93,7 @@ myWalletService.addMyAddress = (name, address, WIF, encryptedWIF) =>{
   }
 
   myWalletService.UpdateMyMasternode = (masternode) =>{ 
+    debugger;
     return window.walletApi.updateMasternode(masternode).then(() => {
         myWalletService.myMasternodeUpdated.next();
     });
