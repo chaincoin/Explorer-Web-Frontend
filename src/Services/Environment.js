@@ -42,9 +42,8 @@ if (window.location.host == "staging.chaincoinexplorer.co.uk")
 
 if (window.location.host == "test.chaincoinexplorer.co.uk")
 {
-    blockchainApiUrl = "https://blockchain-test.chaincoinexplorer.co.uk";
-    webServicesApiUrl = "wss://websocket-test.chaincoinexplorer.co.uk";
-    notificationsApiUrl = "https://notifications-test.chaincoinexplorer.co.uk";
+    blockchainApiUrl = "https://api-test.chaincoinexplorer.co.uk";
+    webServicesApiUrl = "wss://api-test.chaincoinexplorer.co.uk";
     environment = "Test";
 }
 
@@ -53,16 +52,14 @@ if (window.location.host == "test.chaincoinexplorer.co.uk")
 if (window.location.host == "explorer.chaincoin.org")
 {
     blockchainApiUrl = "https://api.chaincoin.org";
-    webServicesApiUrl = "wss://websocket.chaincoin.org/";
-    notificationsApiUrl = "https://notifications.chaincoin.org";
+    webServicesApiUrl = "wss://api.chaincoin.org/";
     environment = "Live";
 }
 
 if (window.location.host == "test-explorer.chaincoin.org")
 {
     blockchainApiUrl = "https://api-test.chaincoin.org";
-    webServicesApiUrl = "wss://websocket-test.chaincoin.org";
-    notificationsApiUrl = "https://notifications-test.chaincoin.org";
+    webServicesApiUrl = "wss://api-test.chaincoin.org";
     environment = "Test";
 }
 
