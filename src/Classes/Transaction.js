@@ -269,7 +269,6 @@ class Transaction { //TODO: think this could be better but will do for now
 
                     var keyPair = window.bitcoin.ECPair.fromWIF(walletPassword == null ? input.myAddress.WIF : MyWalletServices.decrypt(walletPassword,input.myAddress.encryptedWIF), BlockchainServices.Chaincoin);
                 
-                    debugger;
                     if (input.myAddress.address.startsWith(BlockchainServices.Chaincoin.bech32))
                     {
                         txb.sign(i, keyPair,null, null,input.satoshi);
