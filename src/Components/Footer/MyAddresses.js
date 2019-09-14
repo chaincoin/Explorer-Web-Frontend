@@ -3,7 +3,7 @@ import update from 'react-addons-update'; // ES6
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
-import { combineLatest } from 'rxjs';
+import { combineLatest, of } from 'rxjs';
 
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
@@ -36,7 +36,10 @@ const MyAddresses = (props) =>{
 
 
   const totalBalance = React.useMemo(()=> MyWalletServices.myAddresses.pipe(
-    switchMap(myAddresses => combineLatest(myAddresses.map(myAddress => myAddress.balance))),
+    switchMap(myAddresses => myAddresses.length == 0 ?
+      of([]):
+      combineLatest(myAddresses.map(myAddress => myAddress.balance))
+    ),
     map(addressBalances =>{
         var totalBalance = 0;
         addressBalances.forEach(balance => totalBalance = totalBalance + balance); //TODO: use BigDecimal library 

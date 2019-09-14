@@ -88,7 +88,9 @@ const ObservableTable = withStyles(styles)(props =>{
     const [count, setCount] = React.useState(0);
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  
+
+    const [rowsPerPageOptions, setRowsPerPageOptions] = React.useState([10,20,40,50]);
+    const [showDisplayedRows, setShowDisplayedRows] = React.useState(false);
   
     React.useEffect(() => {
       const subscription = props.count.pipe(
@@ -112,13 +114,25 @@ const ObservableTable = withStyles(styles)(props =>{
       ).subscribe((rowsPerPage) =>setRowsPerPage(rowsPerPage));
       return () =>subscription.unsubscribe();
     }, []); 
+
+
+    React.useEffect(() => {
+      const updateDimensions = () => setShowDisplayedRows(window.innerWidth >= 500);
+      window.addEventListener("resize", updateDimensions);
+
+      updateDimensions();
+      
+      return () =>window.removeEventListener("resize", updateDimensions);
+    }, []); 
+  
   
     if (rowsPerPage == 0) return (<React.Fragment/> );
   
     return(
       <TablePagination
           labelRowsPerPage=""
-          rowsPerPageOptions={[10,20,40,50]}
+          rowsPerPageOptions={rowsPerPageOptions}
+          labelDisplayedRows={showDisplayedRows == false ? () => "": ({ from, to, count })  => `${from}-${to} of ${count}`}
           colSpan={3}
           count={count}
           rowsPerPage={rowsPerPage}

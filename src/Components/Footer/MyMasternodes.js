@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
-import { combineLatest } from 'rxjs';
+import { combineLatest, of } from 'rxjs';
 import { map, switchMap, startWith } from 'rxjs/operators';
 
 import Button from '@material-ui/core/Button';
@@ -49,7 +49,10 @@ const MyMasternodes = withStyles(styles)(props =>{
   ));
 
   const enabledMnCount =  React.useMemo(()=>MyWalletServices.myMasternodes.pipe(
-    switchMap(myMns => combineLatest(myMns.map(myMn => myMn.status))),
+    switchMap(myMns => myMns.length == 0 ?
+      of([]) : 
+      combineLatest(myMns.map(myMn => myMn.status))
+    ),
     map(myMnStatuses =>{
         var enabled = 0;
         myMnStatuses.forEach(status => {
