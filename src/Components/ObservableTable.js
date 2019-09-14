@@ -10,7 +10,7 @@ import Paper from '@material-ui/core/Paper';
 
 
 
-import { map, distinctUntilChanged } from 'rxjs/operators';
+import { map, distinctUntilChanged, startWith } from 'rxjs/operators';
 import { BehaviorSubject, combineLatest } from 'rxjs';
 import ObservableList from './ObservableList';
 import TablePaginationActions from './TablePaginationActions';
@@ -34,7 +34,7 @@ const ObservableTable = withStyles(styles)(props =>{
     var page = (props.page || new BehaviorSubject(0));
     var rowsPerPage = (props.rowsPerPage || new BehaviorSubject(10));
   
-    var emptyRows = React.useMemo(() =>combineLatest(props.list,rowsPerPage).pipe(map(([list,rowsPerPage]) =>{
+    var emptyRows = React.useMemo(() =>combineLatest(props.list.pipe(startWith([])),rowsPerPage).pipe(map(([list,rowsPerPage]) =>{
       if (rowsPerPage == 0) return 0;
       return rowsPerPage - list.length;
     })),[props.list, rowsPerPage]);
