@@ -75,14 +75,14 @@ const MyMasternodes = withStyles(styles)(props =>{
     <div className={props.classes.root}>
       <Button className={props.classes.button} variant="contained" color="primary" aria-owns={anchorEl ? 'simple-menu' : undefined} aria-haspopup="true" onClick={e => setAnchorEl(e.currentTarget)}>
         
-        <ObservableBoolean value={combineLatest(enabledMnCount, mnCount).pipe(map(([enabledMnCount,mnCount]) => enabledMnCount == mnCount))}>
+        <ObservableBoolean value={React.useMemo(() => combineLatest(enabledMnCount, mnCount).pipe(map(([enabledMnCount,mnCount]) => enabledMnCount == mnCount)))}>
           <CheckIcon className={props.classes.checkIcon}/>
         </ObservableBoolean>
 
-        <ObservableBoolean value={combineLatest(enabledMnCount, mnCount).pipe(map(([enabledMnCount,mnCount]) => enabledMnCount != mnCount))}>
+        <ObservableBoolean value={React.useMemo(() => combineLatest(enabledMnCount, mnCount).pipe(map(([enabledMnCount,mnCount]) => enabledMnCount != mnCount)))}>
           <CloseIcon className={props.classes.closeIcon}/>
         </ObservableBoolean>
-        <ObservableText value={combineLatest(enabledMnCount, mnCount).pipe(map(([enabledMnCount,mnCount]) => `${enabledMnCount}/${mnCount}`))} loadingText="Loading" />
+        <ObservableText value={React.useMemo(() => combineLatest(enabledMnCount, mnCount).pipe(map(([enabledMnCount,mnCount]) => `${enabledMnCount}/${mnCount}`)))} loadingText="Loading" />
       </Button>
 
       <Menu id="simple-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={close}>

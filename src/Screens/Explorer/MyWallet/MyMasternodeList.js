@@ -1,6 +1,6 @@
 import React from 'react';
 import { combineLatest } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, startWith } from 'rxjs/operators';
 import { withStyles } from '@material-ui/core/styles';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
@@ -36,14 +36,14 @@ const styles = theme => ({
 
 const MyMasternodes = withStyles(styles)(props =>{
 
-  const list = React.useMemo(() => combineLatest(MyWalletServices.myMasternodes, BlockchainServices.masternodeList).pipe(
+  const list = React.useMemo(() => combineLatest(MyWalletServices.myMasternodes, BlockchainServices.masternodeList.pipe(startWith(null))).pipe(
     map(([myMasternodes, masternodeList])=> myMasternodes.map(myMn => ({
       myMn:myMn,
       mn: masternodeList == null ? null : masternodeList[myMn.output]
     })))
   ));
 
-  const headers = (
+  const headers = React.useMemo(() => (
     <React.Fragment>
       <TableCell>Name</TableCell>
       <TableCell>Status</TableCell>
@@ -51,7 +51,7 @@ const MyMasternodes = withStyles(styles)(props =>{
       <TableCell>Last Paid</TableCell>
       <TableCell></TableCell>
     </React.Fragment>
-  )
+  ));
 
   return (
     <div>

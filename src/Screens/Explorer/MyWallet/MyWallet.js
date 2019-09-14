@@ -48,7 +48,7 @@ class MyAddresses extends React.Component {
             <Tab label="Send" classes={{ label: 'details-tab' }} value="/Explorer/MyWallet/Send" />
             <Tab label="Mining Rewards" classes={{ label: 'details-tab' }} value="/Explorer/MyWallet/MiningRewards" />
             <Tab label="Masternode Rewards" classes={{ label: 'details-tab' }} value="/Explorer/MyWallet/MasternodeRewards" />
-            <Tab label="My Wallet Settings" classes={{ label: 'details-tab' }} value="/Explorer/MyWallet/MyWalletSettings" />
+            <Tab label="Settings" classes={{ label: 'details-tab' }} value="/Explorer/MyWallet/MyWalletSettings" />
           </Tabs>
         </CardHeader>
         <CardBody>

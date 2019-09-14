@@ -182,9 +182,7 @@ class ChaincoinExplorerNavBar extends React.Component {
             <NavItem>
               <NavLink tag={Link} to={'/BountyList'}>Bounty List</NavLink>
             </NavItem>
-            <NavItem>
-              <NavLink tag={Link} to={'/Miner'}>Miner</NavLink>
-            </NavItem>
+
             <NavItem>
               <NavLink tag={Link} to={'/Api'}>Api</NavLink>
             </NavItem>

@@ -63,7 +63,6 @@ myWalletService.addMyAddress = (name, address, WIF, encryptedWIF) =>{
   }
 
   myWalletService.updateMyAddress = (address) =>{ 
-
     return window.walletApi.updateAddress(address).then(() => {
         myWalletService.myAddressUpdated.next();
     });
