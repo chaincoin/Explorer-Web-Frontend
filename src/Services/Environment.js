@@ -1,6 +1,5 @@
-var blockchainApiUrl = "https://blockchain.chaincoinexplorer.co.uk";
-var webServicesApiUrl = "wss://websocket.chaincoinexplorer.co.uk";
-var notificationsApiUrl = "https://notifications.chaincoinexplorer.co.uk";
+var blockchainApiUrl = "https://api.chaincoinexplorer.co.uk";
+var webServicesApiUrl = "wss://api.chaincoinexplorer.co.uk";
 var environment = "Live";
 
 
@@ -67,6 +66,5 @@ if (window.location.host == "test-explorer.chaincoin.org")
 export default {
     blockchainApiUrl,
     webServicesApiUrl,
-    notificationsApiUrl,
     environment
 };
