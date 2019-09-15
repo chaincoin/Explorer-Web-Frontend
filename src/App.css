@@ -1,0 +1,72 @@
+
+
+
+.card-header {
+    color: #27B463;
+    font-weight: bold;
+    border-bottom: 3px solid #27B463;
+}
+
+
+
+.details-tab{
+    font-weight: bold;
+    font-size: initial;
+    text-transform: initial;
+}
+
+
+.center{
+    display: table;
+    margin: 0 auto;
+}
+
+
+
+.Content {
+    width: 100%;
+    margin: 0 auto;
+    padding-bottom: 40px;
+}
+
+
+@media (min-width: 768px){
+    .Content {
+        width: 90%;
+    }
+}
+
+
+
+
+
+
+@media (max-width: 600px)
+{
+  .hide-xs-down {
+      display: none;
+
+  }
+}
+
+
+
+ /* Tutorial Css*/
+
+
+.code{
+    background: #f4f4f4;
+    border: 1px solid #ddd;
+    border-left: 3px solid #f36d33;
+    color: #666;
+    page-break-inside: avoid;
+    font-family: monospace;
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 1.6em;
+    max-width: 100%;
+    overflow: auto;
+    padding: 1em 1.5em;
+    display: block;
+    word-wrap: break-word;
+}
