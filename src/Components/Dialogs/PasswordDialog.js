@@ -52,7 +52,7 @@ export default (props) => {
 
 
   return (
-    <Dialog open={true} onClose={e => props.onClose()} aria-labelledby="form-dialog-title">
+    <Dialog open={true} onClose={e => props.onError("Cancelled by user")} aria-labelledby="form-dialog-title">
       <DialogTitle id="form-dialog-title">{props.title}</DialogTitle>
       <DialogContent>
 
@@ -74,7 +74,7 @@ export default (props) => {
 
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => props.onClose()} color="primary">
+        <Button onClick={() => props.onError("Cancelled by user")} color="primary">
           Cancel
         </Button>
         <Button onClick={handleCheckPassword} color="primary">

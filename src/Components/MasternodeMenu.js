@@ -23,11 +23,13 @@ import DialogService from '../Services/DialogService';
 
 
 import Utils from 'Z:/Software/Chaincoin/Tools/Chaincoin Client/utils'
-import DecryptPrivateKeyObservable from '../Observables/DecryptPrivateKeyObservable';
 import GetWalletPasswordObservable from '../Observables/GetWalletPasswordObservable';
-import EncryptPrivateKeyObservable from '../Observables/EncryptPrivateKeyObservable';
 import GetMasternodePrivateKeyObservable from '../Observables/GetMasternodePrivateKeyObservable';
 import IsWalletEncryptedObservable from '../Observables/IsWalletEncryptedObservable';
+import WalletAction from '../Observables/WalletAction';
+import UpdateMyMasternode from '../Observables/UpdateMyMasternode';
+import DeleteMyMasternode from '../Observables/DeleteMyMasternode';
+import DeleteMyAddress from '../Observables/DeleteMyAddress';
 
 const styles = theme => ({
   root: {
@@ -183,37 +185,16 @@ class MasternodeMenu extends React.Component {
     this.handleMenuClose();
 
 
-    IsWalletEncryptedObservable.pipe(
-      switchMap(walletEncrypted => walletEncrypted ? 
-        DecryptPrivateKeyObservable(this.state.myMn.encryptedPrivateKey):
-        of(this.state.myMn.privateKey)
-      ),
-      first(),
-    ).subscribe((WIF)=>{
-      if (WIF != null) DialogService.showMessage("WIF", WIF).subscribe();
-    },
-    (error) =>{
-      DialogService.showMessage("Error",error).subscribe();
-    });
+    WalletAction(([encryt, decrypt]) =>{
+      DialogService.showMessage("WIF", this.state.myMn.privateKey || decrypt(this.state.myMn.encryptedPrivateKey)).subscribe();
+      return of(null);
+    }).subscribe();
+
   }
 
   handleClearPrivateKey = () =>{
     this.handleMenuClose();
-
-
-    IsWalletEncryptedObservable.pipe(
-      switchMap(walletEncrypted => walletEncrypted == false ? of(""): GetWalletPasswordObservable),
-      switchMap((walletPassword) => walletPassword == null ?
-        of(null) :
-        DialogService.showConfirmation("Clear Private Key", "are you sure? this private key cannot be recovered")
-      ),
-      first()
-    ).subscribe((result) =>{
-      if (result == true) MyWalletServices.UpdateMyMasternode({output: this.props.output, privateKey: null, encryptedPrivateKey: null })
-    },
-    (error) =>{
-      DialogService.showMessage("Error",error).subscribe();
-    });
+    UpdateMyMasternode({output: this.props.output, privateKey: null, encryptedPrivateKey: null}).subscribe();
   }
 
   
@@ -224,46 +205,15 @@ class MasternodeMenu extends React.Component {
     GetMasternodePrivateKeyObservable.pipe(
       switchMap(privateKey => privateKey == null ?
         of(null) :
-        IsWalletEncryptedObservable.pipe(
-        switchMap(walletEncrypted => walletEncrypted == false ? 
-          of({privateKey: privateKey}):
-          EncryptPrivateKeyObservable(privateKey).pipe(
-            map(encryptedPrivateKey => encryptedPrivateKey == null ?
-              null :
-              {encryptedPrivateKey: encryptedPrivateKey}
-            )
-          )
-        )
-      )),
-      first()
-    )
-    .subscribe(data =>{
-      if (data != null) MyWalletServices.UpdateMyMasternode(Object.assign({},{output: this.props.output}, data));
-    },
-    (error) =>{
-      DialogService.showMessage("Error",error).subscribe();
-    });
+        UpdateMyMasternode({output: this.props.output, privateKey:privateKey})
+      )
+    ).subscribe();
   }
 
 
   handleMenuRemoveFromMyMns = () => {
     this.handleMenuClose();
-
-
-    IsWalletEncryptedObservable.pipe(
-      switchMap(walletEncrypted => walletEncrypted == false ? of(""): GetWalletPasswordObservable),
-      switchMap((walletPassword) => walletPassword == null ?
-        of(null) :
-        DialogService.showConfirmation("Remove My Masternode", this.state.myMn.encryptedPrivateKey == null && this.state.myMn.privateKey == null ? "Are you sure?" : "Are you sure? the private key can not be recovered")
-      ),
-      first()
-    ).subscribe((result) =>{
-      if (result == true) MyWalletServices.deleteMyMasternode(this.props.output);
-    },
-    (error) =>{
-      DialogService.showMessage("Error",error).subscribe();
-    });
-
+    DeleteMyMasternode(this.props.output).subscribe();
   };
 
   handleMenuAddToMyAddresses = () => {
@@ -277,19 +227,7 @@ class MasternodeMenu extends React.Component {
   handleMenuRemoveFromMyAddresses = () => {
     this.handleMenuClose();
 
-
-    IsWalletEncryptedObservable.pipe(
-      switchMap(walletEncrypted => walletEncrypted == false ? of(""): GetWalletPasswordObservable),
-      switchMap((walletPassword) => walletPassword == null ?
-        of(null) :
-        DialogService.showConfirmation("Remove My Address", this.state.myAddress.WIF == null && this.state.myAddress.encryptedWIF == null ? "Are you sure?" : "Are you sure? the private key can not be recovered")
-      ),
-    ).subscribe(result =>{
-      if (result == true) MyWalletServices.deleteMyAddress(this.props.payee);
-    },
-    (error) =>{
-      DialogService.showMessage("Error",error).subscribe();
-    });
+    DeleteMyAddress(this.props.payee).subscribe();
 
   };
 

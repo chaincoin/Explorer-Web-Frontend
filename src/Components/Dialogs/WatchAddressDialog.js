@@ -17,6 +17,7 @@ import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../../Services/DialogService';
 import GetWalletPasswordObservable from '../../Observables/GetWalletPasswordObservable';
 import IsWalletEncryptedObservable from '../../Observables/IsWalletEncryptedObservable';
+import CreateAddress from '../../Observables/CreateAddress';
 
 
 
@@ -31,26 +32,11 @@ export default (props) => {
   const handleWatch = () =>{ 
     form.current.isFormValid(false).then(valid =>{
       if (valid == false) return;
-      
-      IsWalletEncryptedObservable.pipe(
-        switchMap(walletEncrypted => walletEncrypted == false ? 
-          of(""):
-          GetWalletPasswordObservable
-        ),
-        switchMap((walletPassword) => walletPassword == null ?
-          of(false) :
-          from(MyWalletServices.addMyAddress(name,address)).pipe(map(() => true),catchError(err => throwError("Failed to watch address")))
-        ),
-        first()
-      ).subscribe(
-        (result) =>{
-          if (result == true) props.onClose();
-        },
-        err =>{ //TODO: this needs improving, better error message
-          DialogService.showMessage("Error", err).subscribe()
-        }
-      );      
 
+      CreateAddress({
+        address: address,
+        name:name
+      }).subscribe(() => props.onClose());
     });
   }
 

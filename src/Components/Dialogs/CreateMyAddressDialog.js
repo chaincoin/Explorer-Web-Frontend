@@ -16,7 +16,7 @@ import DialogService from '../../Services/DialogService';
 import { switchMap } from 'rxjs/operators';
 import { from, of } from 'rxjs';
 
-import EncryptPrivateKey from '../../Observables/EncryptPrivateKeyObservable';
+import CreateAddress from '../../Observables/CreateAddress';
 
 export default  (props) => {
   const [name, setName] = React.useState("");
@@ -51,12 +51,12 @@ export default  (props) => {
       else return;
 
 
-      EncryptPrivateKey(WIF).pipe(
-        switchMap(encryptedWIF => encryptedWIF == null ?
-          of(null) :
-          from(MyWalletServices.addMyAddress(name, address, encryptedWIF == null ? WIF : null, encryptedWIF))
-        )
-      ).subscribe(() => props.onClose(), err => DialogService.showMessage("Failed", "Failed to create address").subscribe());
+      CreateAddress({
+        address: address,
+        name:name,
+        WIF:WIF
+      }).subscribe(() => props.onClose());
+      
     });
     
   });

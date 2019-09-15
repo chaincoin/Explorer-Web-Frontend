@@ -22,7 +22,7 @@ export default (props) => {
     <React.Fragment>
       <Dialog
         open={true}
-        onClose={props.onClose}
+        onClose={() =>props.onError("Cancelled by user")}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
@@ -37,6 +37,9 @@ export default (props) => {
             Okay
           </Button>
           <Button onClick={e => props.onClose(false)} color="primary" autoFocus>
+            No
+          </Button>
+          <Button onClick={e => props.onError("Cancelled by user")} color="primary" autoFocus>
             Cancel
           </Button>
         </DialogActions>

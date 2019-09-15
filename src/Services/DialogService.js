@@ -18,7 +18,7 @@ const showDialog = (Component,args) =>{
     return Observable.create(function(observer) {
 
         var dialog = {
-            jsx: (<Component onClose={e => dialogComplete(dialog, e)} {...args}/>),
+            jsx: (<Component onClose={e => dialogComplete(dialog, e)} onError={e => dialogError(dialog, e)} {...args} />),
             observer: observer
         }
 
@@ -37,7 +37,7 @@ const showMessage = (title, message) =>{
     return Observable.create(function(observer) {
 
         var dialog = {
-            jsx: (<MessageDialog title={title} message={message} onClose={e => dialogComplete(dialog, e)}/>),
+            jsx: (<MessageDialog title={title} message={message} onClose={e => dialogComplete(dialog, e)} onError={e => dialogError(dialog, e)} />),
             observer: observer
         }
 
@@ -54,7 +54,7 @@ const showConfirmation = (title, message) =>{
     return Observable.create(function(observer) {
 
         var dialog = {
-            jsx: (<ConfirmationDialog title={title} message={message} onClose={e => dialogComplete(dialog, e)}/>),
+            jsx: (<ConfirmationDialog title={title} message={message} onClose={e => dialogComplete(dialog, e)} onError={e => dialogError(dialog, e)}/>),
             observer: observer
         }
 
@@ -83,6 +83,12 @@ const removeDialog = (dialog) =>{
         dialogs.splice(dialogs.indexOf(dialog),1);
         dialogsSubject.next(dialogs);
     }
+}
+
+const dialogError = (dialog, error) =>{
+    dialog.observer.error(error);
+    dialog.observer = null;
+    removeDialog(dialog);
 }
 
 

@@ -9,6 +9,10 @@ import BlockchainServices from '../Services/BlockchainServices';
 
 const styles = {
   root: {
+    "overflow":"scroll"
+  },
+  form: {
+    "min-width":"1000px"
     
   }
 };
@@ -148,8 +152,8 @@ class PayOutGraph extends React.Component {
     };
 
     return (
-    <div>
-      <Form>
+    <div className={this.props.classes.root}>
+      <Form className={this.props.classes.form}>
         <FormGroup>
           <Label>Unit</Label>
           <Input type="select" value={unit} onChange={this.onUnitChange}>
@@ -168,12 +172,13 @@ class PayOutGraph extends React.Component {
           </Input>
         </FormGroup>
 
+        {
+          data == null ? 
+          "" :
+          <Line data={data} options={options} />
+        }
       </Form>
-      {
-        data == null ? 
-        "" :
-        <Line data={data} options={options} />
-      }
+      
     </div>
       
     );

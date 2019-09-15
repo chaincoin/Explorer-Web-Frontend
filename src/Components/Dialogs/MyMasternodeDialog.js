@@ -10,7 +10,9 @@ import FormGroup from '@material-ui/core/FormGroup';
 import { TextValidator, ValidatorForm} from 'react-material-ui-form-validator';
 
 import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
-import DialogService from '../../Services/DialogService';
+
+import CreateMyMasternode from '../../Observables/CreateMyMasternode';
+import UpdateMyMasternode from '../../Observables/UpdateMyMasternode';
 
 
 
@@ -44,25 +46,8 @@ export default (props) => {
     form.current.isFormValid(false).then(valid =>{
       if (valid == false) return;
 
-      //TODO: need to make sure the private key is correct for this MN
-
-      if (editing)
-      {
-
-        MyWalletServices.UpdateMyMasternode(name, output)
-        .then(() => props.onClose())
-        .catch(err => {
-          DialogService.showMessage("Failed","Failed to update My Mn").subscribe()
-        }); 
-      }
-      else
-      {
-        MyWalletServices.addMyMasternode(name, output)
-        .then(() => props.onClose())
-        .catch(err => {
-          DialogService.showMessage("Failed","Failed to add My Mn").subscribe()
-        }); 
-      }
+      if (editing) UpdateMyMasternode({name:name, output:output}).subscribe(() => props.onClose());
+      else CreateMyMasternode({name:name, output:output}).subscribe(() => props.onClose());
       
     });
   }

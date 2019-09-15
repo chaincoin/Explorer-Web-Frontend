@@ -12,6 +12,7 @@ import { TextValidator, ValidatorForm} from 'react-material-ui-form-validator';
 
 import MyWalletServices from '../../Services/MyWalletServices/MyWalletServices';
 import DialogService from '../../Services/DialogService';
+import UpdateAddress from '../../Observables/UpdateAddress';
 
 export default (props) => {
   const [name, setName] = React.useState("");
@@ -40,9 +41,10 @@ export default (props) => {
     form.current.isFormValid(false).then(valid =>{
       if (valid == false) return;
 
-      MyWalletServices.updateMyAddress({name, address}) 
-      .then(props.onClose)
-      .catch(err => DialogService.showMessage("Failed", "Failed to update My Address").subscribe());
+      UpdateAddress({
+        address: address,
+        name:name
+      }).subscribe(() => props.onClose());
 
     });
   }

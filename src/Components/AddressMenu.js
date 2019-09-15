@@ -17,12 +17,11 @@ import MyWalletServices from '../Services/MyWalletServices/MyWalletServices';
 import FirebaseServices from '../Services/FirebaseServices';
 import DialogService from '../Services/DialogService';
 
-import IsWalletEncrypted from '../Observables/IsWalletEncryptedObservable';
-import DecryptPrivateKey from '../Observables/DecryptPrivateKeyObservable';
 
 import GetAddressWif from '../Observables/GetAddressWifObservable';
-import GetWalletPasswordObservable from '../Observables/GetWalletPasswordObservable';
-import EncryptPrivateKeyObservable from '../Observables/EncryptPrivateKeyObservable';
+import DeleteMyAddress from '../Observables/DeleteMyAddress';
+import UpdateAddress from '../Observables/UpdateAddress';
+import WalletAction from '../Observables/WalletAction';
 
 const styles = theme => ({
   root: {
@@ -94,22 +93,7 @@ class AddressMenu extends React.Component {
   handleMenuRemoveFromMyAddresses = () => {
     this.handleMenuClose();
 
-    IsWalletEncrypted.pipe( //TODO: maybe this logic should be in its own file
-      switchMap(walletEncrypted => walletEncrypted == false ? 
-        of(""):
-        GetWalletPasswordObservable
-      ),
-      switchMap((walletPassword) => walletPassword == null ?
-        of(false) :
-        DialogService.showConfirmation("Remove My Address", this.state.myAddress.WIF == null && this.state.myAddress.encryptedWIF == null ? "Are you sure?" : "Are you sure? the private key can not be recovered")
-      ),
-      first()
-    ).subscribe((result) =>{
-      if(result == true) MyWalletServices.deleteMyAddress(this.props.address);
-    },
-    (error) =>{
-      DialogService.showMessage("Error",error).subscribe();
-    });
+    DeleteMyAddress(this.props.address).subscribe();
   };
 
 
@@ -133,20 +117,11 @@ class AddressMenu extends React.Component {
   handleMenuExportWif = () => {
     this.handleMenuClose();
 
-    IsWalletEncrypted.pipe(
-      switchMap(walletEncrypted => walletEncrypted ? 
-        DecryptPrivateKey(this.state.myAddress.encryptedWIF):
-        of(this.state.myAddress.WIF)
-      ),
-      first()
-    ).subscribe((WIF) =>{
-      debugger;
-      if (WIF != null)  DialogService.showMessage("WIF", WIF).subscribe();
-    },
-    (error) =>{
-      debugger;
-      DialogService.showMessage("Error",error).subscribe();
-    });
+    WalletAction(([encryt, decrypt]) =>{
+      DialogService.showMessage("WIF", this.state.myAddress.WIF || decrypt(this.state.myAddress.encryptedWIF)).subscribe();
+      return of(null);
+    }).subscribe();
+
   };
 
 
@@ -157,52 +132,17 @@ class AddressMenu extends React.Component {
     GetAddressWif(this.props.address).pipe(
       switchMap(wif => wif == null ?
         of(null) :
-        IsWalletEncrypted.pipe(
-        switchMap(walletEncrypted => walletEncrypted == false ? 
-          of({WIF: wif}):
-          EncryptPrivateKeyObservable(wif).pipe(
-            map(encryptedWif => encryptedWif == null ?
-              null :
-              { encryptedWIF: encryptedWif } 
-            )
-          )
-        )
-      )),
-      first()
-    )
-    .subscribe(data =>{
-      if (data != null) MyWalletServices.updateMyAddress(Object.assign({}, {address: this.props.address},data));
-    },
-    (error) =>{
-      debugger;
-      DialogService.showMessage("Error",error).subscribe();
-    });
-
+        UpdateAddress({address: this.props.address, WIF:wif})
+      )
+    ).subscribe();
+    
 
   };
   
   handleMenuClearWif = () => {
     this.handleMenuClose();
 
-    IsWalletEncrypted.pipe(
-      switchMap(walletEncrypted => walletEncrypted == false ? 
-        of(true): 
-        GetWalletPasswordObservable.pipe(map(walletPassword => walletPassword != null))
-      ),
-      switchMap(result => result != true ?
-        of(false) :
-        DialogService.showConfirmation("Clear WIF", "are you sure? this WIF cannot be recovered")
-      ),
-      first()
-    ).subscribe((result) =>{
-      if (result == true) MyWalletServices.updateMyAddress({address: this.props.address, WIF: null, encryptedWIF: null })
-    },
-    (error) =>{
-      debugger;
-      DialogService.showMessage("Error",error).subscribe();
-    });
-
-
+    UpdateAddress({address: this.props.address, WIF: null, encryptedWIF: null}).subscribe();
   };
   
 

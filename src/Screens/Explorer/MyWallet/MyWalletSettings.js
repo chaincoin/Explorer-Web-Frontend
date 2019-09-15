@@ -68,7 +68,7 @@ export default (props) =>{
                 <p>
 
                 </p>
-                <Button variant="contained" color="primary"  onClick={() => ImportMyWalletData.subscribe()}>
+                <Button variant="contained" color="primary"  onClick={() => {debugger;ImportMyWalletData.subscribe()}}>
                     Import My Wallet Data
                 </Button>
                 <Button variant="contained" color="primary"  onClick={() => ExportMyWalletData.subscribe()}>

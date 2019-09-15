@@ -1,6 +1,6 @@
 
 
-import { of, combineLatest } from 'rxjs';
+import { of, combineLatest, throwError } from 'rxjs';
 import { first, switchMap, map } from 'rxjs/operators'
 
 import MyWalletServices from '../Services/MyWalletServices/MyWalletServices';
@@ -8,16 +8,15 @@ import DialogService from '../Services/DialogService';
 import GetWalletPasswordObservable from './GetWalletPasswordObservable';
 import UploadFileDialog from '../Components/Dialogs/UploadFileDialog';
 import isWalletEncryptedObservable from './IsWalletEncryptedObservable';
+import WalletAction from './WalletAction';
 
 
-export default isWalletEncryptedObservable.pipe(
-    switchMap(walletEncrypted => walletEncrypted == false ?
-        of(null):
-        GetWalletPasswordObservable
-    ),
-    switchMap(() => DialogService.showConfirmation("Import My Wallet Data","Are you sure? this will overwrite any current configuration")),
-    switchMap((confirm) => confirm == false?
-        of(false):
+
+export default WalletAction(([encrypt, decrypt, password]) =>{
+    debugger;
+    return DialogService.showConfirmation("Import My Wallet Data","Are you sure? this will overwrite any current configuration").pipe(
+      switchMap(confirmation => confirmation != true ?
+        throwError("Cancelled by user"):
         DialogService.showDialog(UploadFileDialog,{
             title: "Import My Wallet Data",
             message: "Select My Wallet Data export file",
@@ -32,10 +31,11 @@ export default isWalletEncryptedObservable.pipe(
             }
         }).pipe(
             switchMap(fileDataJson => fileDataJson == null?
-                of(false)
+                of(null)
                 : MyWalletServices.importMyWalletData(JSON.parse(fileDataJson))
             )
         )
-    ),
-    first()
-)
+      )
+    )
+  })
+

@@ -50,14 +50,9 @@ myWalletService.inputLockStates = inputLockStates(myWalletService);
 myWalletService.inputAddresses = inputAddresses(myWalletService);
 
 
-myWalletService.addMyAddress = (name, address, WIF, encryptedWIF) =>{ 
+myWalletService.addMyAddress = (address) =>{ 
 
-    return window.walletApi.createAddress({
-        name:name,
-        address: address,
-        WIF:WIF,
-        encryptedWIF: encryptedWIF
-    }).then(() => {
+    return window.walletApi.createAddress(address).then(() => {
         myWalletService.myAddressAdded.next();
     });
   }
@@ -81,13 +76,8 @@ myWalletService.addMyAddress = (name, address, WIF, encryptedWIF) =>{
   
 
 
-  myWalletService.addMyMasternode = (name, output, privateKey, encryptedPrivateKey) =>{ 
-    return window.walletApi.createMasternode({
-        name:name,
-        output: output,
-        privateKey: privateKey,
-        encryptedPrivateKey: encryptedPrivateKey
-    }).then(() => {
+  myWalletService.addMyMasternode = (myMn) =>{ 
+    return window.walletApi.createMasternode(myMn).then(() => {
         myWalletService.myMasternodeAdded.next();
     });
   }
