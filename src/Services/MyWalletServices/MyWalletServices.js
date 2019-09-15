@@ -58,7 +58,6 @@ myWalletService.addMyAddress = (address) =>{
   }
 
   myWalletService.updateMyAddress = (address) =>{ 
-    debugger;
     return window.walletApi.updateAddress(address).then(() => {
         myWalletService.myAddressUpdated.next();
     });
@@ -83,7 +82,6 @@ myWalletService.addMyAddress = (address) =>{
   }
 
   myWalletService.UpdateMyMasternode = (masternode) =>{ 
-    debugger;
     return window.walletApi.updateMasternode(masternode).then(() => {
         myWalletService.myMasternodeUpdated.next();
     });

@@ -13,7 +13,7 @@ import WalletAction from './WalletAction';
 
 
 export default WalletAction(([encrypt, decrypt, password]) =>{
-    debugger;
+
     return DialogService.showConfirmation("Import My Wallet Data","Are you sure? this will overwrite any current configuration").pipe(
       switchMap(confirmation => confirmation != true ?
         throwError("Cancelled by user"):
