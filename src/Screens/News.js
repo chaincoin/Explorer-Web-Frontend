@@ -27,7 +27,7 @@ class News extends React.Component {
     rows: [
       {
         header:"My Masternodes now has payout performance graphs",
-        body:"Simple go to <a href=\"#Explorer/MyWallet/MyMasternodes\">My Masternodes</a> and click the graphs tab "
+        body:"Simple go to <a href=\"\Explorer/MyWallet/MyMasternodes\">My Masternodes</a> and click the graphs tab "
       },
       {
           header:"Chaincoin Faucet - now live",
@@ -39,7 +39,7 @@ class News extends React.Component {
       },
       {
           header:"Chaincoin 0.6.14 MN guide",
-          body:"A new guide to creating a chaincoin 0.6.14 MN is now available <a href=\"#Tutorials\">here</a>"
+          body:"A new guide to creating a chaincoin 0.6.14 MN is now available <a href=\"\Tutorials\">here</a>"
       },
       {
           header:"Chaincoin Explorer's new Server",
@@ -51,11 +51,11 @@ class News extends React.Component {
       },
       {
           header:"MainNet web miner",
-          body:"Chaincoin Explorer has successfully mined two blocks on MainNet - <a href=\"http://chaincoinexplorer.co.uk/?#Explorer/Address/chc1qy2n9qmvp3j6ew2k0prqk2q7h9j3e8wrlgmyea2\" target=\"_blank\">chc1qy2n9qmvp3j6ew2k0prqk2q7h9j3e8wrlgmyea2</a><br>But I didn't realise the monumental event had happened and have spent the CHC :("
+          body:"Chaincoin Explorer has successfully mined two blocks on MainNet - <a href=\"http://chaincoinexplorer.co.uk/Explorer/Address/chc1qy2n9qmvp3j6ew2k0prqk2q7h9j3e8wrlgmyea2\" target=\"_blank\">chc1qy2n9qmvp3j6ew2k0prqk2q7h9j3e8wrlgmyea2</a><br>But I didn't realise the monumental event had happened and have spent the CHC :("
       },
       {
           header:"SerfNet web miner",
-          body:"Chaincoin Explorer has successfully mined many blocks on SerfNet - <a href=\"http://test.chaincoinexplorer.co.uk/?#Explorer/Address/tchc1qq03kpt3xpw0vdg6n03g3xurd776g98aclljeph\" target=\"_blank\">tchc1qq03kpt3xpw0vdg6n03g3xurd776g98aclljeph</a>"
+          body:"Chaincoin Explorer has successfully mined many blocks on SerfNet - <a href=\"http://test.chaincoinexplorer.co.uk/Explorer/Address/tchc1qq03kpt3xpw0vdg6n03g3xurd776g98aclljeph\" target=\"_blank\">tchc1qq03kpt3xpw0vdg6n03g3xurd776g98aclljeph</a>"
       }
     ],
     loading: true, 

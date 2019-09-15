@@ -13,7 +13,7 @@ export default WalletAction(([encrypt, decrypt, password]) =>{
   return DialogService.showConfirmation("Remove Wallet Password", "Are you sure? your private keys will be store in plain text putting your Chaincoins at risk").pipe(
     switchMap(confirmation => confirmation != true ?
       throwError("Cancelled by user"):
-      MyWalletServices.removeWalletPassword(password)
+      MyWalletServices.removeWalletPassword(password).pipe(map(result => "Wallet decrypted"))
     )
   )
 })

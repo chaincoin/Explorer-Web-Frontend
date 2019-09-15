@@ -21,6 +21,6 @@ export default WalletAction(([encrypt, decrypt, walletPassword]) => DialogServic
 .pipe(
     switchMap(confirm => confirm != true ?
         throwError("Cancelled by user"):
-        MyWalletServices.clearMyWalletData(walletPassword)
+        MyWalletServices.clearMyWalletData(walletPassword).pipe(map(() => "My Wallet data cleared"))
     )
 ))
