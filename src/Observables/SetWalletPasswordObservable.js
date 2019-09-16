@@ -7,26 +7,16 @@ import DialogService from '../Services/DialogService';
 import SetWalletPasswordDialog from '../Components/Dialogs/SetWalletPasswordDialog';
 import IsWalletEncrypted from './IsWalletEncryptedObservable';
 import { throwError, of, empty } from 'rxjs';
+import WalletAction from './WalletAction';
 
 
-export default IsWalletEncrypted.pipe(
-    switchMap(isWalletEncrypted => isWalletEncrypted == true ?
-      throwError("wallet is encrypted"):
-      DialogService.showDialog(SetWalletPasswordDialog).pipe(
-        switchMap(password => password == null ?
-          of(false):
-          MyWalletServices.setWalletPassword(password).pipe(map(result => "Wallet encrypted"))
-        )
-      )
-    ),
-    first(),
-    switchMap(message => message == null ?
-      of(null):
-      DialogService.showMessage("Success", message)
-    ),
-    catchError(err => {
-        DialogService.showMessage("Error", err).subscribe();
-        return empty();
-    })
+export default WalletAction(([encrypt, decrypt, walletPassword]) =>{
+  if (encrypt != null) return throwError("Wallet already encrypted");
+
+  return DialogService.showDialog(SetWalletPasswordDialog).pipe(
+    switchMap(password => MyWalletServices.setWalletPassword(password).pipe(map(result => "Wallet encrypted"))
+    )
   )
+
+})
   
