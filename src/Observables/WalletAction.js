@@ -26,7 +26,7 @@ export default (action) => IsWalletEncrypted.pipe(
         DialogService.showMessage("Success", message)
     ),
     catchError(err => {
-        DialogService.showMessage("Error", err).subscribe();
+        if (err != "Cancelled by user") DialogService.showMessage("Error", err).subscribe();
         return empty();
     })
 );
