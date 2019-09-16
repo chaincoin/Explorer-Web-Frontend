@@ -32,7 +32,7 @@ export default WalletAction(([encrypt, decrypt, password]) =>{
         }).pipe(
             switchMap(fileDataJson => fileDataJson == null?
                 of(null)
-                : MyWalletServices.importMyWalletData(JSON.parse(fileDataJson))
+                : MyWalletServices.importMyWalletData(JSON.parse(fileDataJson)).pipe(map(result => "My Wallet data imported"))
             )
         )
       )
