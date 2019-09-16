@@ -17,7 +17,7 @@ import WalletAction from './WalletAction';
 
 
 
-export default WalletAction(([encrypt, decrypt, walletPassword]) => DialogService.showConfirmation("Remove Wallet Password", "Are you sure? your private keys will be store in plain text putting your Chaincoins at risk")
+export default WalletAction(([encrypt, decrypt, walletPassword]) => DialogService.showConfirmation("Clear My Wallet Data", "Are you sure? your private keys cannot be recovered!!!")
 .pipe(
     switchMap(confirm => confirm != true ?
         throwError("Cancelled by user"):
