@@ -71,49 +71,61 @@ class ChaincoinExplorerNavBar extends React.Component {
 
     const { searchInput } = this.state;
 
-    combineLatest(
-      BlockchainServices.getBlock(searchInput)
-      .pipe(
-        map((block) =>{
-          if (block == null) throw new Error('Unabled to find block');  //TODO; need to fix api
-          return block;
-        }),
-        catchError(err => of(null))
-      ), 
-      BlockchainServices.getTransaction(searchInput)
-      .pipe(
-        map((transaction) =>{
-          if (transaction == null) throw new Error('Unabled to find transaction');  //TODO; need to fix api
-          return transaction;
-        }),
-        catchError(err => of(null))
-      ), 
-      BlockchainServices.getAddress(searchInput)
-      .pipe(
-        map((address) =>{
-          if (address.txCount == 0) throw new Error('Unabled to find masternode');  //TODO; need to fix api
-          return address;
-        }),
-        catchError(err => of(null))
-      ), 
-      BlockchainServices.masternode(searchInput)
-      .pipe(
-        map((masternode) =>{
-          if (masternode == null) throw new Error('Unabled to find masternode');  //TODO; need to fix api
-          return masternode;
-        }),
-        catchError(err => of(null))
+
+
+    try
+    {
+      window.bitcoin.address.toOutputScript(searchInput,BlockchainServices.Chaincoin);
+      this.props.history.push('/Explorer/Address/' + searchInput);
+      return;
+    }
+    catch(ex){
+      //not an address
+    }
+
+   
+
+    //is masternode output - could also check for ip
+    if (/^[a-fA-F0-9]{64}-[0-9]{1,8}$/.test(searchInput))
+    {
+      this.props.history.push('/Explorer/Masternode/' + searchInput);
+      return;
+    }
+
+    
+    //Maybe block or transaction
+    if (/^[a-fA-F0-9]{64}$/.test(searchInput))
+    {
+      combineLatest(
+        BlockchainServices.getBlock(searchInput)
+        .pipe(
+          map((block) =>{
+            if (block == null) throw new Error('Unabled to find block');  //TODO; need to fix api
+            return block;
+          }),
+          catchError(err => of(null))
+        ), 
+        BlockchainServices.getTransaction(searchInput)
+        .pipe(
+          map((transaction) =>{
+            if (transaction == null) throw new Error('Unabled to find transaction');  //TODO; need to fix api
+            return transaction;
+          }),
+          catchError(err => of(null))
+        ), 
+      ).pipe(
+        first()
       )
-    ).pipe(
-      first()
-    )
-    .subscribe(([block, transaction, address, masternode])=>{
-      if (block != null ) this.props.history.push('/Explorer/Block/' + block.hash);
-      else if (transaction != null ) this.props.history.push('/Explorer/Transcation/' + transaction.txid);
-      else if (address != null ) this.props.history.push('/Explorer/Address/' + address.address);
-      else if (masternode != null ) this.props.history.push('/Explorer/Masternode/' + searchInput);
-      else this.props.history.push('/NotFound/' + searchInput);
-    });
+      .subscribe(([block, transaction, address, masternode])=>{
+        if (block != null ) this.props.history.push('/Explorer/Block/' + searchInput);
+        else if (transaction != null) this.props.history.push('/Explorer/Transaction/' + searchInput);
+        else this.props.history.push('/NotFound/' + searchInput);
+      });
+
+      return;
+    }
+
+    this.props.history.push('/NotFound/' + searchInput);
 
   }
 
