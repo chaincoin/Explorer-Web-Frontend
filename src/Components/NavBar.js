@@ -186,6 +186,11 @@ class ChaincoinExplorerNavBar extends React.Component {
                   Banned List
                   </DropdownItem>
                 </Link>
+                <Link to="/Explorer/ProposalList">
+                  <DropdownItem>
+                  Proposal List
+                  </DropdownItem>
+                </Link>
               </DropdownMenu>
             </UncontrolledDropdown>
             <NavItem>

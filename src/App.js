@@ -29,7 +29,7 @@ import RichList from './Screens/Explorer/RichList'
 import PeerList from './Screens/Explorer/PeerList'
 import ChainTips from './Screens/Explorer/ChainTips'
 import BannedList from './Screens/Explorer/BannedList'
-
+import ProposalList from './Screens/Explorer/ProposalList'
 
 import BountyList from './Screens/BountyList'
 
@@ -199,6 +199,8 @@ const styles = theme => ({
           <Route exact path="/Explorer/PeerList" component={PeerList} />
           <Route exact path="/Explorer/ChainTips" component={ChainTips} />
           <Route exact path="/Explorer/BannedList" component={BannedList} />
+
+          <Route exact path="/Explorer/ProposalList" component={ProposalList} />
           
           <Route exact path="/Explorer/MyWallet" component={MyWallet} />
           <Route exact path="/Explorer/MyWallet/*" component={MyWallet} />

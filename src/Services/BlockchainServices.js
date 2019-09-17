@@ -373,6 +373,19 @@ var getBlockHash = (blockId) =>{ //TODO: This is a memory leak
     })
   );
 
+  var gObjectList = DataService.webSocket.pipe(
+    switchMap(webSocket => webSocket ?
+      DataService.subscription("GObjectList"):
+      interval(30000).pipe(switchMap(() => from(DataService.sendRequest({
+        op: "getGObjectList",
+      }))))
+    ),
+    shareReplay({
+      bufferSize: 1,
+      refCount: true
+    })
+  );
+
   var bannedList = DataService.webSocket.pipe(
     switchMap(webSocket => webSocket ?
       DataService.subscription("BannedList"):
@@ -515,6 +528,7 @@ var getBlockHash = (blockId) =>{ //TODO: This is a memory leak
     masternodeWinners,
 
     peerInfo,
+    gObjectList,
     chainTips,
     bannedList,
 
