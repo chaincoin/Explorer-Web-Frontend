@@ -69,9 +69,26 @@ class PayOutGraph extends React.Component {
 
     var promises = addresses.map(address => BlockchainServices.getPayoutStats(address, payOutType, unit));
 
-    Promise.all(promises).then((addressStates) => {
+
+    Promise.all(promises).then((addressesStatesData) => {
+
+      const addressesStates = addressesStatesData.map(addressStates => addressStates.map(stat =>{
+          var date;
+          if (unit == "daily") date = new Date(stat._id.year, stat._id.month - 1, stat._id.day);
+          if (unit == "weekly") {
+              date = new Date(stat._id.year, 0, 1);
+              date.setDate(stat._id.week * 7);
+          }
+          if (unit == "monthly") date = new Date(stat._id.year, stat._id.month - 1, 1);
+          if (unit == "yearly") date = new Date(stat._id.year, 0, 1);
+
+          return { date, count:stat.count, value:stat.value };     
+
+      }));
+      ;
+
       this.setState({
-        addressStates
+        addressesStates
       })
     });
 
@@ -80,9 +97,9 @@ class PayOutGraph extends React.Component {
 
   render(){
     const { classes, addresses, names } = this.props;
-    const { graph, unit, value, addressStates  } = this.state;
+    const { graph, unit, value, addressesStates  } = this.state;
 
-
+;
 
     return (
     <div className={this.props.classes.root}>
@@ -114,19 +131,19 @@ class PayOutGraph extends React.Component {
         </FormGroup>
 
         {
-          addressStates == null ? 
+          addressesStates == null ? 
           "" :
           (
             <>
             {
               graph != "line" ?
               null :
-              <LineGraph unit={unit} value={value}  addresses={addresses} names={names} addressStates={addressStates} />
+              <StackGraph unit={unit} value={value}  addresses={addresses} names={names} addressesStates={addressesStates} />
             }
             {
               graph != "stack" ?
               null :
-              <StackGraph unit={unit} value={value}  addresses={addresses} names={names} addressStates={addressStates} />
+              <StackGraph unit={unit} value={value}  addresses={addresses} names={names} addressesStates={addressesStates} />
             }
             </>
           )

@@ -15,38 +15,76 @@ const payOutsLineColours = [
 export default props =>{
 
 
-    const { unit,value, addresses, names, addressStates } = props;
+    const { unit,value, addresses, names, addressesStates } = props;
 
     const graphData = React.useMemo(() =>{
 
         
 
-        debugger;
-        const dates = addressStates.flatMap(states => states.map(stat =>{
-            var date;
-            if (unit == "daily") date = new Date(stat._id.year, stat._id.month - 1, stat._id.day);
-            if (unit == "weekly") {
-                date = new Date(stat._id.year, 0, 1);
-                date.setDate(stat._id.week * 7);
-            }
-            if (unit == "monthly") date = new Date(stat._id.year, stat._id.month - 1, 1);
-            if (unit == "yearly") date = new Date(stat._id.year, 0, 1);
+        ;
+        const statesDates = addressesStates.flatMap(states => states.map(stat =>stat.date));
 
-            return date;
-        }));
+
+        const minDate=new Date(Math.min.apply(null,statesDates));
+        const maxDate=new Date(Math.max.apply(null,statesDates));
+        ;
+
+        const dates = [minDate];
+        {
+            var currentDate = minDate;
+
+            while(currentDate < maxDate){
+                var nextDate = null;
+                if (unit == "daily") {
+                    nextDate = new Date(currentDate.getTime());
+                    nextDate.setDate(nextDate.getDate() + 1);
+                }
+
+                if (unit == "weekly") {
+                    nextDate = new Date(currentDate.getTime());
+                    nextDate.setDate(nextDate.getDate() + 7);
+                    if (currentDate.getFullYear() != nextDate.getFullYear() && currentDate.getDate() != 31) {
+                        nextDate.setDate(31);
+                        nextDate.setMonth(11);
+                        nextDate.setFullYear(currentDate.getFullYear());
+                    }
+                }
+
+                if (unit == "monthly"){
+                    nextDate = new Date(currentDate.getTime());
+                    nextDate.setMonth(nextDate.getMonth() + 1);
+                }
+
+                if (unit == "yearly"){
+                    nextDate = new Date(currentDate.getTime());
+                    nextDate.setFullYear(nextDate.getFullYear() + 1);
+                }
+                dates.push(nextDate);
+
+                currentDate = nextDate;
+            }
+
+        }
 
 
         const labels = dates.map(date =>{
             return date;
         });
-
-        const datasets = addressStates.map((states, pos) =>{
+debugger;
+        const datasets = addressesStates.map((states, pos) =>{
 
             return {
 				label: 'Dataset ' + pos,
 				backgroundColor: payOutsLineColours[pos % payOutsLineColours.length],
 				stack: 'Stack 1',
-				data: states.map(stat => value == "sum" ? stat.value : stat.count)
+                data: dates.map(date =>{
+
+                    const stat = states.find(stat => stat.date.getTime() == date.getTime());
+                    if (stat == null) return 0;
+                    return value == "sum" ? stat.value : stat.count;
+                })
+                
+                
 			}
 
         })
@@ -56,7 +94,7 @@ export default props =>{
 		datasets:datasets
 	   };
 
-    },[unit,value, addressStates]);
+    },[unit,value, addressesStates]);
 
 
     var graphUnit = "week";

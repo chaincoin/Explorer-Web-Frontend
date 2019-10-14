@@ -37,7 +37,7 @@ function encode (obj) {
   return blocks
 }
 	
-debugger;
+;
 
 var ChaincoinNetwork = {
   messagePrefix: 'DarkCoin Signed Message:\n',
@@ -143,7 +143,7 @@ const aliceInputScript = bitcoin.payments.p2sh({
 
 aliceTx.setInputScript(0, aliceInputScript)
 var aliceTxHex = aliceTx.toHex();
-debugger;
+;
 };
 build();
 

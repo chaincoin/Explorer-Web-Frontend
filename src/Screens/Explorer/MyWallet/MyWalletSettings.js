@@ -45,7 +45,7 @@ export default (props) =>{
                         if (result == true) DialogService.showMessage("Success","Wallet Encrypted").subscribe();
                     },
                     (error) =>{
-                        debugger;
+                        ;
                         DialogService.showMessage("Error",error).subscribe();
                     })
                 }>
@@ -68,7 +68,7 @@ export default (props) =>{
                 <p>
 
                 </p>
-                <Button variant="contained" color="primary"  onClick={() => {debugger;ImportMyWalletData.subscribe()}}>
+                <Button variant="contained" color="primary"  onClick={() => {;ImportMyWalletData.subscribe()}}>
                     Import My Wallet Data
                 </Button>
                 <Button variant="contained" color="primary"  onClick={() => ExportMyWalletData.subscribe()}>
