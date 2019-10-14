@@ -3,7 +3,7 @@ import { combineLatest } from 'rxjs';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
-import Graph from '../../../Components/PayOutGraph';
+import Graph from '../../../Components/PayOutGraph/PayOutGraph';
 import Paper from '@material-ui/core/Paper';
 
 import BlockchainServices from '../../../Services/BlockchainServices';

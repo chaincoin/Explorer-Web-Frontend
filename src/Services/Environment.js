@@ -24,9 +24,15 @@ if (window.location.host == "localhost:3000")
     var environment = "Test";*/
 
 
+    
+    blockchainApiUrl = "https://api.chaincoinexplorer.co.uk";
+    webServicesApiUrl = "wss://api.chaincoinexplorer.co.uk";
+    environment = "Live";
+
+/*
     blockchainApiUrl = "http://127.0.0.1:8080";
     webServicesApiUrl = "ws://127.0.0.1:8080";
-    environment = "Live";
+    environment = "Live";*/
 }
 
 
