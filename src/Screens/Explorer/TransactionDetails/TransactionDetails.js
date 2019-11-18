@@ -10,6 +10,8 @@ import Vout from './TransactionDetailsVout';
 
 
 import BlockchainServices from '../../../Services/BlockchainServices';
+import { ReplaySubject } from 'rxjs';
+import { distinctUntilChanged, switchMap } from 'rxjs/operators';
 
 
 
@@ -19,46 +21,24 @@ const styles = {
   }
 };
 
-class TransactionDetails extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-        transaction: null,
-        error: null
-    };
-  
-    this.getTransactionSubscription = null;
-  }
 
 
-  componentDidMount() {
-    const { txid } = this.props.match.params
+const TransactionDetails = (props) =>{
 
-    this.getTransactionSubscription = BlockchainServices.getTransaction(txid).subscribe((transaction) =>{
-      this.setState({
-        transaction: transaction
-      });
-    });
+  const [transaction, setTransaction] = React.useState();
 
-  }
+   
 
-  componentWillUnmount() {
+  React.useEffect(() => {
+    const subscription = BlockchainServices.getTransaction(props.match.params.txid).subscribe(transaction =>setTransaction(transaction));
+    return () => subscription.unsubscribe();
+  }, [props.match.params.txid]); 
 
-    this.getTransactionSubscription.unsubscribe();
-  }
+  if (transaction == null) return (
+    <div></div>
+  ); //User promise or something
 
-
-
-  render(){
-    const { classes } = this.props;
-    const { transaction } = this.state;
-
-    if (transaction == null)
-    {
-      return null;
-    }
-    return (
+  return (
     <div>
       <Header transaction={transaction}/>
       <Grid container>
@@ -72,11 +52,7 @@ class TransactionDetails extends React.Component {
       
       
     </div>
-      
-    );
-  }
-
-  
+  )
 }
 
 TransactionDetails.propTypes = {
